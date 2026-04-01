@@ -92,7 +92,8 @@ input:focus,select:focus{outline:2px solid #111!important;outline-offset:1px}
 .report-btn-icon{font-size:18px}
 .report-btn-title{font-size:13px;font-weight:700;color:#111}
 .report-btn-sub{font-size:10px;color:#888}
-.tabs{display:flex;border-bottom:1px solid #e0e0e0;background:#fff;position:sticky;top:calc(60px + env(safe-area-inset-top));z-index:90;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabs{display:flex;border-bottom:1px solid #e0e0e0;background:#fff;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-content{padding-top:0}
 .tab{padding:12px 16px;font-size:13px;font-weight:500;color:#999;border:none;background:none;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;font-family:'IBM Plex Sans',sans-serif;flex-shrink:0}
 .tab.active{color:#111;border-bottom-color:#111;font-weight:600}
 .ptable{width:100%;border-collapse:collapse}
@@ -438,10 +439,12 @@ function HomeScreen({entries, setTab, dashTab, setDashTab, settings, syncStatus}
         <div className="empty"><div className="empty-icon">🛞</div><div className="empty-text">No jobs logged yet</div><button className="empty-btn btn" onClick={()=>setTab("add")}>Log Your First Job</button></div>
       ):(
         <>
-          <div className="tabs">
-            {[["overview","Overview"],["weekly","Weekly"],["monthly","Monthly"],["employees","Employees"],["expenses","Expenses"]].map(([t,l])=>(
-              <button key={t} className={`tab${dashTab===t?" active":""}`} onClick={()=>setDashTab(t)}>{l}</button>
-            ))}
+          <div style={{position:"sticky",top:"calc(60px + env(safe-area-inset-top))",zIndex:90,background:"#fff",borderBottom:"1px solid #e0e0e0"}}>
+            <div className="tabs">
+              {[["overview","Overview"],["weekly","Weekly"],["monthly","Monthly"],["employees","Employees"],["expenses","Expenses"]].map(([t,l])=>(
+                <button key={t} className={`tab${dashTab===t?" active":""}`} onClick={()=>setDashTab(t)}>{l}</button>
+              ))}
+            </div>
           </div>
 
           {dashTab==="overview" && <>
