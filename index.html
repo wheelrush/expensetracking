@@ -391,6 +391,90 @@ function SetupScreen({onComplete, onSkip}){
   );
 }
 
+// ── Revenue Goal Calculator ──
+function RevenueCalculator({settings, entries, totalDailyOH}){
+  const [jobsPerDay,  setJobsPerDay]  = useState(4);
+  const [pricePerJob, setPricePerJob] = useState(105);
+  const [jobCostPct,  setJobCostPct]  = useState(10);
+  const workDays = 22;
+  const monthlyExp = calcMonthlyExpenses(settings.expenses);
+  const dailyRev = jobsPerDay * pricePerJob;
+  const dailyJobCost = dailyRev * (jobCostPct/100);
+  const dailyGross = dailyRev - dailyJobCost;
+  const dailyEmpRate = (settings.emp1Type!=="None"||settings.emp2Type!=="None") && entries.length>0
+    ? entries.reduce((s,e)=>s+totalEmpPay(e,settings),0) / Math.max(entries.reduce((s,e)=>s+e.revenue,0),1)
+    : 0;
+  const dailyEmp = dailyGross * dailyEmpRate;
+  const dailyNet = dailyGross - dailyEmp - totalDailyOH;
+  const monthlyRev = dailyRev * workDays;
+  const monthlyNet = dailyNet * workDays;
+  const coversDailyOH = dailyRev >= totalDailyOH;
+  const coversMonthly = monthlyRev >= monthlyExp;
+
+  const row = (label, val, red) => (
+    <div className="breakdown-row" style={{padding:"4px 0"}}>
+      <span className="breakdown-label">{label}</span>
+      <span className={`breakdown-val${red?" red":""}`}>{red?"−":""}{cur(val)}</span>
+    </div>
+  );
+
+  return (
+    <div className="breakdown-card" style={{marginBottom:16}}>
+      <div style={{padding:"14px"}}>
+        {[
+          {label:"Jobs per day", val:jobsPerDay, set:setJobsPerDay, min:1, max:10, step:1, fmt:v=>v, minL:"1", maxL:"10"},
+          {label:"Price per job", val:pricePerJob, set:setPricePerJob, min:50, max:300, step:5, fmt:v=>cur(v), minL:"$50", maxL:"$300"},
+          {label:"Job cost % of revenue", val:jobCostPct, set:setJobCostPct, min:0, max:50, step:1, fmt:v=>v+"%", minL:"0%", maxL:"50%"},
+        ].map(s=>(
+          <div key={s.label} style={{marginBottom:14}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+              <label style={{fontSize:12,color:"#555",fontWeight:600}}>{s.label}</label>
+              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700}}>{s.fmt(s.val)}</span>
+            </div>
+            <input type="range" min={s.min} max={s.max} step={s.step} value={s.val}
+              onChange={e=>s.set(+e.target.value)} style={{width:"100%",accentColor:"#111"}}/>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"#aaa",marginTop:2}}>
+              <span>{s.minL}</span><span>{s.maxL}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{borderTop:"1px solid #e0e0e0",padding:"12px 14px",background:"#fafafa"}}>
+        <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",color:"#888",marginBottom:8}}>Daily Projection</div>
+        {row(`Revenue (${jobsPerDay} × ${cur(pricePerJob)})`, dailyRev)}
+        {row(`Job costs (${jobCostPct}%)`, dailyJobCost, true)}
+        {dailyEmp>0&&row("Employee pay (est.)", dailyEmp, true)}
+        {row("Fixed overhead/day", totalDailyOH, true)}
+        <div style={{display:"flex",justifyContent:"space-between",padding:"8px 0 0",borderTop:"1px solid #e0e0e0",marginTop:4}}>
+          <span style={{fontSize:13,fontWeight:700}}>Daily Net</span>
+          <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,fontWeight:700,color:dailyNet>=0?"#22c55e":"#ef4444"}}>{cur(dailyNet)}</span>
+        </div>
+      </div>
+
+      <div style={{borderTop:"1px solid #e0e0e0",padding:"12px 14px"}}>
+        <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",color:"#888",marginBottom:8}}>Monthly Projection ({workDays} working days)</div>
+        {row("Gross Revenue", monthlyRev)}
+        {row("Fixed Expenses", monthlyExp, true)}
+        <div style={{display:"flex",justifyContent:"space-between",padding:"8px 0 0",borderTop:"1px solid #e0e0e0",marginTop:4}}>
+          <span style={{fontSize:13,fontWeight:700}}>Monthly Net</span>
+          <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:18,fontWeight:700,color:monthlyNet>=0?"#22c55e":"#ef4444"}}>{cur(monthlyNet)}</span>
+        </div>
+      </div>
+
+      <div style={{padding:"10px 14px",display:"flex",gap:8,flexWrap:"wrap",background:"#f9f9f9",borderTop:"1px solid #e0e0e0"}}>
+        <span style={{fontSize:11,background:coversDailyOH?"#dcfce7":"#fee2e2",color:coversDailyOH?"#166534":"#dc2626",borderRadius:6,padding:"4px 10px",fontWeight:600}}>
+          {coversDailyOH?"✓ Covers daily overhead":"✗ Below daily overhead"}
+        </span>
+        <span style={{fontSize:11,background:coversMonthly?"#dcfce7":"#fee2e2",color:coversMonthly?"#166534":"#dc2626",borderRadius:6,padding:"4px 10px",fontWeight:600}}>
+          {coversMonthly?"✓ Covers monthly expenses":"✗ Short of monthly expenses"}
+        </span>
+        {monthlyNet>=3000&&<span style={{fontSize:11,background:"#dbeafe",color:"#1e40af",borderRadius:6,padding:"4px 10px",fontWeight:600}}>💪 Profitable</span>}
+      </div>
+    </div>
+  );
+}
+
 // ── HOME SCREEN ──
 function HomeScreen({entries, setTab, dashTab, setDashTab, settings, syncStatus}){
   const [modal,setModal]=useState(null);
@@ -694,95 +778,7 @@ function HomeScreen({entries, setTab, dashTab, setDashTab, settings, syncStatus}
 
                 {/* Revenue Goal Calculator */}
                 <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",color:"#888",marginBottom:10}}>Revenue Goal Calculator</div>
-                {(()=>{
-                  const [jobsPerDay, setJobsPerDay] = React.useState(4);
-                  const [pricePerJob, setPricePerJob] = React.useState(105);
-                  const [jobCostPct, setJobCostPct] = React.useState(10);
-                  const workDays = 22;
-                  const dailyRev = jobsPerDay * pricePerJob;
-                  const dailyJobCost = dailyRev * (jobCostPct/100);
-                  const dailyGross = dailyRev - dailyJobCost;
-                  const dailyEmpRate = settings.emp1Type!=="None"||settings.emp2Type!=="None"
-                    ? (entries.length>0 ? entries.reduce((s,e)=>s+totalEmpPay(e,settings),0)/entries.reduce((s,e)=>s+e.revenue,0) : 0)
-                    : 0;
-                  const dailyEmp = dailyGross * dailyEmpRate;
-                  const dailyNet = dailyGross - dailyEmp - totalDailyOH;
-                  const monthlyRev = dailyRev * workDays;
-                  const monthlyNet = dailyNet * workDays;
-                  const monthlyExp = calcMonthlyExpenses(settings.expenses);
-                  const coversDailyOH = dailyRev >= totalDailyOH;
-                  const coversMonthly = monthlyRev >= monthlyExp;
-
-                  return (
-                    <div className="breakdown-card" style={{marginBottom:16}}>
-                      {/* Sliders */}
-                      <div style={{padding:"14px"}}>
-                        <div style={{marginBottom:14}}>
-                          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                            <label style={{fontSize:12,color:"#555",fontWeight:600}}>Jobs per day</label>
-                            <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700}}>{jobsPerDay}</span>
-                          </div>
-                          <input type="range" min="1" max="10" value={jobsPerDay} onChange={e=>setJobsPerDay(+e.target.value)}
-                            style={{width:"100%",accentColor:"#111"}}/>
-                          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"#aaa",marginTop:2}}><span>1</span><span>10</span></div>
-                        </div>
-                        <div style={{marginBottom:14}}>
-                          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                            <label style={{fontSize:12,color:"#555",fontWeight:600}}>Price per job</label>
-                            <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700}}>{cur(pricePerJob)}</span>
-                          </div>
-                          <input type="range" min="50" max="300" step="5" value={pricePerJob} onChange={e=>setPricePerJob(+e.target.value)}
-                            style={{width:"100%",accentColor:"#111"}}/>
-                          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"#aaa",marginTop:2}}><span>$50</span><span>$300</span></div>
-                        </div>
-                        <div>
-                          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                            <label style={{fontSize:12,color:"#555",fontWeight:600}}>Job cost (% of revenue)</label>
-                            <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700}}>{jobCostPct}%</span>
-                          </div>
-                          <input type="range" min="0" max="50" step="1" value={jobCostPct} onChange={e=>setJobCostPct(+e.target.value)}
-                            style={{width:"100%",accentColor:"#111"}}/>
-                          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"#aaa",marginTop:2}}><span>0%</span><span>50%</span></div>
-                        </div>
-                      </div>
-
-                      {/* Daily breakdown */}
-                      <div style={{borderTop:"1px solid #e0e0e0",padding:"12px 14px",background:"#fafafa"}}>
-                        <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",color:"#888",marginBottom:8}}>Daily Projection</div>
-                        <div className="breakdown-row" style={{padding:"4px 0"}}><span className="breakdown-label">Revenue ({jobsPerDay} × {cur(pricePerJob)})</span><span className="breakdown-val">{cur(dailyRev)}</span></div>
-                        <div className="breakdown-row" style={{padding:"4px 0"}}><span className="breakdown-label">Job costs ({jobCostPct}%)</span><span className="breakdown-val red">−{cur(dailyJobCost)}</span></div>
-                        {dailyEmp>0&&<div className="breakdown-row" style={{padding:"4px 0"}}><span className="breakdown-label">Employee pay (est.)</span><span className="breakdown-val red">−{cur(dailyEmp)}</span></div>}
-                        <div className="breakdown-row" style={{padding:"4px 0"}}><span className="breakdown-label">Fixed overhead/day</span><span className="breakdown-val red">−{cur(totalDailyOH)}</span></div>
-                        <div style={{display:"flex",justifyContent:"space-between",padding:"8px 0 0",borderTop:"1px solid #e0e0e0",marginTop:4}}>
-                          <span style={{fontSize:13,fontWeight:700}}>Daily Net</span>
-                          <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,fontWeight:700,color:dailyNet>=0?"#22c55e":"#ef4444"}}>{cur(dailyNet)}</span>
-                        </div>
-                      </div>
-
-                      {/* Monthly projection */}
-                      <div style={{borderTop:"1px solid #e0e0e0",padding:"12px 14px"}}>
-                        <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",color:"#888",marginBottom:8}}>Monthly Projection ({workDays} working days)</div>
-                        <div className="breakdown-row" style={{padding:"4px 0"}}><span className="breakdown-label">Gross Revenue</span><span className="breakdown-val">{cur(monthlyRev)}</span></div>
-                        <div className="breakdown-row" style={{padding:"4px 0"}}><span className="breakdown-label">Fixed Expenses</span><span className="breakdown-val red">−{cur(monthlyExp)}</span></div>
-                        <div style={{display:"flex",justifyContent:"space-between",padding:"8px 0 0",borderTop:"1px solid #e0e0e0",marginTop:4}}>
-                          <span style={{fontSize:13,fontWeight:700}}>Monthly Net</span>
-                          <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:18,fontWeight:700,color:monthlyNet>=0?"#22c55e":"#ef4444"}}>{cur(monthlyNet)}</span>
-                        </div>
-                      </div>
-
-                      {/* Status badges */}
-                      <div style={{padding:"10px 14px",display:"flex",gap:8,flexWrap:"wrap",background:"#f9f9f9",borderTop:"1px solid #e0e0e0"}}>
-                        <span style={{fontSize:11,background:coversDailyOH?"#dcfce7":"#fee2e2",color:coversDailyOH?"#166534":"#dc2626",borderRadius:6,padding:"4px 10px",fontWeight:600}}>
-                          {coversDailyOH?"✓ Covers daily overhead":"✗ Doesn't cover overhead"}
-                        </span>
-                        <span style={{fontSize:11,background:coversMonthly?"#dcfce7":"#fee2e2",color:coversMonthly?"#166534":"#dc2626",borderRadius:6,padding:"4px 10px",fontWeight:600}}>
-                          {coversMonthly?"✓ Covers monthly expenses":"✗ Short of monthly expenses"}
-                        </span>
-                        {monthlyNet>=3000&&<span style={{fontSize:11,background:"#dbeafe",color:"#1e40af",borderRadius:6,padding:"4px 10px",fontWeight:600}}>💪 Profitable</span>}
-                      </div>
-                    </div>
-                  );
-                })()}
+                <RevenueCalculator settings={settings} entries={entries} totalDailyOH={totalDailyOH}/>
                 <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",color:"#888",marginBottom:10}}>Overhead by Day</div>
                 {days.map(day=>(
                   <div key={day.date} className="breakdown-card" style={{marginBottom:12}}>
