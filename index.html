@@ -1588,11 +1588,15 @@ function App(){
 
   const tireUnsubRef = useRef(null);
   const tireSavingRef = useRef(false);
+  const jobSavingRef = useRef(false);
 
   const startListening=useCallback(()=>{
     setSyncStatus("syncing");
     if(unsubRef.current) unsubRef.current();
-    const unsub=fbListen(docs=>{setEntries(docs);saveLocal(docs);setLoaded(true);setSyncStatus("connected");});
+    const unsub=fbListen(docs=>{
+      if(jobSavingRef.current) return; // block listener while saving/deleting
+      setEntries(docs);saveLocal(docs);setLoaded(true);setSyncStatus("connected");
+    });
     unsubRef.current=unsub;
     // Also listen to tire inventory
     if(tireUnsubRef.current) tireUnsubRef.current();
@@ -1607,7 +1611,11 @@ function App(){
   const handleFBSetup=useCallback(()=>{setFbEnabled(true);setShowSetup(false);startListening();},[startListening]);
   const handleDisconnect=useCallback(()=>{ if(!window.confirm("Disconnect Firebase?")) return; if(unsubRef.current) unsubRef.current(); localStorage.removeItem(FB_CONFIG_KEY); setFbEnabled(false);setSyncStatus("offline"); try{if(firebase.apps.length>0)firebase.apps[0].delete();}catch{} _db=null; },[]);
 
-  const saveEntryFB=useCallback(async entry=>{try{setSyncStatus("syncing");await fbSave(entry);}catch{setSyncStatus("error");}},[]);
+  const saveEntryFB=useCallback(async entry=>{
+    try{ jobSavingRef.current=true; setSyncStatus("syncing"); await fbSave(entry); }
+    catch{ setSyncStatus("error"); }
+    finally{ setTimeout(()=>jobSavingRef.current=false,800); }
+  },[]);
 
   const saveEntry=useCallback(()=>{
     if(!form.revenue||isNaN(Number(form.revenue))){setError("Enter a valid revenue amount.");return false;}
@@ -1631,7 +1639,11 @@ function App(){
     if(!window.confirm("Delete this job?")) return;
     const next=entries.filter(e=>e.id!==id);
     setEntries(next); saveLocal(next);
-    if(fbEnabled){ try{ await fbDelete(id); }catch(e){ console.error(e); } }
+    if(fbEnabled){
+      try{ jobSavingRef.current=true; await fbDelete(id); }
+      catch(e){ console.error(e); }
+      finally{ setTimeout(()=>jobSavingRef.current=false,800); }
+    }
   },[entries,fbEnabled]);
 
   const syncColor={"connected":"#22c55e","syncing":"#fbbf24","offline":"#999","error":"#ef4444"}[syncStatus]||"#999";
