@@ -194,12 +194,12 @@ input:focus,select:focus{outline:2px solid #111!important;outline-offset:1px}
 .inv-search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#ccc;font-size:14px;pointer-events:none;z-index:1}
 .inv-rim-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid #e0e0e0;background:#fff;scrollbar-width:none}
 .inv-rim-tabs::-webkit-scrollbar{display:none}
-.inv-sticky-header{position:sticky;top:calc(60px + env(safe-area-inset-top));z-index:91;background:#fff;border-bottom:1px solid #e0e0e0}
+.inv-sticky-header{position:sticky;top:calc(60px + env(safe-area-inset-top));z-index:91;background:#fff}
 .inv-rim-tab{padding:8px 14px;border:none;background:transparent;color:#999;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;flex-shrink:0;transition:all 0.15s}
 .inv-rim-tab.active{color:#111;border-bottom-color:#111}
 .inv-rim-tab:hover{color:#111}
-.inv-content{padding:10px 14px 80px}
-.inv-rim-section{margin-bottom:20px}
+.inv-content{padding:10px 14px 80px;padding-top:10px}
+.inv-rim-section{scroll-margin-top:220px}
 .inv-rim-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:0 2px}
 .inv-rim-label{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;color:#111}
 .inv-rim-divider{flex:1;height:1px;background:#e0e0e0}
@@ -365,6 +365,12 @@ const INITIAL_TIRES = [
 ];
 const loadTiresLocal = () => { try{ const v=localStorage.getItem(TIRE_LOCAL_KEY); return v?JSON.parse(v):null; }catch{return null;} };
 const saveTiresLocal = d => { try{ localStorage.setItem(TIRE_LOCAL_KEY,JSON.stringify(d)); }catch{} };
+// Tire sales log
+const TIRE_SALES_KEY = "tire-sales-log";
+const loadTireSales = () => { try{ const v=localStorage.getItem(TIRE_SALES_KEY); return v?JSON.parse(v):[]; }catch{return [];} };
+const saveTireSales = d => { try{ localStorage.setItem(TIRE_SALES_KEY,JSON.stringify(d)); }catch{} };
+async function fbLogTireSale(sale){ const col=_db?_db.collection("tire_sales"):null; if(!col) return; await col.doc(String(sale.id)).set(sale); }
+function fbListenTireSales(cb){ const col=_db?_db.collection("tire_sales"):null; if(!col) return ()=>{}; return col.onSnapshot(snap=>{ cb(snap.docs.map(d=>d.data())); },()=>{}); }
 function getTireCol(){ return _db?_db.collection("tire_inventory"):null; }
 async function fbSaveTire(t){ const col=getTireCol(); if(!col) return; await col.doc(String(t.id)).set(t); }
 async function fbDeleteTire(id){ const col=getTireCol(); if(!col) return; await col.doc(String(id)).delete(); }
@@ -1400,7 +1406,9 @@ function SettingsScreen({entries, setEntries, settings, setSettings, syncStatus,
 
 
 // ── Inventory Screen ──
-function InventoryScreen({tires, setTires, fbEnabled, savingRef}){
+function InventoryScreen({tires, setTires, fbEnabled, savingRef, entries}){
+  const [invTab,      setInvTab]      = useState("stock"); // stock | bestsellers
+  const [tireSalesLog, setTireSalesLog] = useState(()=>loadTireSales());
   const [search,      setSearch]      = useState("");
   const [filterRim,   setFilterRim]   = useState("all");
   const [showAdd,     setShowAdd]     = useState(false);
@@ -1424,10 +1432,19 @@ function InventoryScreen({tires, setTires, fbEnabled, savingRef}){
   },[tires,fbEnabled]);
 
   const updateQty = useCallback(async(id,delta)=>{
-    const updated=tires.map(t=>t.id===id?{...t,qty:Math.max(0,t.qty+delta)}:t);
-    const t=updated.find(x=>x.id===id);
-    await persist(updated,t,null);
-  },[tires,fbEnabled,persist]);
+    const tire=tires.find(t=>t.id===id);
+    if(!tire) return;
+    const newQty=Math.max(0,tire.qty+delta);
+    const updated=tires.map(t=>t.id===id?{...t,qty:newQty}:t);
+    await persist(updated,updated.find(x=>x.id===id),null);
+    // Log a sale when qty decreases
+    if(delta<0 && newQty < tire.qty){
+      const sale={id:Date.now(),size:tire.size,rim:tire.rim,qty:Math.abs(delta),date:new Date().toISOString().slice(0,10)};
+      const newLog=[sale,...tireSalesLog];
+      setTireSalesLog(newLog); saveTireSales(newLog);
+      if(fbEnabled) try{ await fbLogTireSale(sale); }catch(e){ console.error(e); }
+    }
+  },[tires,tireSalesLog,fbEnabled,persist]);
 
   const removeItem = useCallback(async(id)=>{
     if(!window.confirm("Remove this tire?"))return;
@@ -1479,39 +1496,133 @@ function InventoryScreen({tires, setTires, fbEnabled, savingRef}){
 
   return (
     <div className="screen">
-      {/* Sticky header block */}
+      {/* Sticky header — stats + tab switcher */}
       <div className="inv-sticky-header">
-      {/* Stats bar */}
-      <div className="inv-stats">
-        <div className="inv-stat"><div className={`inv-stat-num orange`}>{totalQty}</div><div className="inv-stat-lbl">Total Tires</div></div>
-        <div style={{width:1,height:28,background:"#f0f0f0"}}/>
-        <div className="inv-stat"><div className="inv-stat-num">{tires.length}</div><div className="inv-stat-lbl">SKUs</div></div>
-        <div style={{width:1,height:28,background:"#f0f0f0"}}/>
-        <div className="inv-stat"><div className={`inv-stat-num ${flagged.length>0?"red":""}`}>{flagged.length}</div><div className="inv-stat-lbl">Flagged</div></div>
-        <div style={{flex:1}}/>
-        <button className="btn" onClick={()=>setShowAdd(!showAdd)} style={{background:"#111",color:"#fff",border:"none",borderRadius:8,padding:"7px 14px",fontSize:12,fontFamily:"'IBM Plex Sans',sans-serif",fontWeight:700,cursor:"pointer"}}>{showAdd?"✕ Cancel":"+ Add"}</button>
-        <button className="btn" onClick={resetToDefault} style={{background:"none",border:"1px solid #e0e0e0",borderRadius:8,padding:"7px 10px",fontSize:12,fontFamily:"'IBM Plex Sans',sans-serif",color:"#aaa",cursor:"pointer"}}>↺</button>
-      </div>
-
-      {/* Toolbar */}
-      <div className="inv-toolbar">
-        <div className="inv-search-wrap">
-          <span className="inv-search-icon">⌕</span>
-          <input className="inv-search" placeholder="Search size or note..." value={search} onChange={e=>setSearch(e.target.value)} style={{paddingLeft:30,width:"100%"}}/>
+        <div className="inv-stats">
+          <div className="inv-stat"><div className="inv-stat-num orange">{totalQty}</div><div className="inv-stat-lbl">Total Tires</div></div>
+          <div style={{width:1,height:28,background:"#f0f0f0"}}/>
+          <div className="inv-stat"><div className="inv-stat-num">{tires.length}</div><div className="inv-stat-lbl">SKUs</div></div>
+          <div style={{width:1,height:28,background:"#f0f0f0"}}/>
+          <div className="inv-stat"><div className={`inv-stat-num${flagged.length>0?" red":""}`}>{flagged.length}</div><div className="inv-stat-lbl">Flagged</div></div>
+          <div style={{flex:1}}/>
+          {invTab==="stock"&&<><button onClick={()=>setShowAdd(!showAdd)} style={{background:"#111",color:"#fff",border:"none",borderRadius:8,padding:"7px 14px",fontSize:12,fontFamily:"'IBM Plex Sans',sans-serif",fontWeight:700,cursor:"pointer"}}>{showAdd?"✕ Cancel":"+ Add"}</button>
+          <button onClick={resetToDefault} style={{background:"none",border:"1px solid #e0e0e0",borderRadius:8,padding:"7px 10px",fontSize:12,fontFamily:"'IBM Plex Sans',sans-serif",color:"#aaa",cursor:"pointer"}}>↺</button></>}
         </div>
+        {/* Tab switcher */}
+        <div style={{display:"flex",borderBottom:"1px solid #e0e0e0",background:"#fff"}}>
+          <button onClick={()=>setInvTab("stock")} style={{flex:1,padding:"10px",border:"none",background:"transparent",fontFamily:"'IBM Plex Sans',sans-serif",fontSize:13,fontWeight:600,cursor:"pointer",color:invTab==="stock"?"#111":"#aaa",borderBottom:invTab==="stock"?"2px solid #111":"2px solid transparent"}}>📦 Stock</button>
+          <button onClick={()=>setInvTab("bestsellers")} style={{flex:1,padding:"10px",border:"none",background:"transparent",fontFamily:"'IBM Plex Sans',sans-serif",fontSize:13,fontWeight:600,cursor:"pointer",color:invTab==="bestsellers"?"#111":"#aaa",borderBottom:invTab==="bestsellers"?"2px solid #111":"2px solid transparent"}}>🏆 Best Sellers</button>
+        </div>
+        {/* Search + rim tabs only for stock view */}
+        {invTab==="stock"&&<>
+          <div className="inv-toolbar">
+            <div className="inv-search-wrap">
+              <span className="inv-search-icon">⌕</span>
+              <input className="inv-search" placeholder="Search size or note..." value={search} onChange={e=>setSearch(e.target.value)} style={{paddingLeft:30,width:"100%"}}/>
+            </div>
+          </div>
+          <div className="inv-rim-tabs">
+            <button className={`inv-rim-tab${filterRim==="all"?" active":""}`} onClick={()=>setFilterRim("all")}>All</button>
+            {rimOptions.map(r=>(
+              <button key={r} className={`inv-rim-tab${filterRim===String(r)?" active":""}`} onClick={()=>setFilterRim(String(r))}>R{r}</button>
+            ))}
+          </div>
+        </>}
       </div>
 
-      {/* Rim tabs */}
-      <div className="inv-rim-tabs">
-        <button className={`inv-rim-tab${filterRim==="all"?" active":""}`} onClick={()=>setFilterRim("all")}>All</button>
-        {rimOptions.map(r=>(
-          <button key={r} className={`inv-rim-tab${filterRim===String(r)?" active":""}`} onClick={()=>setFilterRim(String(r))}>R{r}</button>
-        ))}
-      </div>
-      </div>{/* end sticky header */}
+      {/* Best Sellers Tab */}
+      {invTab==="bestsellers" && (()=>{
+        // Combine job history + inventory sales log
+        const jobsWithTires=(entries||[]).filter(e=>e.tireSize&&e.tireSize.trim()!=="");
+        const hasSalesData=tireSalesLog.length>0||jobsWithTires.length>0;
+        if(!hasSalesData) return (
+          <div className="empty" style={{paddingTop:60}}>
+            <div className="empty-icon">📊</div>
+            <div className="empty-text">No sales data yet</div>
+            <div style={{fontSize:12,color:"#aaa",marginTop:6}}>Tap − on any tire to log a sale, or add jobs with tire sizes</div>
+          </div>
+        );
+        const sizeMap={};
+        // From job history
+        jobsWithTires.forEach(e=>{
+          const s=e.tireSize.trim().toUpperCase();
+          if(!sizeMap[s])sizeMap[s]={size:s,jobs:0,qty:0,revenue:0,fromStock:0};
+          sizeMap[s].jobs++; sizeMap[s].qty+=(e.qty||1); sizeMap[s].revenue+=e.revenue;
+        });
+        // From inventory decreases
+        tireSalesLog.forEach(sale=>{
+          const s=sale.size.trim().toUpperCase();
+          if(!sizeMap[s])sizeMap[s]={size:s,jobs:0,qty:0,revenue:0,fromStock:0};
+          sizeMap[s].fromStock+=(sale.qty||1); sizeMap[s].qty+=(sale.qty||1);
+        });
+        const byJobs=Object.values(sizeMap).sort((a,b)=>(b.jobs+b.fromStock)-(a.jobs+a.fromStock));
+        const maxJobs=Math.max(...byJobs.map(s=>s.jobs+s.fromStock))||1;
+        const rimMap={};
+        jobsWithTires.forEach(e=>{
+          const m=e.tireSize.match(/R(\d+)/i); if(!m) return;
+          const r="R"+m[1];
+          if(!rimMap[r])rimMap[r]={rim:r,jobs:0,qty:0};
+          rimMap[r].jobs++; rimMap[r].qty+=(e.qty||1);
+        });
+        tireSalesLog.forEach(sale=>{
+          const m=sale.size.match(/R(\d+)/i); if(!m) return;
+          const r="R"+m[1];
+          if(!rimMap[r])rimMap[r]={rim:r,jobs:0,qty:0};
+          rimMap[r].qty+=(sale.qty||1);
+        });
+        const byRim=Object.values(rimMap).sort((a,b)=>b.jobs-a.jobs);
+        const maxRim=byRim[0]?.jobs||1;
+        return (
+          <div style={{padding:"14px 14px 80px"}}>
+            <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",color:"#888",marginBottom:10}}>🏆 Most Sold Sizes</div>
+            <div style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:10,overflow:"hidden",marginBottom:18}}>
+              {byJobs.slice(0,15).map((s,i)=>(
+                <div key={s.size} style={{padding:"10px 14px",borderBottom:"1px solid #f5f5f5",display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{width:22,height:22,background:i===0?"#111":i===1?"#444":i===2?"#777":"#f0f0f0",borderRadius:4,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:i<3?"#fff":"#999",flexShrink:0}}>{i+1}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,color:"#111",marginBottom:5}}>{s.size}</div>
+                    <div style={{background:"#f5f5f5",borderRadius:4,height:6,overflow:"hidden"}}>
+                      <div style={{height:"100%",background:i===0?"#111":"#ddd",borderRadius:4,width:((s.jobs+s.fromStock)/maxJobs*100)+"%"}}/>
+                    </div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,fontWeight:700}}>{s.jobs+s.fromStock} sold</div>
+                    <div style={{fontSize:10,color:"#aaa"}}>{s.jobs>0?s.jobs+" jobs":""}{s.fromStock>0?(s.jobs>0?" + ":"")+s.fromStock+" from stock":""}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",color:"#888",marginBottom:10}}>📊 By Rim Size</div>
+            <div style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:10,overflow:"hidden",marginBottom:18}}>
+              {byRim.map(r=>(
+                <div key={r.rim} style={{padding:"10px 14px",borderBottom:"1px solid #f5f5f5",display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{width:36,fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,color:"#111",flexShrink:0}}>{r.rim}</div>
+                  <div style={{flex:1}}>
+                    <div style={{background:"#f5f5f5",borderRadius:4,height:8,overflow:"hidden"}}>
+                      <div style={{height:"100%",background:"#111",borderRadius:4,width:(r.jobs/maxRim*100)+"%"}}/>
+                    </div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,fontWeight:700}}>{r.jobs} jobs</div>
+                    <div style={{fontSize:10,color:"#aaa"}}>{r.qty} tires sold</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {byJobs.filter(s=>s.jobs===1).length>0&&<>
+              <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",color:"#888",marginBottom:10}}>🐌 Only Sold Once</div>
+              <div style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:10,padding:"12px 14px",display:"flex",flexWrap:"wrap",gap:6,marginBottom:18}}>
+                {byJobs.filter(s=>s.jobs===1).map(s=>(
+                  <span key={s.size} style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,background:"#f5f5f5",padding:"4px 10px",borderRadius:4,color:"#666"}}>{s.size}</span>
+                ))}
+              </div>
+            </>}
+          </div>
+        );
+      })()}
 
-      {/* Add form */}
-      {showAdd&&(
+      {/* Add form — only in stock tab */}
+      {invTab==="stock"&&showAdd&&(
         <div className="inv-add-form">
           {[{label:"Tire Size",key:"size",ph:"225/45R18",w:140},{label:"Rim",key:"rim",ph:"18",w:70,type:"number"},{label:"Qty",key:"qty",ph:"1",w:60,type:"number"},{label:"Note",key:"notes",ph:"Optional",w:130}].map(f=>(
             <div className="inv-add-field" key={f.key}>
@@ -1523,11 +1634,11 @@ function InventoryScreen({tires, setTires, fbEnabled, savingRef}){
         </div>
       )}
 
-      {/* Inventory grid */}
-      <div className="inv-content">
+      {/* Inventory grid — only in stock tab */}
+      {invTab==="stock"&&<div className="inv-content">
         {grouped.length===0&&<div className="empty"><div className="empty-icon">🛞</div><div className="empty-text">No tires found</div></div>}
-        {grouped.map(([rim,tiles])=>(
-          <div key={rim} className="inv-rim-section">
+        {grouped.map(([rim,tiles],sectionIdx)=>(
+          <div key={rim} className="inv-rim-section" style={{marginTop:sectionIdx===0?8:20}}>
             <div className="inv-rim-header">
               <div className="inv-rim-label">{rim}"</div>
               <div className="inv-rim-divider"/>
@@ -1573,7 +1684,7 @@ function InventoryScreen({tires, setTires, fbEnabled, savingRef}){
             </div>
           </div>
         ))}
-      </div>
+      </div>}
     </div>
   );
 }
@@ -1733,7 +1844,7 @@ function App(){
       {tab==="home"     && <HomeScreen     entries={entries} setTab={setTab} dashTab={dashTab} setDashTab={setDashTab} settings={settings} syncStatus={syncStatus}/>}
       {tab==="add"      && <AddScreen      form={form} setForm={setForm} onSave={handleSave} onSaveAndAdd={handleSaveAndAdd} error={error} setError={setError} success={success} settings={settings}/>}
       {tab==="history"  && <HistoryScreen  entries={entries} onDelete={handleDelete} filterSvc={filterSvc} setFilterSvc={setFilterSvc} filterStatus={filterStatus} setFilterStatus={setFilterStatus} settings={settings}/>}
-      {tab==="inventory" && <InventoryScreen tires={tires} setTires={setTires} fbEnabled={fbEnabled} savingRef={tireSavingRef}/>}
+      {tab==="inventory" && <InventoryScreen tires={tires} setTires={setTires} fbEnabled={fbEnabled} savingRef={tireSavingRef} entries={entries}/>}
       {tab==="settings" && <SettingsScreen entries={entries} setEntries={setEntries} settings={settings} setSettings={setSettings} syncStatus={syncStatus} fbEnabled={fbEnabled} onSetupSync={()=>setShowSetup(true)} onDisconnectSync={handleDisconnect} onSaveEntryFB={saveEntryFB}/>}
 
       <nav className="bottom-nav">
