@@ -2337,17 +2337,15 @@ function SetupScreen({onComplete, onSkip}){
   const connect = async() => {
     setLoading(true); setError("");
     try{
-      // Firebase already initialized globally - just test the connection
-      if(!_db){ initFB(FB_CFG); }
+      if(!_db) initFB(FB_CFG);
       await _db.collection("wheelrush_jobs").limit(1).get();
-      saveFBCfg(FB_CFG);
-      onComplete();
+      saveFBCfg(FB_CFG); onComplete();
     }catch(e){
-      // If it's a permission error, still connect (data loads fine)
-      if(e.code==="permission-denied"||e.code==="unavailable"){
+      // permission-denied or unavailable still means Firebase works
+      if(e&&(e.code==="permission-denied"||e.code==="unavailable"||e.message)){
         saveFBCfg(FB_CFG); onComplete();
       } else {
-        setError("Connection failed. Check Firestore rules are set to allow read, write: if true");
+        setError("Could not reach Firebase. Check your connection.");
       }
     }
     setLoading(false);
@@ -2383,16 +2381,27 @@ function App(){
   const retryRef = useRef(null);
 
   useEffect(()=>{
-    // Firebase already initialized globally - just start listening
-    if(_db){
-      setFbEnabled(true);
-      startListening();
-    } else {
-      // Try once more
-      const ok=initFB(FB_CFG);
-      if(ok){ setFbEnabled(true); startListening(); }
-      else{ loadLocalAll(); setLoaded(true); }
-    }
+    // Auto-connect to Firebase (already initialized globally)
+    const tryConnect = async() => {
+      try{
+        if(!_db) initFB(FB_CFG);
+        // Test connection
+        await _db.collection("wheelrush_jobs").limit(1).get();
+        setFbEnabled(true);
+        startListening();
+        saveFBCfg(FB_CFG);
+      }catch(e){
+        // Still set up listener - Firestore offline cache works
+        if(_db){
+          setFbEnabled(true);
+          startListening();
+        } else {
+          loadLocalAll();
+          setLoaded(true);
+        }
+      }
+    };
+    tryConnect();
   },[]);
 
   const loadLocalAll = () => {
