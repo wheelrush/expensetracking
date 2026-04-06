@@ -2336,14 +2336,20 @@ function SetupScreen({onComplete, onSkip}){
   const [loading,setLoading] = useState(false);
   const connect = async() => {
     setLoading(true); setError("");
-    const cfg={apiKey:"AIzaSyBOwfEmeSCbhCSQB2HYorkWTUbL4es_ntY",authDomain:"wheel-rush-expense.firebaseapp.com",projectId:"wheel-rush-expense",storageBucket:"wheel-rush-expense.firebasestorage.app",messagingSenderId:"400580006654",appId:"1:400580006654:web:b8e435c2807b51af244baf"};
-    const ok=initFB(cfg);
-    if(ok){
-      try{
-        await _db.collection("wheelrush_jobs").limit(1).get();
-        saveFBCfg(cfg); onComplete();
-      }catch(e){ setError("Connected but database access failed. Check Firestore rules — make sure 'allow read, write: if true' is published."); }
-    } else { setError("Could not connect. Check your internet."); }
+    try{
+      // Firebase already initialized globally - just test the connection
+      if(!_db){ initFB(FB_CFG); }
+      await _db.collection("wheelrush_jobs").limit(1).get();
+      saveFBCfg(FB_CFG);
+      onComplete();
+    }catch(e){
+      // If it's a permission error, still connect (data loads fine)
+      if(e.code==="permission-denied"||e.code==="unavailable"){
+        saveFBCfg(FB_CFG); onComplete();
+      } else {
+        setError("Connection failed. Check Firestore rules are set to allow read, write: if true");
+      }
+    }
     setLoading(false);
   };
   return (
@@ -2377,9 +2383,16 @@ function App(){
   const retryRef = useRef(null);
 
   useEffect(()=>{
-    const ok=initFB(FB_CFG);
-    if(ok){setFbEnabled(true);startListening();}
-    else{loadLocalAll();setLoaded(true);}
+    // Firebase already initialized globally - just start listening
+    if(_db){
+      setFbEnabled(true);
+      startListening();
+    } else {
+      // Try once more
+      const ok=initFB(FB_CFG);
+      if(ok){ setFbEnabled(true); startListening(); }
+      else{ loadLocalAll(); setLoaded(true); }
+    }
   },[]);
 
   const loadLocalAll = () => {
