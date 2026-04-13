@@ -1096,10 +1096,10 @@ function App(){
   const authInit=useRef(false);
 
   // Persist wrappers
-  const setJobs=useCallback(v=>{const n=typeof v==='function'?v(jobs):v;setJobsRaw(n);if(!user)lss(KEYS.jobs,n);},[jobs,user]);
+  const setJobs=useCallback(v=>{const n=typeof v==='function'?v(jobs):v;setJobsRaw(n);lss(KEYS.jobs,n);},[jobs]);
   const setSettings=useCallback(v=>{const n=typeof v==='function'?v(settings):v;setSettingsRaw(n);lss(KEYS.settings,n);},[settings]);
-  const setInventory=useCallback(v=>{const n=typeof v==='function'?v(inventory):v;setInventoryRaw(n);if(!user)lss(KEYS.inventory,n);},[inventory,user]);
-  const setVarExpenses=useCallback(v=>{const n=typeof v==='function'?v(varExpenses):v;setVarExpRaw(n);if(!user)lss(KEYS.expenses,n);},[varExpenses,user]);
+  const setInventory=useCallback(v=>{const n=typeof v==='function'?v(inventory):v;setInventoryRaw(n);lss(KEYS.inventory,n);},[inventory]);
+  const setVarExpenses=useCallback(v=>{const n=typeof v==='function'?v(varExpenses):v;setVarExpRaw(n);lss(KEYS.expenses,n);},[varExpenses]);
 
   // Auth — poll until _auth is ready (Firebase scripts load async on mobile)
   useEffect(()=>{
@@ -1121,17 +1121,32 @@ function App(){
   useEffect(()=>{
     if(!user||!_db) return;
     setSync('syncing');
+    // Jobs listener — Firebase is single source of truth when logged in.
+    // On first sign-in, upload any local-only jobs then defer to Firebase.
+    let jobsBootstrapped = false;
     const u1=fbListen(jobCol(),docs=>{
       if(docs.length>0){
-        const local=ls(KEYS.jobs,[]);
-        const fbIds=new Set(docs.map(d=>String(d.id)));
-        const localOnly=local.filter(j=>!fbIds.has(String(j.id)));
-        const merged=[...docs,...localOnly];
-        setJobsRaw(merged);lss(KEYS.jobs,merged);
-        if(localOnly.length)fbBatch(jobCol(),localOnly);
+        // Firebase has data — it's authoritative. Use it directly.
+        // Only on very first snapshot: check for local-only jobs to upload.
+        if(!jobsBootstrapped){
+          jobsBootstrapped=true;
+          const local=ls(KEYS.jobs,[]);
+          const fbIds=new Set(docs.map(d=>String(d.id)));
+          const localOnly=local.filter(j=>!fbIds.has(String(j.id)));
+          if(localOnly.length){
+            // Upload jobs that exist locally but not in Firebase
+            fbBatch(jobCol(),localOnly);
+            const merged=[...docs,...localOnly];
+            setJobsRaw(merged);lss(KEYS.jobs,merged);
+            return;
+          }
+        }
+        // Normal sync — Firebase wins, period.
+        setJobsRaw(docs);lss(KEYS.jobs,docs);
       } else {
+        // Firebase empty — upload local jobs (first-time sync)
         const local=ls(KEYS.jobs,[]);
-        if(local.length){fbBatch(jobCol(),local);setJobsRaw(local);}
+        if(local.length){ fbBatch(jobCol(),local); setJobsRaw(local); }
       }
       setSync('connected');
     });
