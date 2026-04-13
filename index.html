@@ -44,13 +44,14 @@ const FB_CFG = {
 let _app,_db,_auth;
 function initFB(){
   try{
-    if(typeof firebase==='undefined') return;
+    if(typeof firebase==='undefined'){ setTimeout(initFB,100); return; }
+    if(!firebase.auth) { setTimeout(initFB,100); return; }
     _app  = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FB_CFG);
     _db   = firebase.firestore();
     _auth = firebase.auth();
-  }catch(e){console.warn('FB:',e);}
+  }catch(e){console.warn('FB init:',e); setTimeout(initFB,200);}
 }
-typeof firebase!=='undefined' ? initFB() : window.addEventListener('load',initFB);
+initFB();
 
 const fbCol  = name => _db ? _db.collection(name) : null;
 const jobCol = ()   => fbCol('wr2_jobs');
@@ -315,19 +316,25 @@ function AuthScreen({onAuth}){
 
   const submit=async()=>{
     if(!email||!pass){setErr('Enter email and password.');return;}
+    if(!_auth){setErr('App still loading — try again in a second.');return;}
     setBusy(true);setErr('');
     try{
       const c=mode==='login'
-        ?await _auth.signInWithEmailAndPassword(email,pass)
-        :await _auth.createUserWithEmailAndPassword(email,pass);
+        ?await _auth.signInWithEmailAndPassword(email.trim(),pass)
+        :await _auth.createUserWithEmailAndPassword(email.trim(),pass);
       onAuth(c.user);
-    }catch(e){setErr(e.message||'Auth failed.');}
+    }catch(e){setErr(e.message||'Auth failed. Check your email and password.');}
     setBusy(false);
   };
-  const google=async()=>{try{const c=await _auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());onAuth(c.user);}catch(e){setErr(e.message);}};
+  const google=async()=>{
+    if(!_auth){setErr('App still loading — try again.');return;}
+    try{const c=await _auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());onAuth(c.user);}
+    catch(e){setErr(e.message);}
+  };
   const reset=async()=>{
     if(!email){setErr('Enter your email first.');return;}
-    try{await _auth.sendPasswordResetEmail(email);setErr('Reset link sent — check your email.');}
+    if(!_auth){setErr('App still loading — try again.');return;}
+    try{await _auth.sendPasswordResetEmail(email.trim());setErr('✓ Reset link sent — check your email.');}
     catch(e){setErr(e.message);}
   };
 
@@ -471,7 +478,7 @@ function JobModal({job,onClose,onSave,settings,services}){
 }
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
-const NAV=[{id:'dashboard',label:'Dashboard',icon:'home'},{id:'history',label:'History',icon:'history'},{id:'payouts',label:'Payouts',icon:'dollar'},{id:'stock',label:'Stock',icon:'package'},{id:'settings',label:'Settings',icon:'settings'}];
+const NAV=[{id:'dashboard',label:'Home',icon:'home'},{id:'history',label:'Jobs',icon:'history'},{id:'payouts',label:'Payouts',icon:'dollar'},{id:'stock',label:'Stock',icon:'package'},{id:'expenses',label:'Expenses',icon:'minus'},{id:'settings',label:'Settings',icon:'settings'}];
 
 function BottomNav({active,setActive,user,onSignOut,sync}){
   return(
@@ -541,8 +548,8 @@ function Dashboard({jobs,varExpenses,settings,user,sync,onSignOut}){
         </div>
         <div style={{textAlign:'right'}}>
           <div style={{fontSize:11,fontWeight:700,color:C.text}}>{wd} · {now.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
-          <div style={{fontSize:10,color:C.muted,marginTop:2,cursor:'pointer'}} onClick={onSignOut}>
-            {syncDot} {sync==='connected'?'Synced':sync==='syncing'?'Sync…':'Offline'} · Sign out
+          <div style={{fontSize:10,color:C.muted,marginTop:2}}>
+            {syncDot} {sync==='connected'?'Synced':sync==='syncing'?'Sync…':'Local only'}
           </div>
         </div>
       </div>
@@ -637,7 +644,7 @@ function Dashboard({jobs,varExpenses,settings,user,sync,onSignOut}){
 }
 
 // ── HISTORY ───────────────────────────────────────────────────────────────────
-function History({jobs,settings,setJobs,onOpenJob}){
+function History({jobs,settings,setJobs,delJob,onOpenJob}){
   const [search,setSearch]=useState('');
   const [filterSvc,setFilterSvc]=useState('All');
   const filtered=useMemo(()=>{
@@ -690,11 +697,16 @@ function History({jobs,settings,setJobs,onOpenJob}){
                       <div style={{fontFamily:'"JetBrains Mono",monospace',fontSize:12,fontWeight:700,color:gp>=0?C.success:C.danger}}>{fmt(gp)} GP</div>
                     </div>
                   </div>
-                  <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap'}}>
-                    <Badge label={j.source||'—'} color={C.muted} bg={C.border}/>
-                    <Badge label={j.payment} color={C.muted} bg={C.border}/>
-                    <Badge label={dec.label} color={dec.color} bg={dec.bg}/>
-                    {j.tireSize&&<Badge label={j.tireSize} color={C.muted} bg={C.border}/>}
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginTop:10}}>
+                    <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                      <Badge label={j.source||'—'} color={C.muted} bg={C.border}/>
+                      <Badge label={j.payment} color={C.muted} bg={C.border}/>
+                      <Badge label={dec.label} color={dec.color} bg={dec.bg}/>
+                      {j.tireSize&&<Badge label={j.tireSize} color={C.muted} bg={C.border}/>}
+                    </div>
+                    <button onClick={e=>{e.stopPropagation();if(window.confirm('Delete this job?'))delJob(j.id);}} style={{background:'transparent',border:'none',cursor:'pointer',padding:'4px',flexShrink:0}}>
+                      <Icon name="trash" size={14} color={C.subtle}/>
+                    </button>
                   </div>
                 </div>
               );
@@ -910,7 +922,7 @@ function Expenses({varExpenses,setVarExpenses}){
 }
 
 // ── SETTINGS ──────────────────────────────────────────────────────────────────
-function Settings({settings,setSettings,jobs,inventory,varExpenses}){
+function Settings({settings,setSettings,jobs,inventory,varExpenses,user,sync,onSignOut}){
   const [s,setS]=useState({...DEFAULT_SETTINGS,...settings});
   const [newExp,setNewExp]=useState({name:'',monthly:''});
   const [saved,setSaved]=useState(false);
@@ -1014,6 +1026,26 @@ function Settings({settings,setSettings,jobs,inventory,varExpenses}){
       </Card>
 
       <button onClick={saveSettings} style={{width:'100%',background:`linear-gradient(135deg,${C.orange},#CC4400)`,border:'none',borderRadius:12,padding:'14px',color:'#fff',fontWeight:800,fontSize:15,cursor:'pointer',marginTop:4,marginBottom:16}}>Save Settings</button>
+
+      <SectionLabel>Account</SectionLabel>
+      <Card>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+          <div>
+            <div style={{fontSize:13,fontWeight:700}}>Signed in as</div>
+            <div style={{fontSize:12,color:C.muted,marginTop:2}}>{user?.email||'—'}</div>
+          </div>
+          <div style={{width:10,height:10,borderRadius:'50%',background:sync==='connected'?C.success:sync==='syncing'?C.warn:C.subtle,flexShrink:0}}/>
+        </div>
+        <div style={{fontSize:11,color:C.muted,marginBottom:14,lineHeight:1.6}}>
+          {sync==='connected'?'✓ Data synced across all your devices':sync==='syncing'?'Syncing…':'Not synced — data saved locally only'}
+        </div>
+        <button onClick={()=>{
+          if(!window.confirm('Sign out? Your data is saved to Firebase.')) return;
+          onSignOut();
+        }} style={{width:'100%',background:C.dangerDim,border:`1px solid ${C.danger}44`,borderRadius:10,padding:'12px',color:C.danger,fontWeight:700,fontSize:14,cursor:'pointer'}}>
+          Sign Out
+        </button>
+      </Card>
     </div></div>
   );
 }
@@ -1037,16 +1069,20 @@ function App(){
   const setInventory=useCallback(v=>{const n=typeof v==='function'?v(inventory):v;setInventoryRaw(n);if(!user)lss(KEYS.inventory,n);},[inventory,user]);
   const setVarExpenses=useCallback(v=>{const n=typeof v==='function'?v(varExpenses):v;setVarExpRaw(n);if(!user)lss(KEYS.expenses,n);},[varExpenses,user]);
 
-  // Auth
+  // Auth — poll until _auth is ready (Firebase scripts load async on mobile)
   useEffect(()=>{
-    if(!_auth){setAuthReady(true);return;}
-    const unsub=_auth.onAuthStateChanged(u=>{
-      if(!u){setUser(null);setSync('local');authInit.current=false;setAuthReady(true);return;}
-      if(authInit.current) return;
-      authInit.current=true;
-      setUser(u);setAuthReady(true);
-    });
-    return ()=>unsub();
+    let unsub=null;
+    const tryAuth=()=>{
+      if(!_auth){ setTimeout(tryAuth,150); return; }
+      unsub=_auth.onAuthStateChanged(u=>{
+        if(!u){setUser(null);setSync('local');authInit.current=false;setAuthReady(true);return;}
+        if(authInit.current){setAuthReady(true);return;}
+        authInit.current=true;
+        setUser(u);setAuthReady(true);
+      });
+    };
+    tryAuth();
+    return ()=>{ if(unsub) unsub(); };
   },[]);
 
   // Firebase listeners
@@ -1106,13 +1142,14 @@ function App(){
     <div style={{background:C.bg,height:'100%',maxWidth:430,margin:'0 auto',display:'flex',flexDirection:'column',position:'relative',fontFamily:"'DM Sans',sans-serif",color:C.text}}>
       <div style={{flex:1,overflowY:'auto',paddingBottom:80}}>
         {tab==='dashboard'&&<Dashboard jobs={jobs} varExpenses={varExpenses} settings={settings} user={user} sync={sync} onSignOut={signOut}/>}
-        {tab==='history'&&<History jobs={jobs} settings={settings} setJobs={setJobs} onOpenJob={j=>setShowJob(j||{})}/>}
+        {tab==='history'&&<History jobs={jobs} settings={settings} setJobs={setJobs} delJob={delJob} onOpenJob={j=>setShowJob(j||{})}/>}
         {tab==='payouts'&&<Payouts jobs={jobs} settings={settings}/>}
         {tab==='stock'&&<Inventory inventory={inventory} setInventory={setInventory}/>}
-        {tab==='settings'&&<Settings settings={settings} setSettings={setSettings} jobs={jobs} inventory={inventory} varExpenses={varExpenses}/>}
+        {tab==='expenses'&&<Expenses varExpenses={varExpenses} setVarExpenses={setVarExpenses}/>}
+        {tab==='settings'&&<Settings settings={settings} setSettings={setSettings} jobs={jobs} inventory={inventory} varExpenses={varExpenses} user={user} sync={sync} onSignOut={signOut}/>}
       </div>
       {tab==='stock'&&null}{/* no FAB on stock */}
-      {tab!=='stock'&&<FAB onClick={()=>setShowJob({})}/>}
+      {tab!=='stock'&&tab!=='expenses'&&<FAB onClick={()=>setShowJob({})}/>}
       <BottomNav active={tab} setActive={setTab} user={user} onSignOut={signOut} sync={sync}/>
       {showJob!==null&&(
         <JobModal
