@@ -1358,177 +1358,243 @@ function Settings({settings,setSettings,jobs,inventory,varExpenses,user,sync,onS
 // ── APP ROOT ──────────────────────────────────────────────────────────────────
 // Firebase only — no localStorage. Settings in wr2_settings/main.
 function App(){
-  const [user,setUser]     = useState(null);
+  const [user,setUser]       = useState(null);
   const [authReady,setAuthReady] = useState(false);
-  const [tab,setTab]       = useState('dashboard');
+  const [authError,setAuthError] = useState('');
+  const [tab,setTab]         = useState('dashboard');
   const [showJob,setShowJob] = useState(null);
-  const [sync,setSync]     = useState('local');
+  const [sync,setSync]       = useState('offline');
   const [jobs,setJobsRaw]           = useState([]);
   const [settings,setSettingsRaw]   = useState(DEFAULT_SETTINGS);
   const [inventory,setInventoryRaw] = useState([]);
   const [varExpenses,setVarExpRaw]  = useState([]);
-  const authInit = useRef(false);
+  const authInitRef = useRef(false);
+  const unsubsRef   = useRef([]);
 
+  // ── AUTH ────────────────────────────────────────────────────────────────────
   useEffect(()=>{
-    let unsub=null;
-    const tryAuth=()=>{
-      if(!_auth){setTimeout(tryAuth,150);return;}
-      unsub=_auth.onAuthStateChanged(u=>{
-        if(!u){setUser(null);setSync('local');authInit.current=false;setAuthReady(true);return;}
-        if(authInit.current){setAuthReady(true);return;}
-        authInit.current=true;
-        setUser(u);setAuthReady(true);
+    let cancelled = false;
+    const MAX_WAIT = 10000; // 10s before showing error
+
+    const timer = setTimeout(()=>{
+      if(cancelled) return;
+      setAuthError('Could not reach Firebase. Open the app at your deployed URL.');
+      setAuthReady(true);
+    }, MAX_WAIT);
+
+    const attach = () => {
+      if(!_auth){ setTimeout(attach, 100); return; }
+      const unsub = _auth.onAuthStateChanged(u => {
+        if(cancelled) return;
+        clearTimeout(timer);
+        authInitRef.current = !!u;
+        setUser(u || null);
+        setSync(u ? 'syncing' : 'offline');
+        setAuthReady(true);
       });
+      unsubsRef.current.push(unsub);
     };
-    tryAuth();
-    return ()=>{if(unsub)unsub();};
-  },[]);
+    attach();
 
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, []);
+
+  // ── FIRESTORE LISTENERS ─────────────────────────────────────────────────────
   useEffect(()=>{
-    if(!user||!_db)return;
-    setSync('syncing');
-    const u1=fbListen(jobCol(),docs=>{
-      setJobsRaw(docs);
-      setSync('connected');
-      console.log(`[WR] Jobs loaded: ${docs.length}`);
-    });
-    let seeded=false;
-    const u2=_db.collection('wr2_inventory').onSnapshot(snap=>{
-      const docs=snap.docs.map(d=>({...d.data(),id:d.id}));
-      if(!docs.length&&!seeded){
-        seeded=true;
-        fbBatch(invCol(),DEFAULT_INVENTORY);
-        setInventoryRaw(DEFAULT_INVENTORY);
-        console.log('[WR] Inventory seeded with defaults');
-      } else {
-        setInventoryRaw(docs);
-        console.log(`[WR] Inventory loaded: ${docs.length} items`);
-      }
-    },err=>console.error('[WR] Inventory error:',err.message));
-    const u3=fbListen(expCol(),docs=>{
-      setVarExpRaw(docs);
-      console.log(`[WR] Expenses loaded: ${docs.length}`);
-    });
-    // Settings: wr2_settings/main — auto-created if missing on first load.
-    // onSnapshot callback must NOT be async — unhandled promise rejections
-    // inside Firestore callbacks are silently swallowed. Use .then()/.catch() instead.
-    let u4=null;
-    const sd=settingsCol();
-    if(sd){
-      console.log('[WR Settings] Attaching Firestore listener to wr2_settings/main…');
-      u4=sd.onSnapshot(
-        snap=>{
-          if(snap.exists){
-            const data={...DEFAULT_SETTINGS,...snap.data()};
-            setSettingsRaw(data);
-            console.log('[WR Settings] Loaded from Firestore ✅', data);
-          } else {
-            // Doc does not exist — create it now with DEFAULT_SETTINGS.
-            // Show defaults in UI immediately while write happens in background.
-            console.log('[WR Settings] Doc missing — creating wr2_settings/main with defaults…');
-            setSettingsRaw(DEFAULT_SETTINGS);
-            sd.set(DEFAULT_SETTINGS)
-              .then(()=>console.log('[WR Settings] Created wr2_settings/main ✅'))
-              .catch(err=>console.error('[WR Settings] ❌ Create failed — check rules:', err.code, err.message));
-          }
-        },
-        err=>{
-          console.error('[WR Settings] ❌ Listener error:', err.code, err.message);
-          console.error('[WR Settings] Verify: wr2_settings read allowed for signed-in users');
-        }
-      );
-    } else {
-      console.error('[WR Settings] ❌ settingsCol() returned null — Firestore not ready');
-    }
-    return ()=>{u1();u2();u3();if(u4)u4();};
-  },[user]);
+    // Tear down previous listeners
+    unsubsRef.current.forEach(fn => { try{ fn(); }catch{} });
+    unsubsRef.current = [];
 
-  const saveJob=useCallback(form=>{
-    const entry={...form,id:form.id||uid()};
-    const isEdit=jobs.some(j=>j.id===entry.id);
-    setJobsRaw(prev=>isEdit?prev.map(j=>j.id===entry.id?entry:j):[entry,...prev.filter(j=>j.id!==entry.id)]);
-    if(user){fbSet(jobCol(),entry.id,entry);console.log('[WR] Job saved:',entry.id,entry.service);}
-    if(!isEdit&&/replacement|installation/i.test(entry.service||'')&&entry.tireSize){
-      setInventoryRaw(prev=>{
-        const idx=prev.findIndex(i=>i.size===entry.tireSize);
-        if(idx<0)return prev;
-        const next=[...prev];
-        next[idx]={...next[idx],qty:Math.max(0,Number(next[idx].qty||0)-Number(entry.qty||1))};
-        if(user)fbSet(invCol(),next[idx].id,next[idx]);
+    if(!user || !_db) return;
+    setSync('syncing');
+
+    // Jobs
+    const u1 = _db.collection('wr2_jobs').onSnapshot(
+      snap => { setJobsRaw(snap.docs.map(d=>({...d.data(),id:d.id}))); setSync('online'); },
+      err  => console.error('[WR] jobs error:', err.message)
+    );
+
+    // Inventory (auto-seed if empty)
+    let invSeeded = false;
+    const u2 = _db.collection('wr2_inventory').onSnapshot(
+      snap => {
+        const docs = snap.docs.map(d=>({...d.data(),id:d.id}));
+        if(!docs.length && !invSeeded){
+          invSeeded = true;
+          const batch = _db.batch();
+          DEFAULT_INVENTORY.forEach(item =>
+            batch.set(_db.collection('wr2_inventory').doc(item.id), item)
+          );
+          batch.commit().catch(err=>console.error('[WR] inventory seed error:', err.message));
+          setInventoryRaw(DEFAULT_INVENTORY);
+        } else {
+          setInventoryRaw(docs);
+        }
+      },
+      err => console.error('[WR] inventory error:', err.message)
+    );
+
+    // Expenses
+    const u3 = _db.collection('wr2_expenses').onSnapshot(
+      snap => setVarExpRaw(snap.docs.map(d=>({...d.data(),id:d.id}))),
+      err  => console.error('[WR] expenses error:', err.message)
+    );
+
+    // Settings — auto-create wr2_settings/main if missing
+    const settingsRef = _db.collection('wr2_settings').doc('main');
+    console.log('[WR Settings] Attaching listener to wr2_settings/main');
+    const u4 = settingsRef.onSnapshot(
+      snap => {
+        if(snap.exists){
+          const data = {...DEFAULT_SETTINGS, ...snap.data()};
+          setSettingsRaw(data);
+          console.log('[WR Settings] Loaded ✅');
+        } else {
+          console.log('[WR Settings] Missing — creating with defaults');
+          setSettingsRaw(DEFAULT_SETTINGS);
+          settingsRef.set(DEFAULT_SETTINGS)
+            .then(() => console.log('[WR Settings] Created ✅'))
+            .catch(err => console.error('[WR Settings] Create failed:', err.code, err.message));
+        }
+      },
+      err => {
+        console.error('[WR Settings] Listener error:', err.code, err.message,
+          '— check Firestore rules for wr2_settings');
+      }
+    );
+
+    unsubsRef.current = [u1, u2, u3, u4];
+    return () => { unsubsRef.current.forEach(fn=>{ try{fn();}catch{} }); unsubsRef.current=[]; };
+  }, [user]);
+
+  // ── ACTIONS ─────────────────────────────────────────────────────────────────
+  const saveJob = useCallback(form => {
+    const entry = {...form, id: form.id || uid()};
+    const isEdit = jobs.some(j => j.id === entry.id);
+    setJobsRaw(prev => isEdit
+      ? prev.map(j => j.id === entry.id ? entry : j)
+      : [entry, ...prev.filter(j => j.id !== entry.id)]
+    );
+    if(user && _db) _db.collection('wr2_jobs').doc(entry.id).set(entry)
+      .catch(err => console.error('[WR] save job error:', err.message));
+
+    // Auto-deduct inventory for replacement jobs
+    if(!isEdit && /replacement|installation/i.test(entry.service||'') && entry.tireSize){
+      setInventoryRaw(prev => {
+        const idx = prev.findIndex(i => i.size === entry.tireSize);
+        if(idx < 0) return prev;
+        const next = [...prev];
+        next[idx] = {...next[idx], qty: Math.max(0, Number(next[idx].qty||0) - Number(entry.qty||1))};
+        if(user && _db) _db.collection('wr2_inventory').doc(next[idx].id).set(next[idx])
+          .catch(()=>{});
         return next;
       });
     }
     setShowJob(null);
-  },[jobs,user]);
+  }, [jobs, user]);
 
-  const delJob=useCallback(id=>{
-    const sid=String(id);
-    setJobsRaw(prev=>prev.filter(j=>String(j.id)!==sid));
-    if(user)fbDel(jobCol(),sid);
-  },[user]);
+  const delJob = useCallback(id => {
+    const sid = String(id);
+    setJobsRaw(prev => prev.filter(j => String(j.id) !== sid));
+    if(user && _db) _db.collection('wr2_jobs').doc(sid).delete().catch(()=>{});
+  }, [user]);
 
-  const setSettings=useCallback(async v=>{
-    const n=typeof v==='function'?v(settings):v;
-    setSettingsRaw(n); // optimistic local update
-    const doc=settingsCol();
-    if(user&&doc){
-      try{
-        console.log('[WR Settings] Saving to Firestore…', n);
-        // Full set() — not merge — so Firestore always matches exactly what the app has
-        await doc.set(n);
-        console.log('[WR Settings] Saved to Firestore ✅');
-      }catch(err){
-        console.error('[WR Settings] ❌ Save failed:', err.code, err.message);
-      }
-    } else {
-      console.warn('[WR Settings] Save skipped — user:', !!user, '/ Firebase ready:', !!doc);
+  const setSettings = useCallback(v => {
+    const n = typeof v === 'function' ? v(settings) : v;
+    setSettingsRaw(n);
+    if(user && _db){
+      console.log('[WR Settings] Saving…');
+      _db.collection('wr2_settings').doc('main').set(n)
+        .then(() => console.log('[WR Settings] Saved ✅'))
+        .catch(err => console.error('[WR Settings] Save error:', err.code, err.message));
     }
-  },[settings,user]);
+  }, [settings, user]);
 
-  const setInventory=useCallback(v=>{
-    const n=typeof v==='function'?v(inventory):v;
+  const setInventory = useCallback(v => {
+    const n = typeof v === 'function' ? v(inventory) : v;
     setInventoryRaw(n);
-    if(user)fbBatch(invCol(),n);
-  },[inventory,user]);
+    if(user && _db){
+      const batch = _db.batch();
+      n.forEach(item => batch.set(_db.collection('wr2_inventory').doc(String(item.id)), {...item, id:String(item.id)}));
+      batch.commit().catch(()=>{});
+    }
+  }, [inventory, user]);
 
-  const setVarExpenses=useCallback(v=>{
-    const n=typeof v==='function'?v(varExpenses):v;
+  const setVarExpenses = useCallback(v => {
+    const n = typeof v === 'function' ? v(varExpenses) : v;
     setVarExpRaw(n);
-    if(user)fbBatch(expCol(),n);
-  },[varExpenses,user]);
+    if(user && _db){
+      const batch = _db.batch();
+      n.forEach(item => batch.set(_db.collection('wr2_expenses').doc(String(item.id)), {...item, id:String(item.id)}));
+      batch.commit().catch(()=>{});
+    }
+  }, [varExpenses, user]);
 
-  const signOut=async()=>{
-    try{await _auth.signOut();}catch{}
-    setUser(null);setSync('local');authInit.current=false;
-    setJobsRaw([]);setSettingsRaw(DEFAULT_SETTINGS);setInventoryRaw([]);setVarExpRaw([]);
-  };
+  const signOut = useCallback(async () => {
+    try{ await _auth?.signOut(); }catch{}
+    authInitRef.current = false;
+    setUser(null); setSync('offline'); setAuthReady(false);
+    setJobsRaw([]); setSettingsRaw(DEFAULT_SETTINGS);
+    setInventoryRaw([]); setVarExpRaw([]);
+    // Brief pause then reset authReady so auth effect can re-attach
+    setTimeout(() => setAuthReady(false), 50);
+  }, []);
 
-  if(!authReady)return(
-    <div style={{height:'100%',background:C.bg,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}}>
-      <img src={LOGO_SRC} alt="Wheel Rush" style={{width:64,height:64,borderRadius:16,objectFit:'contain',opacity:.7}}/>
-      <div style={{color:C.muted,fontSize:13}}>Loading...</div>
+  // ── LOADING / AUTH GUARDS ───────────────────────────────────────────────────
+  if(!authReady) return (
+    <div style={{height:'100%',background:'#09090E',display:'flex',flexDirection:'column',
+        alignItems:'center',justifyContent:'center',gap:16}}>
+      <img src={LOGO_SRC} alt="Wheel Rush" style={{width:64,height:64,borderRadius:16,objectFit:'contain'}}/>
+      <div style={{color:'#F07200',fontSize:17,fontWeight:800}}>Wheel Rush</div>
+      <div style={{color:'#7A7A9A',fontSize:13}}>Connecting to Firebase…</div>
     </div>
   );
-  if(!user)return <AuthScreen onAuth={u=>{setUser(u);authInit.current=true;}}/>;
 
-  const weekGross=completedOnly(jobs.filter(j=>getWeekStart(j.date)===getWeekStart(TODAY()))).reduce((s,j)=>s+jobGrossProfit(j,settings),0);
-
-  return(
-    <div style={{background:C.bg,height:'100%',maxWidth:430,margin:'0 auto',display:'flex',flexDirection:'column',position:'relative',fontFamily:"'DM Sans',sans-serif",color:C.text}}>
-      <div style={{flex:1,overflowY:'auto',paddingBottom:80}}>
-        {tab==='dashboard'&&<Dashboard jobs={jobs} varExpenses={varExpenses} settings={settings} user={user} sync={sync} onSignOut={signOut} onSetTab={setTab} onOpenJob={j=>setShowJob(j||{})}/>}
-        {tab==='history'&&<History jobs={jobs} settings={settings} setJobs={setJobsRaw} delJob={delJob} onOpenJob={j=>setShowJob(j||{})}/>}
-        {tab==='customers'&&<Customers jobs={jobs} settings={settings} onOpenJob={j=>setShowJob(j||{})}/>}
-        {tab==='payouts'&&<Payouts jobs={jobs} settings={settings}/>}
-        {tab==='stock'&&<Inventory inventory={inventory} setInventory={setInventory}/>}
-        {tab==='expenses'&&<Expenses varExpenses={varExpenses} setVarExpenses={setVarExpenses}/>}
-        {tab==='settings'&&<Settings settings={settings} setSettings={setSettings} jobs={jobs} inventory={inventory} varExpenses={varExpenses} user={user} sync={sync} onSignOut={signOut}/>}
+  if(authError) return (
+    <div style={{height:'100%',background:'#09090E',display:'flex',flexDirection:'column',
+        alignItems:'center',justifyContent:'center',gap:14,padding:32,textAlign:'center'}}>
+      <div style={{fontSize:40}}>🛞</div>
+      <div style={{color:'#F07200',fontSize:17,fontWeight:800}}>Wheel Rush</div>
+      <div style={{color:'#F0F0F8',fontSize:14,fontWeight:600,marginBottom:4}}>Firebase unavailable</div>
+      <div style={{color:'#7A7A9A',fontSize:12,lineHeight:1.8,maxWidth:300}}>
+        {authError}<br/>
+        <strong style={{color:'#F07200'}}>wheelrush.github.io/expensetracking</strong>
       </div>
-      {tab!=='stock'&&<FAB onClick={()=>setShowJob({})}/>}
+      <button onClick={()=>window.location.reload()}
+        style={{marginTop:12,background:'#F07200',border:'none',borderRadius:10,
+          padding:'11px 28px',color:'#fff',fontWeight:700,fontSize:14,cursor:'pointer'}}>
+        Retry
+      </button>
+    </div>
+  );
+
+  if(!user) return <AuthScreen onAuth={u=>{setUser(u);authInitRef.current=true;}}/>;
+
+  const weekGross = completedOnly(
+    jobs.filter(j => getWeekStart(j.date) === getWeekStart(TODAY()))
+  ).reduce((s,j) => s + jobGrossProfit(j,settings), 0);
+
+  return (
+    <div style={{background:C.bg,height:'100%',maxWidth:430,margin:'0 auto',
+        display:'flex',flexDirection:'column',position:'relative',
+        fontFamily:"'DM Sans',sans-serif",color:C.text}}>
+      <div style={{flex:1,overflowY:'auto',paddingBottom:80}}>
+        {tab==='dashboard' && <Dashboard jobs={jobs} varExpenses={varExpenses} settings={settings} user={user} sync={sync} onSignOut={signOut} onSetTab={setTab} onOpenJob={j=>setShowJob(j||{})}/>}
+        {tab==='history'   && <History   jobs={jobs} settings={settings} setJobs={setJobsRaw} delJob={delJob} onOpenJob={j=>setShowJob(j||{})}/>}
+        {tab==='customers' && <Customers jobs={jobs} settings={settings} onOpenJob={j=>setShowJob(j||{})}/>}
+        {tab==='payouts'   && <Payouts   jobs={jobs} settings={settings}/>}
+        {tab==='stock'     && <Inventory inventory={inventory} setInventory={setInventory}/>}
+        {tab==='expenses'  && <Expenses  varExpenses={varExpenses} setVarExpenses={setVarExpenses}/>}
+        {tab==='settings'  && <Settings  settings={settings} setSettings={setSettings} jobs={jobs} inventory={inventory} varExpenses={varExpenses} user={user} sync={sync} onSignOut={signOut}/>}
+      </div>
+      {tab !== 'stock' && <FAB onClick={()=>setShowJob({})}/>}
       <BottomNav active={tab} setActive={setTab} user={user} onSignOut={signOut} sync={sync}/>
-      {showJob!==null&&(
+      {showJob !== null && (
         <JobModal
-          job={showJob&&showJob.id?showJob:null}
+          job={showJob?.id ? showJob : null}
           settings={settings}
           allJobs={jobs}
           weekGross={weekGross}
@@ -1539,6 +1605,7 @@ function App(){
     </div>
   );
 }
+
 const Inventory=Stock;
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 
