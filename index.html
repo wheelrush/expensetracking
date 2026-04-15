@@ -1180,6 +1180,49 @@ function CustomersScreen({customers, vehicles, jobs, onNewJob}) {
 }
 
 // ── JOB FORM ─────────────────────────────────────────────────────────────────
+// ── CITY SEARCH INPUT ─────────────────────────────────────────────────────────
+function CityInput({value, onChange}) {
+  const [q,    setQ]    = useState(value||'');
+  const [open, setOpen] = useState(false);
+
+  const suggestions = useMemo(()=>{
+    if(!q||q.length<2) return [];
+    return AREAS.filter(a=>a.toLowerCase().startsWith(q.toLowerCase())).slice(0,6);
+  },[q]);
+
+  const pick = city => { setQ(city); onChange(city); setOpen(false); };
+
+  return (
+    <div style={{position:'relative'}}>
+      <input
+        className="finp"
+        value={q}
+        onChange={e=>{ setQ(e.target.value); onChange(e.target.value); setOpen(true); }}
+        onBlur={()=>setTimeout(()=>setOpen(false),150)}
+        onFocus={()=>setOpen(true)}
+        placeholder="Type a city…"
+        autoComplete="off"
+      />
+      {open && suggestions.length>0 && (
+        <div style={{position:'absolute',top:'100%',left:0,right:0,background:C.card,
+            border:`1px solid ${C.border}`,borderRadius:11,zIndex:300,overflow:'hidden',
+            boxShadow:'0 8px 24px #0008',marginTop:3}}>
+          {suggestions.map(s=>(
+            <div key={s} onMouseDown={()=>pick(s)}
+              style={{padding:'11px 14px',fontSize:14,cursor:'pointer',
+                borderBottom:`1px solid ${C.border}`,color:C.text}}
+              onMouseEnter={e=>e.currentTarget.style.background=C.surface}
+              onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+              {s}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── JOB FORM ─────────────────────────────────────────────────────────────────
 function JobForm({initial={}, customers, vehicles, onSave, onClose}) {
   const EMPTY = {
     date: TODAY(), service:'Flat Tire Repair', leadSource:'Google',
@@ -1191,85 +1234,60 @@ function JobForm({initial={}, customers, vehicles, onSave, onClose}) {
     workStatus:'scheduled', payStatus:'unpaid',
     paymentMethod:'Cash', notes:'',
   };
-  const [form,        setForm]        = useState({...EMPTY,...initial});
-  const [err,         setErr]         = useState('');
-  const [saving,      setSaving]      = useState(false);
-  const [showPricing, setShowPricing] = useState(false);
+  const [form,   setForm]   = useState({...EMPTY,...initial});
+  const [err,    setErr]    = useState('');
+  const [saving, setSaving] = useState(false);
   const sf = (k,v) => setForm(p=>({...p,[k]:v}));
 
-  const custVehicles = useMemo(()=>
-    vehicles.filter(v=>v.customerId===form.customerId)
-  ,[vehicles,form.customerId]);
+  const custVehicles = useMemo(()=>vehicles.filter(v=>v.customerId===form.customerId),[vehicles,form.customerId]);
 
-  const selCust = customers.find(c=>c.id===form.customerId);
+  // ── Live pricing ────────────────────────────────────────────────────────────
+  const pricing = useMemo(()=>calcPricing({
+    service:      form.service,
+    tireCost:     Number(form.tireCost)||0,
+    materialCost: Number(form.materialCost)||0,
+    labor:        Number(form.labor)||0,
+    miles:        Number(form.miles)||0,
+    emergency:    form.emergency,
+    afterHours:   form.afterHours,
+    highway:      form.highway,
+  }), [form.service, form.tireCost, form.materialCost, form.labor,
+       form.miles, form.emergency, form.afterHours, form.highway]);
+
+  const enteredRev = Number(form.revenue)||0;
+  const grossProfit = enteredRev ? r2(enteredRev - pricing.directCost - pricing.surcharge) : null;
 
   const handleSave = async () => {
-    if(!form.revenue && !form.service) { setErr('Enter at least the service and price.'); return; }
+    if(!form.service){ setErr('Select a service.'); return; }
     setSaving(true);
     try {
       const entry = {
         ...form,
-        revenue:    r2(form.revenue),
-        tireCost:   r2(form.tireCost),
-        miscCost:   r2(form.miscCost),
-        miles:      Number(form.miles)||0,
-        createdAt:  form.createdAt || new Date().toISOString(),
+        revenue:      r2(form.revenue),
+        tireCost:     r2(form.tireCost),
+        materialCost: r2(form.materialCost),
+        miscCost:     r2(form.miscCost),
+        labor:        r2(form.labor),
+        miles:        Number(form.miles)||0,
+        createdAt:    form.createdAt || new Date().toISOString(),
       };
       await save(COL.jobs(), entry);
       onSave && onSave();
       onClose();
-    } catch(e) { setErr(e.message); }
+    } catch(e){ setErr(e.message); }
     setSaving(false);
   };
 
-  const profit = r2((Number(form.revenue)||0)-(Number(form.tireCost)||0)-(Number(form.materialCost)||0)-(Number(form.miscCost)||0)-(Number(form.labor)||0)-gasCost(form));
-
   return (
     <Sheet title={initial.id ? 'Edit Job' : 'New Job'} onClose={onClose}>
-      {err && <div style={{background:C.dangerDim,border:`1px solid ${C.danger}44`,borderRadius:10,
-          padding:'9px 13px',marginBottom:12,fontSize:13,color:C.danger}}>{err}</div>}
+      {err && (
+        <div style={{background:C.dangerDim,border:`1px solid ${C.danger}44`,borderRadius:10,
+            padding:'9px 13px',marginBottom:12,fontSize:13,color:C.danger}}>{err}</div>
+      )}
 
-      {/* Profit preview + pricing button */}
-      <div style={{display:'flex',gap:8,marginBottom:16,alignItems:'center'}}>
-        {form.revenue ? (
-          <div style={{flex:1,background:profit>=0?C.successDim:C.dangerDim,
-              border:`1px solid ${profit>=0?C.success:C.danger}33`,
-              borderRadius:12,padding:'10px 14px',
-              display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <div style={{fontSize:11,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em'}}>Gross Profit</div>
-            <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:20,fontWeight:500,color:profit>=0?C.success:C.danger}}>{money(profit)}</div>
-          </div>
-        ) : (
-          <div style={{flex:1,background:'#10101A',borderRadius:12,padding:'10px 14px',
-              display:'flex',alignItems:'center',color:C.muted,fontSize:12}}>
-            Enter price or use engine →
-          </div>
-        )}
-        <button onClick={()=>setShowPricing(true)}
-          style={{background:C.orange,border:'none',borderRadius:12,padding:'10px 14px',
-            cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:2,
-            fontFamily:'DM Sans,sans-serif',flexShrink:0}}>
-          <Icon name="dollar" size={18} color="#fff"/>
-          <span style={{fontSize:9,color:'rgba(255,255,255,.8)',fontWeight:700,letterSpacing:'.04em'}}>PRICE</span>
-        </button>
-      </div>
-
+      {/* ── SECTION 1: Core job info ─────────────────────────────────────── */}
       <Field label="Service">
         <Sel value={form.service} onChange={v=>sf('service',v)} options={SERVICES}/>
-      </Field>
-
-      <div className="fgrid2" style={{gap:10,marginBottom:14}}>
-        <Field label="Date">
-          <Inp type="date" value={form.date} onChange={v=>sf('date',v)}/>
-        </Field>
-        <Field label="Price $">
-          <Inp type="number" value={form.revenue} onChange={v=>sf('revenue',v)} placeholder="0"
-            className="mono" style={{fontSize:18,fontWeight:500}}/>
-        </Field>
-      </div>
-
-      <Field label="Lead Source">
-        <Sel value={form.leadSource} onChange={v=>sf('leadSource',v)} options={LEAD_SOURCES}/>
       </Field>
 
       {/* Customer */}
@@ -1278,33 +1296,52 @@ function JobForm({initial={}, customers, vehicles, onSave, onClose}) {
           sf('customerId',v);
           const c=customers.find(c=>c.id===v);
           if(c){sf('customerName',c.name);sf('customerPhone',c.phone||'');}
-        }} options={[{v:'',l:'— No customer —'},...customers.map(c=>({v:c.id,l:c.name}))]}/>
+        }} options={[{v:'',l:'— Walk-in / No customer —'},...customers.map(c=>({v:c.id,l:c.name}))]}/>
       </Field>
 
       {custVehicles.length>0 && (
         <Field label="Vehicle">
           <Sel value={form.vehicleId} onChange={v=>sf('vehicleId',v)}
             options={[{v:'',l:'— Select vehicle —'},...custVehicles.map(v=>({
-              v:v.id,l:[v.year,v.make,v.model,v.tireSize?`(${v.tireSize})`:''].filter(Boolean).join(' ')
+              v:v.id,
+              l:[v.year,v.make,v.model,v.tireSize?`(${v.tireSize})`:''].filter(Boolean).join(' ')
             }))]}/>
         </Field>
       )}
 
-      {/* Location */}
       <Field label="Address">
         <Inp value={form.address} onChange={v=>sf('address',v)} placeholder="Street address"/>
       </Field>
+
       <div className="fgrid2" style={{gap:10,marginBottom:14}}>
         <Field label="City">
-          <Sel value={form.city} onChange={v=>sf('city',v)} options={AREAS}/>
+          <CityInput value={form.city} onChange={v=>sf('city',v)}/>
         </Field>
-        <Field label="Miles">
+        <Field label="Miles to Job">
           <Inp type="number" value={form.miles} onChange={v=>sf('miles',v)} placeholder="0" className="mono"/>
         </Field>
       </div>
 
-      {/* Costs */}
-      <div className="fgrid2" style={{gap:10,marginBottom:14}}>
+      {/* ── SECTION 2: Conditions ────────────────────────────────────────── */}
+      <Field label="Conditions">
+        <div className="chips">
+          {[
+            ['emergency','🚨 Emergency', PRICING_DEFAULTS.emergencyFee],
+            ['highway',  '🛣 Highway',   PRICING_DEFAULTS.highwayFee],
+            ['afterHours','🌙 After Hours', PRICING_DEFAULTS.afterHoursFee],
+          ].map(([k,l,fee])=>(
+            <button key={k} className={`chip ${form[k]?'on':''}`}
+              onClick={()=>sf(k,!form[k])}>
+              {l}{form[k]?` +$${fee}`:''}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      {/* ── SECTION 3: Costs (affect pricing) ───────────────────────────── */}
+      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',
+          color:C.muted,marginBottom:8,marginTop:4}}>Cost Inputs</div>
+      <div className="fgrid2" style={{gap:10,marginBottom:6}}>
         <Field label="Tire Cost $">
           <Inp type="number" value={form.tireCost} onChange={v=>sf('tireCost',v)} placeholder="0" className="mono"/>
         </Field>
@@ -1319,16 +1356,87 @@ function JobForm({initial={}, customers, vehicles, onSave, onClose}) {
         </Field>
       </div>
 
-      {/* Conditions */}
-      <Field label="Conditions">
-        <div className="chips">
-          {[['emergency','🚨 Emergency'],['highway','🛣 Highway'],['afterHours','🌙 After Hours']].map(([k,l])=>(
-            <button key={k} className={`chip ${form[k]?'on':''}`} onClick={()=>sf(k,!form[k])}>{l}</button>
+      {/* ── SECTION 4: Pricing engine output (always visible, live) ──────── */}
+      <div style={{background:'#0E0E18',border:`1px solid ${C.border}`,borderRadius:14,
+          padding:14,marginBottom:14}}>
+        <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',
+            color:C.muted,marginBottom:10}}>
+          Live Pricing · {isReplacement(form.service)?'Replacement':'Repair'} Target {money(pricing.minGP)}–{money(pricing.maxGP)} GP
+        </div>
+
+        {/* Cost breakdown row */}
+        <div style={{display:'flex',gap:16,marginBottom:12,flexWrap:'wrap'}}>
+          <div style={{fontSize:11,color:C.subtle}}>
+            Direct cost <span style={{fontFamily:'JetBrains Mono,monospace',color:C.text,fontSize:12}}>{money(pricing.directCost)}</span>
+          </div>
+          {pricing.gasCostAmt>0 && (
+            <div style={{fontSize:11,color:C.subtle}}>
+              Gas <span style={{fontFamily:'JetBrains Mono,monospace',color:C.text,fontSize:12}}>{money(pricing.gasCostAmt)}</span>
+            </div>
+          )}
+          {pricing.surcharge>0 && (
+            <div style={{fontSize:11,color:C.subtle}}>
+              Surcharges <span style={{fontFamily:'JetBrains Mono,monospace',color:C.orange,fontSize:12}}>{money(pricing.surcharge)}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Three price tiers */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
+          {[
+            {label:'Minimum', price:pricing.minPrice, active:false},
+            {label:'Suggested',price:pricing.suggested,active:true},
+            {label:'Premium', price:pricing.premium,  active:false},
+          ].map(({label,price,active})=>(
+            <button key={label}
+              onClick={()=>sf('revenue',String(price))}
+              style={{
+                background: String(form.revenue)===String(price)
+                  ? C.orange
+                  : active ? '#193A50' : '#10101A',
+                border: `1.5px solid ${String(form.revenue)===String(price) ? C.orange : active ? '#4A8AB0' : C.border}`,
+                borderRadius:11, padding:'10px 4px', cursor:'pointer',
+                fontFamily:'DM Sans,sans-serif', transition:'all .12s',
+              }}>
+              <div style={{
+                fontSize:9, fontWeight:700, letterSpacing:'.06em', textTransform:'uppercase',
+                color: String(form.revenue)===String(price) ? 'rgba(255,255,255,.7)' : active ? '#4A8AB0' : C.muted,
+                marginBottom:4,
+              }}>{label}</div>
+              <div style={{
+                fontFamily:'JetBrains Mono,monospace', fontSize:16, fontWeight:500,
+                color: String(form.revenue)===String(price) ? '#fff' : active ? C.text : C.muted,
+              }}>{money(price)}</div>
+            </button>
           ))}
         </div>
-      </Field>
+      </div>
 
-      {/* Status */}
+      {/* ── SECTION 5: Final price + profit ─────────────────────────────── */}
+      <div className="fgrid2" style={{gap:10,marginBottom:14}}>
+        <Field label="Price Charged $">
+          <Inp type="number" value={form.revenue} onChange={v=>sf('revenue',v)}
+            placeholder={String(pricing.suggested)} className="mono"
+            style={{fontSize:20,fontWeight:500,padding:'14px'}}/>
+        </Field>
+        <div style={{display:'flex',flexDirection:'column',justifyContent:'flex-end',paddingBottom:0}}>
+          {enteredRev>0 && (
+            <div style={{
+              background:grossProfit>=0?C.successDim:C.dangerDim,
+              border:`1px solid ${grossProfit>=0?C.success:C.danger}33`,
+              borderRadius:11,padding:'14px',textAlign:'center',height:'100%',
+              display:'flex',flexDirection:'column',justifyContent:'center',
+            }}>
+              <div style={{fontSize:9,fontWeight:700,letterSpacing:'.06em',textTransform:'uppercase',
+                  color:grossProfit>=0?C.success:C.danger,marginBottom:3}}>Gross Profit</div>
+              <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:20,fontWeight:500,
+                  color:grossProfit>=0?C.success:C.danger}}>{money(grossProfit)}</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── SECTION 6: Status + payment ─────────────────────────────────── */}
       <div className="fgrid2" style={{gap:10,marginBottom:14}}>
         <Field label="Work Status">
           <Sel value={form.workStatus} onChange={v=>sf('workStatus',v)}
@@ -1349,29 +1457,29 @@ function JobForm({initial={}, customers, vehicles, onSave, onClose}) {
         </div>
       </Field>
 
+      {/* ── SECTION 7: Secondary fields ─────────────────────────────────── */}
+      <div className="fgrid2" style={{gap:10,marginBottom:14}}>
+        <Field label="Date">
+          <Inp type="date" value={form.date} onChange={v=>sf('date',v)}/>
+        </Field>
+        <Field label="Lead Source">
+          <Sel value={form.leadSource} onChange={v=>sf('leadSource',v)} options={LEAD_SOURCES}/>
+        </Field>
+      </div>
+
       <Field label="Notes">
         <textarea className="finp" value={form.notes||''} onChange={e=>sf('notes',e.target.value)}
           placeholder="Any details…"/>
       </Field>
 
-      <button className="btn btn-primary btn-full" onClick={handleSave} disabled={saving}>
+      <button className="btn btn-primary btn-full" onClick={handleSave} disabled={saving}
+        style={{fontSize:16,padding:'15px'}}>
         {saving ? '…' : initial.id ? 'Save Changes' : 'Log Job →'}
       </button>
-
-      {showPricing && (
-        <PricingEngine
-          service={form.service}
-          form={form}
-          onSelectPrice={price=>{
-            sf('revenue', String(price));
-            setShowPricing(false);
-          }}
-          onClose={()=>setShowPricing(false)}
-        />
-      )}
     </Sheet>
   );
 }
+
 
 // ── JOB DETAIL ────────────────────────────────────────────────────────────────
 function JobDetail({job, customers, vehicles, invoices, onEdit, onDelete, onClose}) {
@@ -1646,153 +1754,177 @@ function JobsScreen({jobs, customers, vehicles, invoices, onNewJob}) {
 
 // ── DASHBOARD ────────────────────────────────────────────────────────────────
 function Dashboard({jobs, expenses, customers, settings, user, sync, onSignOut, onNewJob}) {
-  const today = TODAY();
-  const nowDate = new Date();
-  const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][nowDate.getDay()];
-  const dateStr = nowDate.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const today    = TODAY();
+  const nowDate  = new Date();
+  const dayName  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][nowDate.getDay()];
+  const dateStr  = nowDate.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const weekStart= getWeekStart(today);
 
-  // Week = Mon–Sun (ISO)
-  const getWeekStart = d => {
-    const dt = new Date(d+'T12:00:00');
-    const day = dt.getDay();
-    const diff = (day===0?-6:1-day);
-    dt.setDate(dt.getDate()+diff);
-    return dt.toISOString().slice(0,10);
-  };
-  const weekStart = getWeekStart(today);
+  const todayJobs   = useMemo(()=>jobs.filter(j=>j.date===today),[jobs,today]);
+  const weekJobs    = useMemo(()=>jobs.filter(j=>j.date>=weekStart&&j.date<=today),[jobs,weekStart,today]);
+  const paidToday   = todayJobs.filter(isPaid);
+  const paidWeek    = weekJobs.filter(isPaid);
+  const pendingAll  = jobs.filter(isPending);
 
-  const todayJobs = useMemo(()=>jobs.filter(j=>j.date===today),[jobs,today]);
-  const weekJobs  = useMemo(()=>jobs.filter(j=>j.date>=weekStart && j.date<=today),[jobs,weekStart,today]);
+  const todayRev    = r2(paidToday.reduce((s,j)=>s+Number(j.revenue||0),0));
+  const todayProfit = r2(paidToday.reduce((s,j)=>s+jobProfit(j),0));
+  const weekRev     = r2(paidWeek.reduce((s,j)=>s+Number(j.revenue||0),0));
+  const weekProfit  = r2(paidWeek.reduce((s,j)=>s+jobProfit(j),0));
+  const weekExpAmt  = useMemo(()=>expenses.filter(e=>getWeekStart(e.date||today)===weekStart).reduce((s,e)=>s+Number(e.amount||0),0),[expenses,weekStart,today]);
+  const pendRev     = r2(pendingAll.reduce((s,j)=>s+Number(j.revenue||0),0));
+  const activeJobs  = jobs.filter(isActive).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,4);
 
-  const todayRev    = todayJobs.filter(isPaid).reduce((s,j)=>s+Number(j.revenue||0),0);
-  const todayProfit = todayJobs.filter(isPaid).reduce((s,j)=>s+jobProfit(j),0);
-  const weekRev     = weekJobs.filter(isPaid).reduce((s,j)=>s+Number(j.revenue||0),0);
-  const weekProfit  = weekJobs.filter(isPaid).reduce((s,j)=>s+jobProfit(j),0);
-  // Adjusted profit: gross minus expenses logged this week
-  const weekExpTotal= useMemo(()=>{
-    const ws=getWeekStart(today);
-    return expenses.filter(e=>getWeekStart(e.date||today)===ws).reduce((s,e)=>s+Number(e.amount||0),0);
-  },[expenses,today]);
-  const weekAdj = r2(weekProfit - weekExpTotal);
-  const pendingJobs = jobs.filter(isPending);
-  const pendingRev  = pendingJobs.reduce((s,j)=>s+Number(j.revenue||0),0);
-
-  const activeJobs = jobs.filter(isActive).slice(0,5);
-  const recentCompleted = jobs.filter(isCompleted)
-    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
-
-  const syncDot = sync==='online'?'🟢':sync==='syncing'?'🟡':'⚫';
+  const syncLabel = sync==='online'?'● Live':sync==='syncing'?'● Sync…':'○ Offline';
+  const syncColor = sync==='online'?C.success:sync==='syncing'?C.warn:C.subtle;
 
   return (
     <div className="screen"><div className="page">
-      {/* Header */}
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+
+      {/* ── Header ─────────────────────────────────────────────────────── */}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}}>
         <div style={{display:'flex',alignItems:'center',gap:10}}>
-          <img src={LOGO_SRC} alt="Wheel Rush" style={{width:42,height:42,borderRadius:12,objectFit:'contain'}}/>
+          <img src={LOGO_SRC} alt="Wheel Rush" style={{width:40,height:40,borderRadius:11,objectFit:'contain'}}/>
           <div>
-            <div style={{fontSize:18,fontWeight:900,letterSpacing:'-.02em',lineHeight:1.15}}>
+            <div style={{fontSize:17,fontWeight:900,letterSpacing:'-.02em',lineHeight:1.1}}>
               Wheel <span style={{color:C.orange}}>Rush</span>
             </div>
-            <div style={{fontSize:10,color:C.subtle}}>305-897-7030</div>
+            <div style={{fontSize:10,color:C.subtle,marginTop:1}}>305-897-7030</div>
           </div>
         </div>
         <div style={{textAlign:'right'}}>
-          <div style={{fontSize:11,fontWeight:700}}>{dayName} · {dateStr}</div>
-          <div style={{fontSize:10,color:C.subtle,marginTop:2}}>{syncDot} {sync==='online'?'Live':sync==='syncing'?'Sync…':'Offline'}</div>
+          <div style={{fontSize:12,fontWeight:700}}>{dayName} {dateStr}</div>
+          <div style={{fontSize:10,color:syncColor,marginTop:2,fontWeight:600}}>{syncLabel}</div>
         </div>
       </div>
 
-      {/* Today */}
-      <div className="hero" style={{marginBottom:12}}>
+      {/* ── TODAY hero ──────────────────────────────────────────────────── */}
+      <div style={{background:'linear-gradient(135deg,#171724 0%,#0D1A24 100%)',
+          border:`1px solid ${C.border}`,borderRadius:18,padding:18,marginBottom:12}}>
         <div style={{fontSize:10,fontWeight:700,letterSpacing:'.1em',color:C.subtle,
-            textTransform:'uppercase',marginBottom:4}}>Today · {dateStr}</div>
-        <div className="mono" style={{fontSize:42,fontWeight:500,lineHeight:1,
-            color:todayProfit>=0?C.success:C.danger,marginBottom:6}}>
-          {money(todayProfit)}
-        </div>
-        <div style={{fontSize:12,color:C.subtle}}>gross profit · {money(todayRev)} revenue</div>
-        {todayJobs.length>0 && (
-          <div style={{marginTop:10,display:'flex',gap:12}}>
-            <span className="pill pill-gray">{todayJobs.length} job{todayJobs.length!==1?'s':''}</span>
-            {todayJobs.filter(isPending).length>0 && (
-              <span className="pill pill-amber">{todayJobs.filter(isPending).length} pending</span>
-            )}
+            textTransform:'uppercase',marginBottom:12}}>Today · {dateStr}</div>
+
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}>
+          {/* Today revenue */}
+          <div>
+            <div style={{fontSize:10,color:C.subtle,fontWeight:600,letterSpacing:'.04em',
+                textTransform:'uppercase',marginBottom:4}}>Revenue</div>
+            <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:28,fontWeight:500,
+                color:C.orange,lineHeight:1}}>{money(todayRev)}</div>
           </div>
-        )}
+          {/* Today profit */}
+          <div>
+            <div style={{fontSize:10,color:C.subtle,fontWeight:600,letterSpacing:'.04em',
+                textTransform:'uppercase',marginBottom:4}}>Gross Profit</div>
+            <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:28,fontWeight:500,
+                color:todayProfit>=0?C.success:C.danger,lineHeight:1}}>{money(todayProfit)}</div>
+          </div>
+        </div>
+
+        {/* Today job count pills */}
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <span className="pill pill-gray">{paidToday.length} paid job{paidToday.length!==1?'s':''}</span>
+          {todayJobs.filter(isActive).length>0 && (
+            <span className="pill pill-navy">{todayJobs.filter(isActive).length} active</span>
+          )}
+          {todayJobs.filter(isPending).length>0 && (
+            <span className="pill pill-amber">{todayJobs.filter(isPending).length} pending</span>
+          )}
+        </div>
       </div>
 
-      {/* This week */}
-      <div className="sec">This Week</div>
-      <div className="kgrid k2">
-        <div className="kcard">
-          <div className="kl">Revenue</div>
-          <div className="kv kv-lg" style={{color:C.orange}}>{money(weekRev)}</div>
-          <div style={{fontSize:10,color:C.subtle,marginTop:4}}>{weekJobs.length} jobs</div>
-        </div>
-        <div className="kcard">
-          <div className="kl">Gross Profit</div>
-          <div className="kv kv-lg" style={{color:C.success}}>{money(weekProfit)}</div>
-          <div style={{fontSize:10,color:C.subtle,marginTop:4}}>{weekRev>0?Math.round(weekProfit/weekRev*100):0}% margin</div>
-        </div>
-        {weekExpTotal>0&&<>
-          <div className="kcard">
-            <div className="kl">Expenses</div>
-            <div className="kv" style={{color:C.danger,fontSize:16}}>{money(weekExpTotal)}</div>
-            <div style={{fontSize:10,color:C.subtle,marginTop:4}}>this week</div>
+      {/* ── THIS WEEK KPIs ──────────────────────────────────────────────── */}
+      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',
+          color:C.muted,marginBottom:8}}>This Week</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:12}}>
+        {[
+          {l:'Revenue',    v:money(weekRev),    c:C.orange},
+          {l:'Profit',     v:money(weekProfit), c:weekProfit>=0?C.success:C.danger},
+          {l:'Jobs',       v:paidWeek.length,   c:C.text},
+        ].map(({l,v,c})=>(
+          <div key={l} style={{background:C.card,border:`1px solid ${C.border}`,
+              borderRadius:12,padding:'11px 12px'}}>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'.06em',textTransform:'uppercase',
+                color:C.subtle,marginBottom:4}}>{l}</div>
+            <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:17,fontWeight:500,color:c,lineHeight:1}}>{v}</div>
           </div>
-          <div className="kcard">
-            <div className="kl">Adjusted Profit</div>
-            <div className="kv" style={{color:weekAdj>=0?C.success:C.danger,fontSize:16}}>{money(weekAdj)}</div>
-            <div style={{fontSize:10,color:C.subtle,marginTop:4}}>after expenses</div>
-          </div>
-        </>}
+        ))}
       </div>
 
-      {/* Pending payments */}
-      {pendingJobs.length>0 && (
+      {weekExpAmt>0 && (
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:12}}>
+          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:'11px 12px'}}>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'.06em',textTransform:'uppercase',color:C.subtle,marginBottom:4}}>Expenses</div>
+            <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:17,fontWeight:500,color:C.danger}}>{money(weekExpAmt)}</div>
+          </div>
+          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:'11px 12px'}}>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'.06em',textTransform:'uppercase',color:C.subtle,marginBottom:4}}>Adj. Profit</div>
+            <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:17,fontWeight:500,color:r2(weekProfit-weekExpAmt)>=0?C.success:C.danger}}>{money(r2(weekProfit-weekExpAmt))}</div>
+          </div>
+        </div>
+      )}
+
+      {/* ── PENDING PAYMENTS ────────────────────────────────────────────── */}
+      {pendingAll.length>0 && (
         <>
-          <div className="sec" style={{color:C.warn}}>
-            Pending Payments · {money(pendingRev)}
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+              marginBottom:8,marginTop:4}}>
+            <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:C.warn}}>
+              Pending Payments
+            </div>
+            <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:13,color:C.warn,fontWeight:500}}>
+              {money(pendRev)} owed
+            </div>
           </div>
-          {pendingJobs.slice(0,3).map(j=>(
-            <div className="jrow" key={j.id} style={{borderColor:C.warn+'44'}}>
-              <div style={{display:'flex',justifyContent:'space-between'}}>
-                <div>
-                  <div style={{fontSize:13,fontWeight:700}}>{j.service}</div>
-                  <div style={{fontSize:11,color:C.muted,marginTop:2}}>{j.date} · {j.city}</div>
-                </div>
-                <div style={{textAlign:'right'}}>
-                  <div className="mono" style={{fontSize:14,color:C.warn}}>{money(j.revenue||0)}</div>
-                  <span className="pill pill-amber" style={{fontSize:10}}>Pending</span>
+          {pendingAll.slice(0,3).map(j=>{
+            const cust=customers.find(c=>c.id===j.customerId);
+            return(
+              <div key={j.id} style={{background:C.card,border:`1px solid ${C.warn}44`,
+                  borderRadius:12,padding:'11px 14px',marginBottom:7}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:700}}>{j.service}</div>
+                    <div style={{fontSize:11,color:C.muted,marginTop:1}}>
+                      {j.date} · {j.city}{cust?` · ${cust.name}`:''}
+                    </div>
+                  </div>
+                  <div style={{textAlign:'right'}}>
+                    <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:15,color:C.warn,fontWeight:500}}>
+                      {money(j.revenue||0)}
+                    </div>
+                    <span className="pill pill-amber" style={{fontSize:9,marginTop:3}}>Pending</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-          {pendingJobs.length>3 && (
-            <div style={{fontSize:12,color:C.muted,textAlign:'center',marginTop:4}}>
-              +{pendingJobs.length-3} more
+            );
+          })}
+          {pendingAll.length>3 && (
+            <div style={{fontSize:11,color:C.muted,textAlign:'center',marginBottom:12}}>
+              +{pendingAll.length-3} more pending
             </div>
           )}
         </>
       )}
 
-      {/* Active jobs */}
+      {/* ── ACTIVE JOBS ─────────────────────────────────────────────────── */}
       {activeJobs.length>0 && (
         <>
-          <div className="sec">Active Jobs</div>
+          <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',
+              color:C.muted,marginBottom:8,marginTop:4}}>Active Jobs</div>
           {activeJobs.map(j=>{
-            const cust = customers.find(c=>c.id===j.customerId);
-            const disp = jobDisplayStatus(j);
-            return (
-              <div className="jrow" key={j.id}>
+            const cust=customers.find(c=>c.id===j.customerId);
+            const disp=jobDisplayStatus(j);
+            return(
+              <div key={j.id} style={{background:C.card,border:`1px solid ${C.border}`,
+                  borderRadius:12,padding:'11px 14px',marginBottom:7}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <div>
-                    <div style={{fontSize:13,fontWeight:700}}>{j.service}</div>
-                    <div style={{fontSize:11,color:C.muted,marginTop:2}}>
-                      {cust?.name||j.city}{j.address?` · ${j.address}`:''}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13,fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{j.service}</div>
+                    <div style={{fontSize:11,color:C.muted,marginTop:1}}>
+                      {cust?.name||j.customerName||j.city}{j.address?` · ${j.address}`:''}
                     </div>
                   </div>
-                  <span className="pill" style={{background:disp.bg,color:disp.c,border:`1px solid ${disp.c}30`}}>
+                  <span className="pill" style={{background:disp.bg,color:disp.c,
+                      border:`1px solid ${disp.c}30`,flexShrink:0,marginLeft:10}}>
                     {disp.l}
                   </span>
                 </div>
@@ -1802,9 +1934,9 @@ function Dashboard({jobs, expenses, customers, settings, user, sync, onSignOut, 
         </>
       )}
 
-      {/* Quick action */}
-      {todayJobs.length===0 && pendingJobs.length===0 && (
-        <div className="empty" style={{paddingTop:40}}>
+      {/* ── EMPTY STATE ─────────────────────────────────────────────────── */}
+      {todayJobs.length===0 && pendingAll.length===0 && (
+        <div className="empty" style={{paddingTop:30}}>
           <span className="empty-ico">🛞</span>
           <div className="empty-title">Ready to roll</div>
           <div style={{fontSize:13,marginBottom:20}}>Tap + to log your first job today</div>
@@ -1814,6 +1946,7 @@ function Dashboard({jobs, expenses, customers, settings, user, sync, onSignOut, 
     </div></div>
   );
 }
+
 
 // ── MORE SCREEN ───────────────────────────────────────────────────────────────
 // ── EXPENSES ──────────────────────────────────────────────────────────────────
