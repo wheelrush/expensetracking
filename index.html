@@ -481,8 +481,7 @@ function CityInput({value, onChange}) {
 }
 
 // ── QUICK QUOTE ENGINE ─────────────────────────────────────────────────────────
-function QuickQuote({form, settings, weekGross, onApply, onFormChange}) {
-  const [priceMode, setPriceMode] = useState('suggested'); // 'suggested'|'premium'|'custom'
+function QuickQuote({form, settings, weekGross, onApply, onFormChange, priceMode, setPriceMode}) {
   const customRef = useRef(null);
 
   const hasInputs = Number(form.miles||0) > 0 || Number(form.tireCost||0) > 0 || Number(form.miscCost||0) > 0;
@@ -493,21 +492,20 @@ function QuickQuote({form, settings, weekGross, onApply, onFormChange}) {
   const prem         = premiums(form);
   const skip         = Number(settings.skipThreshold||70);
 
-  // Determine displayed price based on mode
-  const displayPrice = priceMode==='custom'
-    ? (Number(form.revenue||0) || 0)
+  const activePrice = priceMode==='custom'
+    ? Number(form.revenue||0)
     : priceMode==='premium' ? premiumPrice : suggested;
-  const profit = r2(displayPrice - directCost);
+  const profit = r2(activePrice - directCost);
 
   const decBadge = profit<skip
     ? {label:'Too Low',cls:'low'}
     : profit>=skip+40 ? {label:'Strong Margin',cls:'take'} : {label:'Take It',cls:'take'};
 
-  const applyMode = (mode, price) => {
-    setPriceMode(mode);
-    onApply(String(price));
+  const handleApplyMode = (mode, price) => {
+    if (setPriceMode) setPriceMode(mode);
+    onApply(price==='' ? '' : String(price));
     if (mode==='custom') {
-      setTimeout(()=>customRef.current&&customRef.current.focus(), 50);
+      setTimeout(()=>{ if(customRef.current) customRef.current.focus(); }, 80);
     }
   };
 
@@ -516,100 +514,86 @@ function QuickQuote({form, settings, weekGross, onApply, onFormChange}) {
     borderRadius:8,padding:'8px 10px',color:'#fff',fontSize:15,outline:'none',
     width:'100%',fontFamily:'"IBM Plex Mono",monospace',fontWeight:600,textAlign:'center',
   };
-  const inpLbl = {fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'.6px',color:'#555',marginBottom:5,textAlign:'center'};
+  const lbl = {fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'.6px',color:'#555',marginBottom:5,textAlign:'center'};
 
   return (
     <div className="quote-box">
-      {/* Inline cost inputs */}
+      {/* Cost inputs inside card */}
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:8,marginBottom:14}}>
-        <div><div style={inpLbl}>Miles</div>
+        <div><div style={lbl}>Miles</div>
           <input type="number" min="0" inputMode="decimal" placeholder="0"
             value={form.miles||''} onChange={e=>onFormChange('miles',e.target.value)} style={inpStyle}/></div>
-        <div><div style={inpLbl}>Tire $</div>
+        <div><div style={lbl}>Tire $</div>
           <input type="number" min="0" inputMode="decimal" placeholder="0"
             value={form.tireCost||''} onChange={e=>onFormChange('tireCost',e.target.value)} style={inpStyle}/></div>
-        <div><div style={inpLbl}>Misc $</div>
+        <div><div style={lbl}>Misc $</div>
           <input type="number" min="0" inputMode="decimal" placeholder="0"
             value={form.miscCost||''} onChange={e=>onFormChange('miscCost',e.target.value)} style={inpStyle}/></div>
-        <div><div style={inpLbl}>Qty</div>
+        <div><div style={lbl}>Qty</div>
           <input type="number" min="1" inputMode="numeric" placeholder="1"
             value={form.qty||''} onChange={e=>onFormChange('qty',e.target.value)} style={inpStyle}/></div>
       </div>
-
       {!hasInputs ? (
-        <div style={{textAlign:'center',padding:'10px 0 4px'}}>
+        <div style={{textAlign:'center',padding:'8px 0 2px'}}>
           <div style={{fontSize:13,color:'#444',fontWeight:600}}>Enter job details above</div>
-          <div style={{fontSize:11,color:'#333',marginTop:4}}>Miles · Tire cost · Misc → auto-calculates</div>
+          <div style={{fontSize:11,color:'#333',marginTop:3}}>Miles · Tire cost · Misc → auto-calculates</div>
         </div>
       ) : (
         <>
-          {/* Hero price block */}
+          {/* Price + cost breakdown */}
           <div className="qq-suggested">
             <div className="qq-suggested-label">
               {priceMode==='custom'?'Custom Price':priceMode==='premium'?'Premium Price':'Suggested Price'}
             </div>
-            <div className="qq-suggested-price">{money(displayPrice)}</div>
-            <div style={{display:'flex',justifyContent:'center',gap:20,marginTop:8,marginBottom:6}}>
+            <div className="qq-suggested-price">{money(priceMode==='custom'?Number(form.revenue||0):activePrice)}</div>
+            <div style={{display:'flex',justifyContent:'center',gap:16,marginTop:8,marginBottom:6}}>
               <div style={{textAlign:'center'}}>
-                <div style={{fontSize:11,color:'#555',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:2}}>Cost</div>
-                <div style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:16,fontWeight:700,color:'#666'}}>{money(directCost)}</div>
+                <div style={{fontSize:10,color:'#555',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:2}}>Cost</div>
+                <div style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:15,fontWeight:700,color:'#666'}}>{money(directCost)}</div>
               </div>
               <div style={{width:1,background:'#222',flexShrink:0}}/>
               <div style={{textAlign:'center'}}>
-                <div style={{fontSize:11,color:'#555',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:2}}>Profit</div>
-                <div style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:16,fontWeight:700,color:profit>=skip?'#4ade80':'#ef4444'}}>{money(profit)}</div>
+                <div style={{fontSize:10,color:'#555',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:2}}>Profit</div>
+                <div style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:15,fontWeight:700,color:profit>=skip?'#4ade80':'#ef4444'}}>{money(profit)}</div>
               </div>
-              {prem>0&&<>
-                <div style={{width:1,background:'#222',flexShrink:0}}/>
-                <div style={{textAlign:'center'}}>
-                  <div style={{fontSize:11,color:'#555',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:2}}>Surcharge</div>
-                  <div style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:16,fontWeight:700,color:'#fb923c'}}>+{money(prem)}</div>
-                </div>
-              </>}
+              {prem>0&&(
+                <>
+                  <div style={{width:1,background:'#222',flexShrink:0}}/>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:10,color:'#555',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:2}}>Surcharge</div>
+                    <div style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:15,fontWeight:700,color:'#fb923c'}}>+{money(prem)}</div>
+                  </div>
+                </>
+              )}
             </div>
-            <div style={{marginTop:4}}>
-              <span className={`qq-dec-badge ${decBadge.cls}`}>{decBadge.label}</span>
-            </div>
+            <span className={`qq-dec-badge ${decBadge.cls}`}>{decBadge.label}</span>
           </div>
-
-          {/* Apply buttons — active one highlighted */}
+          {/* Apply buttons */}
           <div className="qq-apply-row">
-            <button
-              className={`qq-apply-btn ${priceMode==='suggested'?'suggested active-sel':'suggested'}`}
-              onClick={()=>applyMode('suggested',suggested)}>
+            <button className={`qq-apply-btn suggested${priceMode==='suggested'?' active-sel':''}`}
+              onClick={()=>handleApplyMode('suggested',suggested)}>
               {priceMode==='suggested'?'✓ ':''}{money(suggested)}<br/>
-              <span style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:10,opacity:.8}}>Suggested</span>
+              <span style={{fontSize:10,opacity:.8}}>Suggested</span>
             </button>
-            <button
-              className={`qq-apply-btn ${priceMode==='premium'?'premium active-sel':'premium'}`}
-              onClick={()=>applyMode('premium',premiumPrice)}>
+            <button className={`qq-apply-btn premium${priceMode==='premium'?' active-sel':''}`}
+              onClick={()=>handleApplyMode('premium',premiumPrice)}>
               {priceMode==='premium'?'✓ ':''}{money(premiumPrice)}<br/>
-              <span style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:10,opacity:.8}}>Premium</span>
+              <span style={{fontSize:10,opacity:.8}}>Premium</span>
             </button>
-            <button
-              className={`qq-apply-btn ${priceMode==='custom'?'custom active-sel':'custom'}`}
-              onClick={()=>applyMode('custom','')}>
+            <button className={`qq-apply-btn custom${priceMode==='custom'?' active-sel':''}`}
+              onClick={()=>handleApplyMode('custom','')}>
               {priceMode==='custom'?'✓ ':''}Custom<br/>
-              <span style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:10,opacity:.8}}>Enter price</span>
+              <span style={{fontSize:10,opacity:.8}}>Enter →</span>
             </button>
           </div>
-
-          {/* Custom price input — visible only in custom mode */}
+          {/* Custom price input */}
           {priceMode==='custom'&&(
             <div style={{marginTop:10}}>
-              <div style={{fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'.6px',color:'#555',marginBottom:6,textAlign:'center'}}>Enter Custom Price</div>
-              <input
-                ref={customRef}
-                type="number" min="0" inputMode="decimal"
-                placeholder="0.00"
+              <div style={{fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'.6px',color:'#555',marginBottom:6,textAlign:'center'}}>Custom Price</div>
+              <input ref={customRef} type="number" min="0" inputMode="decimal" placeholder="0.00"
                 value={form.revenue||''}
-                onChange={e=>{onFormChange('revenue',e.target.value);}}
-                style={{
-                  ...inpStyle,
-                  fontSize:22,fontWeight:700,padding:'12px',
-                  border:'2px solid rgba(255,255,255,.3)',
-                  borderRadius:10,
-                }}
+                onChange={e=>onFormChange('revenue',e.target.value)}
+                style={{...inpStyle,fontSize:22,fontWeight:700,padding:'12px',border:'2px solid rgba(255,255,255,.3)',borderRadius:10}}
               />
               <div style={{fontSize:10,color:'#555',textAlign:'center',marginTop:5}}>
                 Profit: {money(r2(Number(form.revenue||0)-directCost))}
@@ -823,7 +807,7 @@ function sendInvoice(job, settings) {
     // Copy to clipboard fallback
     try {
       navigator.clipboard.writeText(text).then(()=>alert('Invoice copied to clipboard!\nPaste it to send manually.'));
-    } catch {
+    } catch(e) {
       // Older fallback
       const ta = document.createElement('textarea');
       ta.value = text; document.body.appendChild(ta);
@@ -840,8 +824,8 @@ function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit
   const [error,setError]=useState('');
   const [saved,setSaved]=useState(null);
   const [tick,setTick]=useState(0);
-  // FIX: store editingId locally so timing of onClearEdit doesn't affect save
   const [editingId,setEditingId]=useState(null);
+  const [priceMode,setPriceMode]=useState('suggested');
   const isEditing=!!editingId;
   const recentSizes=useMemo(()=>[...new Set([...load(KEYS.sizes,[]),...DEFAULT_TIRE_SIZES])].slice(0,8),[tick]);
   const weekGross=useMemo(()=>{const tw=getWeekStart(TODAY());return (Array.isArray(jobs)?jobs:[]).filter(j=>getWeekStart(j.date)===tw&&(!isEditing||j.id!==editingId)).reduce((s,j)=>s+jobGrossProfit(j,settings),0);},[jobs,settings,isEditing,editingId]);
@@ -852,13 +836,14 @@ function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit
     if(editJob&&editJob.id){
       setForm({...EMPTY_JOB(),...editJob,revenue:String(editJob.revenue||''),tireCost:String(editJob.tireCost||''),miscCost:String(editJob.miscCost||''),miles:String(editJob.miles||'')});
       setEditingId(editJob.id);
-      setSaved(null);setError('');
+      setSaved(null);setError('');setPriceMode('suggested');
       // Clear the parent ref so App doesn't keep triggering this effect
       if(onClearEdit)onClearEdit();
       return;
     }
     if(prefill){
       setForm({...EMPTY_JOB(),service:prefill.service||'Tire Repair',area:prefill.area||'Miami',payment:prefill.payment||'Cash',source:prefill.source||'Google Search',tireSize:prefill.tireSize||'',qty:prefill.qty||1,tireCost:String(prefill.tireCost||''),miscCost:String(prefill.miscCost||''),miles:String(prefill.miles||''),emergency:!!prefill.emergency,lateNight:!!prefill.lateNight,highway:!!prefill.highway,weekend:!!prefill.weekend,customerName:prefill.customerName||'',customerPhone:prefill.customerPhone||''});
+      setPriceMode('suggested');
       if(onClearPrefill)onClearPrefill();
     }
   },[prefill,editJob]);
@@ -888,7 +873,7 @@ function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit
   };
 
   const cancelEdit=()=>{
-    setEditingId(null);
+    setEditingId(null);setPriceMode('suggested');
     setForm(EMPTY_JOB());setError('');setSaved(null);
   };
 
@@ -946,6 +931,8 @@ function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit
           weekGross={weekGross}
           onApply={v=>setF('revenue',v)}
           onFormChange={setF}
+          priceMode={priceMode}
+          setPriceMode={setPriceMode}
         />
 
         {/* GROUP 1: Pricing */}
@@ -1553,7 +1540,30 @@ function App(){
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+class AppErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{padding:32,background:'#111',minHeight:'100vh',color:'#fff',fontFamily:'"IBM Plex Sans",sans-serif'}}>
+          <div style={{fontSize:20,fontWeight:700,marginBottom:8,color:'#ef4444'}}>⚠️ App Error</div>
+          <div style={{fontSize:13,color:'#888',marginBottom:16}}>Please screenshot this and report it:</div>
+          <pre style={{fontSize:11,background:'#1a1a1a',padding:14,borderRadius:8,overflow:'auto',color:'#f87171',lineHeight:1.6}}>
+            {this.state.error.toString()}
+          </pre>
+          <button onClick={()=>window.location.reload()} style={{marginTop:20,background:'#fff',color:'#111',border:'none',borderRadius:8,padding:'12px 20px',fontSize:14,fontWeight:700,cursor:'pointer'}}>
+            Reload App
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<AppErrorBoundary><App/></AppErrorBoundary>);
 </script>
 
 </body>
