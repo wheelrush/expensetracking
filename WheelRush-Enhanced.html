@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Wheel Rush" />
+  <meta name="theme-color" content="#111111" />
+  <title>Wheel Rush — Business Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body,#root{height:100%;font-family:"IBM Plex Sans",sans-serif;background:#f4f4f4;overflow:hidden;color:#111}
+    input,select,textarea,button{font-family:"IBM Plex Sans",sans-serif}
+    input,select,textarea{font-size:16px!important}
+    button{cursor:pointer}
+    .app{height:100%;display:flex;flex-direction:column}
+    .header{background:#111;color:#fff;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+    .header h1{font-size:18px;line-height:1.1;font-weight:700}
+    .header p{font-size:11px;color:#666;margin-top:3px}
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700}
+    .badge.dark{background:rgba(255,255,255,0.07);color:#888}
+    .badge.green{background:rgba(74,222,128,0.15);color:#4ade80}
+    .badge.orange{background:rgba(234,88,12,0.2);color:#fb923c}
+    .screen{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+    .page{padding:14px 14px calc(100px + env(safe-area-inset-bottom))}
+    .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:#999;margin:18px 0 8px}
+    .section-label:first-child{margin-top:0}
+    .label{font-size:12px;color:#777}
+    .sub{font-size:11px;color:#999}
+    .value{font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:700}
+    .value.big{font-size:22px}
+    .value.green{color:#16a34a}.value.red{color:#dc2626}.value.orange{color:#ea580c}
+    .mono{font-family:"IBM Plex Mono",monospace}
+    .card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:10px}
+    .card-pad{padding:14px 16px}
+    .card-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:1px solid #f0f0f0}
+    .card-row:last-child{border-bottom:none}
+    .dark-card{background:#111;color:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.15);margin-bottom:10px}
+    .dark-card .muted{color:#555}
+    .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#ececec;border-radius:14px;overflow:hidden;margin-bottom:10px}
+    .kpi-grid.three{grid-template-columns:1fr 1fr 1fr}
+    .kpi{background:#fff;padding:14px}
+    .kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#999;margin-bottom:5px}
+    .kpi-value{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:700;line-height:1.1}
+    .kpi-sub{font-size:11px;color:#999;margin-top:4px}
+    .goal-track{height:8px;background:#f0f0f0;border-radius:999px;overflow:hidden;margin:10px 0 6px}
+    .goal-fill{height:100%;border-radius:999px;transition:width .4s ease}
+    .goal-fill.full{background:#16a34a}
+    .goal-fill.mid{background:#111}
+    .goal-fill.low{background:#ea580c}
+    .mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#ececec;border-radius:14px;overflow:hidden;margin-bottom:10px}
+    .mini-box{background:#fff;padding:10px;text-align:center}
+    .mini-box strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:14px;line-height:1.2}
+    .mini-box span{display:block;font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+    .stack{display:grid;gap:8px}
+    .job-row{background:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+    .job-icon{width:38px;height:38px;border-radius:10px;background:#f4f4f4;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+    .job-main{flex:1;min-width:0}
+    .job-title{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .job-meta{font-size:11px;color:#999;margin-top:3px;line-height:1.5}
+    .job-right{text-align:right;flex-shrink:0}
+    .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;line-height:1.4}
+    .pill.green{background:#dcfce7;color:#166534}
+    .pill.red{background:#fee2e2;color:#b91c1c}
+    .pill.orange{background:#ffedd5;color:#c2410c}
+    .pill.gray{background:#f3f4f6;color:#6b7280}
+    .pill.blue{background:#dbeafe;color:#1d4ed8}
+    .field{margin-bottom:14px}
+    .field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#888;margin-bottom:7px}
+    .field input,.field select,.field textarea{width:100%;border:1.5px solid #e3e3e3;background:#fff;border-radius:12px;padding:12px 14px;outline:none;transition:border-color .15s;min-width:0;box-sizing:border-box}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:#111}
+    .field textarea{min-height:72px;resize:vertical}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0}
+    .chip-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}
+    .chip{border:1.5px solid #ddd;background:#fff;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;color:#666;transition:all .12s}
+    .chip.active{background:#111;color:#fff;border-color:#111}
+    .chip.sm{padding:5px 10px;font-size:11px}
+    .chip.city{background:#f0f9ff;border-color:#bae6fd;color:#0369a1}
+    .chip.city.active{background:#111;color:#fff;border-color:#111}
+    /* City search */
+    .city-input-wrap{position:relative}
+    .city-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid #e3e3e3;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;max-height:240px;overflow-y:auto}
+    .city-option{padding:12px 14px;font-size:14px;border-bottom:1px solid #f5f5f5;cursor:pointer;display:flex;align-items:center;gap:8px}
+    .city-option:last-child{border-bottom:none}
+    .city-option:active{background:#f4f4f4}
+    .city-section-head{padding:6px 14px 4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#bbb;background:#fafafa}
+    /* Quick quote */
+    .quote-box{background:#111;border-radius:14px;padding:16px;margin-bottom:14px;color:#fff}
+    .quote-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:13px}
+    .quote-row:last-child{border-bottom:none;padding-top:10px;font-weight:700;font-size:15px}
+    .dec-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:700;margin-top:10px}
+    .dec-badge.strong{background:#dcfce7;color:#166534}
+    .dec-badge.okay{background:#fef9c3;color:#854d0e}
+    .dec-badge.low{background:#fee2e2;color:#b91c1c}
+    /* Source quick buttons */
+    .src-grid{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+    .src-btn{border:1.5px solid #e3e3e3;background:#fff;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;color:#555;transition:all .12s;display:flex;align-items:center;gap:5px}
+    .src-btn.active{background:#111;color:#fff;border-color:#111}
+    /* Sticky save bar */
+    .sticky-save{position:sticky;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ececec;padding:12px 14px;padding-bottom:calc(12px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:10px;z-index:50}
+    .preview-row:last-child{border-bottom:none;padding-top:10px;font-weight:700;font-size:14px}
+    .btn{border:none;border-radius:12px;padding:14px 16px;font-weight:700;font-size:14px;transition:opacity .1s}
+    .btn:active{opacity:.8}
+    .btn.primary{background:#111;color:#fff}
+    .btn.secondary{background:#fff;color:#111;border:1.5px solid #ddd}
+    .btn.sm{padding:9px 13px;font-size:12px;border-radius:10px}
+    .btn.xs{padding:6px 10px;font-size:11px;border-radius:8px}
+    .btn.danger{background:#fee2e2;color:#b91c1c}
+    .btn.success{background:#dcfce7;color:#166534}
+    .btn.blue{background:#dbeafe;color:#1d4ed8}
+    .btn.orange{background:#ffedd5;color:#c2410c}
+    .pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+    .pay-btn{border:1.5px solid #e3e3e3;border-radius:12px;padding:10px 4px;background:#fff;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:#666;transition:all .12s}
+    .pay-btn.active{border-color:#111;background:#111;color:#fff}
+    .pay-btn .pay-icon{font-size:18px}
+    .bottom-nav{display:flex;background:#fff;border-top:1px solid #ececec;padding-bottom:env(safe-area-inset-bottom);flex-shrink:0}
+    .nav-btn{flex:1;border:none;background:none;padding:7px 2px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#bbb;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+    .nav-btn.active{color:#111}
+    .nav-btn .ico{font-size:16px;line-height:1}
+    .settings-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid #f1f1f1}
+    .settings-row:last-child{border-bottom:none}
+    .settings-inp{border:1.5px solid #e3e3e3;border-radius:10px;padding:10px 12px;font-family:"IBM Plex Sans",sans-serif;font-size:15px;outline:none}
+    .settings-inp:focus{border-color:#111}
+    .expense-row{display:grid;grid-template-columns:1fr 90px auto auto;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid #f2f2f2}
+    .expense-row:last-child{border-bottom:none}
+    .expense-row input{border:1.5px solid #e3e3e3;border-radius:10px;padding:9px 12px;width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:15px;outline:none}
+    .empty{padding:50px 20px;text-align:center}
+    .empty-icon{font-size:40px;margin-bottom:12px}
+    .empty-title{font-size:15px;font-weight:700;margin-bottom:6px}
+    .empty-sub{font-size:13px;color:#999;line-height:1.5}
+    .tax-box{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 14px;margin-top:10px}
+    .tax-box .tax-lbl{color:#92400e;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .tax-box .tax-amt{font-family:"IBM Plex Mono",monospace;font-size:18px;font-weight:700;color:#b45309}
+    .tax-box .tax-hint{font-size:11px;color:#92400e;margin-top:4px}
+    .inline-note{font-size:11px;color:#999;line-height:1.6;margin-bottom:14px}
+    .source-bar{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f5f5}
+    .source-bar:last-child{border-bottom:none}
+    .source-bar-track{flex:1;height:6px;background:#f0f0f0;border-radius:999px;overflow:hidden}
+    .source-bar-fill{height:100%;background:#111;border-radius:999px}
+    .auth-screen{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;padding:32px 24px}
+    .auth-title{color:#fff;font-size:24px;font-weight:700;margin-bottom:6px}
+    .auth-sub{color:#555;font-size:13px;margin-bottom:32px;text-align:center}
+    .auth-inp{width:100%;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;color:#fff;font-size:16px;outline:none;margin-bottom:12px;font-family:"IBM Plex Sans",sans-serif}
+    .auth-inp::placeholder{color:#444}
+    .auth-inp:focus{border-color:rgba(255,255,255,.3)}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .syncing{animation:pulse 1.2s infinite}
+    /* Success actions */
+    .success-strip{background:#dcfce7;border:1px solid #86efac;border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .success-strip-title{font-size:12px;font-weight:700;color:#166534;width:100%;margin-bottom:4px}
+    /* Form group divider */
+    .form-group{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+    .form-group-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#bbb;margin-bottom:12px}
+
+    /* Compact header */
+    .header-compact{background:#111;color:#fff;padding:8px 14px;padding-top:calc(8px + env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+    .header-compact h1{font-size:16px;font-weight:700;line-height:1}
+    .header-compact p{font-size:10px;color:#555;margin-top:1px}
+    /* Auth premium */
+    .auth-field{margin-bottom:14px}
+    .auth-label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#444;margin-bottom:8px}
+    .auth-inp2{width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 18px;color:#fff;font-size:17px;outline:none;font-family:"IBM Plex Sans",sans-serif;transition:border-color .15s}
+    .auth-inp2::placeholder{color:#333}
+    .auth-inp2:focus{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.09)}
+    .auth-btn-main{width:100%;background:#fff;color:#111;border:none;border-radius:14px;padding:17px;font-size:16px;font-weight:700;font-family:"IBM Plex Sans",sans-serif;margin-bottom:10px}
+    .auth-btn-main:active{opacity:.85}
+    .auth-btn-google{width:100%;background:rgba(255,255,255,.07);color:#fff;border:1.5px solid rgba(255,255,255,.12);border-radius:14px;padding:15px;font-size:15px;font-weight:600;font-family:"IBM Plex Sans",sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:18px}
+    .auth-btn-google:active{opacity:.8}
+    /* QuickQuote v2 */
+    .qq-suggested{text-align:center;padding:14px 10px 10px;border-bottom:1px solid rgba(255,255,255,.07)}
+    .qq-suggested-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#555;margin-bottom:4px}
+    .qq-suggested-price{font-family:"IBM Plex Mono",monospace;font-size:34px;font-weight:700;color:#fff;line-height:1}
+    .qq-dec-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:999px;font-size:12px;font-weight:700;margin-top:8px}
+    .qq-dec-badge.take{background:#dcfce7;color:#166534}
+    .qq-dec-badge.raise{background:#fef9c3;color:#854d0e}
+    .qq-dec-badge.low{background:#fee2e2;color:#b91c1c}
+    .qq-apply-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px}
+    .qq-apply-btn{border:none;border-radius:10px;padding:9px 4px;font-size:11px;font-weight:700;font-family:"IBM Plex Sans",sans-serif;cursor:pointer;line-height:1.3}
+    .qq-apply-btn:active{opacity:.8}
+    .qq-apply-btn.suggested{background:#4ade80;color:#14532d}
+    .qq-apply-btn.premium{background:#fb923c;color:#431407}
+    .qq-apply-btn.custom{background:rgba(255,255,255,.1);color:#fff}
+    .qq-breakdown{padding:0 12px 10px;display:flex;gap:8px;justify-content:space-between}
+    .qq-stat{text-align:center;flex:1}
+    .qq-stat-val{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:700;color:#aaa}
+    .qq-stat-lbl{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+    /* More Details toggle */
+    .more-toggle{width:100%;background:none;border:1.5px dashed #e3e3e3;border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:#888;font-family:"IBM Plex Sans",sans-serif;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+    .more-toggle:active{background:#f9f9f9}
+    /* Tighter pay buttons */
+    .pay-btn-tight{border:1.5px solid #e3e3e3;border-radius:10px;padding:7px 4px;background:#fff;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:700;color:#666;transition:all .12s}
+    .pay-btn-tight.active{border-color:#111;background:#111;color:#fff}
+    .pay-btn-tight .pay-icon{font-size:16px}
+    /* Better sticky save */
+    .sticky-save2{position:sticky;bottom:0;left:0;right:0;background:#fff;border-top:2px solid #111;padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:10px;z-index:50;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+    /* Edit banner */
+    .edit-banner{background:#fef9c3;border:1.5px solid #fde047;border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .edit-banner-text{font-size:13px;font-weight:700;color:#854d0e}
+    /* Customer cards */
+    .customer-card{background:#fff;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:8px}
+    .customer-avatar{width:44px;height:44px;border-radius:12px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;font-family:"IBM Plex Mono",monospace}
+    .customer-main{flex:1;min-width:0}
+    .customer-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .customer-meta{font-size:11px;color:#999;margin-top:2px}
+    .customer-right{text-align:right;flex-shrink:0}
+
+    @media(max-width:375px){
+      .field-row{grid-template-columns:1fr}
+      .mini-grid{grid-template-columns:repeat(2,1fr)}
+      .pay-grid{grid-template-columns:repeat(2,1fr)}
+    }
+
+
+    /* QuickQuote active price selection */
+    .qq-apply-btn.active-sel{outline:2px solid #fff;outline-offset:1px;}
+    .qq-apply-btn.suggested.active-sel{background:#4ade80;color:#14532d;}
+    .qq-apply-btn.premium.active-sel{background:#fb923c;color:#431407;}
+    .qq-apply-btn.custom.active-sel{background:rgba(255,255,255,.25);color:#fff;}
+    /* ── Responsive / device fit ── */
+    @media(min-width:600px){
+      .app{max-width:480px;margin:0 auto;box-shadow:0 0 40px rgba(0,0,0,.15)}
+      html,body,#root{background:#e8e8e8}
+    }
+    @media(max-width:360px){
+      .pay-grid{grid-template-columns:repeat(2,1fr)!important}
+      .field-row{grid-template-columns:1fr!important}
+      .kpi-grid{grid-template-columns:1fr 1fr!important}
+      .mini-grid{grid-template-columns:1fr 1fr!important}
+      .page{padding:10px 10px calc(100px + env(safe-area-inset-bottom))}
+      .form-group{padding:10px}
+      .section-label{margin:14px 0 6px}
+    }
+    @media(min-height:812px){
+      /* Tall phones (iPhone X+) — a bit more breathing room */
+      .page{padding:16px 14px calc(110px + env(safe-area-inset-bottom))}
+    }
+  </style>
+
+  <!-- PWA: Home Screen icon (icon.png must be in same folder as this HTML) -->
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+<div id="root"></div>
+<script>
+// Firebase config — this key is intentionally public (client-side SDK).
+// Security is enforced by Firebase Security Rules in the console, not by hiding this key.
+// Restrict usage at: console.firebase.google.com → Project Settings → API key → HTTP referrers
+const FB_CFG = {
+  apiKey:            atob("QUl6YVN5QTdxOHpyOUlJeWd1LTJXZWRzOFZPMlo5eHk5ZEs1MUhF"),
+  authDomain:        "wheel-rush-expense.firebaseapp.com",
+  projectId:         "wheel-rush-expense",
+  storageBucket:     "wheel-rush-expense.firebasestorage.app",
+  messagingSenderId: "400580006654",
+  appId:             "1:400580006654:web:b8e435c2807b51af244baf"
+};
+let _app, _db, _auth;
+function initFirebase() {
+  try {
+    if (typeof firebase === 'undefined') return;
+    _app  = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FB_CFG);
+    _db   = firebase.firestore();
+    _auth = firebase.auth();
+  } catch(e) { console.warn('Firebase init:', e); }
+}
+if (typeof firebase !== 'undefined') initFirebase();
+else window.addEventListener('load', initFirebase);
+
+const LOGO_SRC = "data:image/png;base64,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";
+
+const fbCol      = n => _db ? _db.collection(n) : null;
+const jobCol     = ()=> fbCol('wr2_jobs');
+const invCol     = ()=> fbCol('wr2_inventory');
+const expCol     = ()=> fbCol('wr2_expenses');
+const settingDoc = ()=> _db ? _db.collection('wr2_settings').doc('main') : null;
+
+function fbListen(col, cb) {
+  if (!col) { cb([]); return () => {}; }
+  return col.onSnapshot(s => cb(s.docs.map(d => ({...d.data(), id: d.id}))), () => cb([]));
+}
+async function fbSet(col, id, data)  { try { if (col) await col.doc(String(id)).set({...data, id:String(id)}); } catch {} }
+async function fbDel(col, id)        { try { if (col) await col.doc(String(id)).delete(); } catch {} }
+async function fbSetAll(col, items)  { if (!col || !items.length) return; const b=_db.batch(); items.forEach(i=>b.set(col.doc(String(i.id)),{...i,id:String(i.id)})); try{await b.commit();}catch{} }
+</script>
+<script type="text/babel">
+const { useCallback, useEffect, useMemo, useRef, useState } = React;
+
+// ── Storage ──────────────────────────────────────────────────────────────────
+const KEYS = {
+  jobs:'wr2-jobs-v2', settings:'wr2-settings-v2', inventory:'wr2-inventory-v2',
+  expenses:'wr2-expenses-v1', sizes:'wr2-recent-sizes-v1', cities:'wr2-recent-cities-v1',
+};
+const load    = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch(e) { return fb; } };
+const persist = (k, v)  => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
+
+function migrateOldJobs() {
+  const OLD = ['wr-jobs-v5','wr-upgraded-jobs-v1','wr2-jobs-v1','wheelrush_jobs'];
+  const cur = load(KEYS.jobs, []); const ids = new Set(cur.map(function(j){return String(j.id);}));
+  let mg = [...cur], cnt = 0;
+  OLD.forEach(function(k) {
+    try {
+      const o = load(k, []);
+      if (Array.isArray(o)) o.forEach(function(j) {
+        if (!ids.has(String(j.id))) {
+          mg.push({...j, id:String(j.id||Date.now()), source:j.source||'Google Search', tireCost:j.tireCost||j.cost||0, miscCost:j.miscCost||0});
+          ids.add(String(j.id)); cnt++;
+        }
+      });
+    } catch(e) {}
+  });
+  if (cnt > 0) persist(KEYS.jobs, mg);
+  return mg;
+}
+
+function migrateOldInventory() {
+  const OLD = ['wr-tires-v1','wr-upgraded-inventory-v1','wr2-inventory-v1'];
+  const cur = load(KEYS.inventory, []); let best = cur;
+  OLD.forEach(function(k) {
+    try { const o = load(k, []); if (Array.isArray(o) && o.length > best.length) best = o; } catch(e) {}
+  });
+  if (best !== cur) {
+    const n = best.map(function(i) { return {id:i.id?String(i.id):('i'+Math.random().toString(36).slice(2,8)),size:i.size||'',qty:Number(i.qty||0),cost:Number(i.cost||0),notes:i.notes||''}; });
+    persist(KEYS.inventory, n); return n;
+  }
+  return best;
+}
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+const TODAY  = function() {
+  // Always return the current date in America/New_York (Miami) time
+  return new Date().toLocaleDateString('en-CA', {timeZone:'America/New_York'});
+};
+const uid    = function() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); };
+const clamp  = function(n,lo,hi) { return Math.min(hi,Math.max(lo,n)); };
+const r2     = function(n) { return Math.round((Number(n||0)+Number.EPSILON)*100)/100; };
+const money  = function(n) { return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n||0)); };
+
+const SERVICE_OPTIONS = ['Tire Repair','Tire Replacement','Tire Installation','Lug Nut Removal','Valve Stem Service','Roadside Assistance','Other'];
+const PAYMENT_OPTIONS = [{label:'Cash',icon:'💵'},{label:'Zelle',icon:'🟣'},{label:'Card',icon:'💳'},{label:'Cash App',icon:'🟢'},{label:'Venmo',icon:'💙'},{label:'Check',icon:'✍️'}];
+
+const CITY_LIST = [
+  'Miami','Miami Beach','North Miami','North Miami Beach','Miami Gardens','Hialeah',
+  'Hialeah Gardens','Opa-locka','Aventura','Sunny Isles Beach','Bal Harbour',
+  'Bay Harbor Islands','Surfside','El Portal','Biscayne Park','Golden Beach',
+  'Key Biscayne','Doral','Sweetwater','West Miami','Virginia Gardens','Medley',
+  'Miami Springs','Coral Gables','South Miami','Pinecrest','Palmetto Bay',
+  'Cutler Bay','Homestead','Florida City','Kendall','West Kendall','Tamiami',
+  'Fontainebleau','Westchester','Olympia Heights','Richmond Heights',
+  'Country Walk','Three Lakes','Naranja','Princeton','Goulds',
+  'Fort Lauderdale','Hollywood','Pembroke Pines','Miramar','Davie','Plantation',
+  'Sunrise','Weston','Tamarac','Coral Springs','Parkland','Coconut Creek',
+  'Margate','North Lauderdale','Lauderhill','Lauderdale Lakes','Wilton Manors',
+  'Oakland Park','Pompano Beach','Deerfield Beach','Lighthouse Point',
+  'Dania Beach','Hallandale Beach','Cooper City','Southwest Ranches',
+  'Hillsboro Beach','Sea Ranch Lakes','Lazy Lake','Pembroke Park',
+  'West Park','Lauderdale-by-the-Sea','Other',
+];
+const TOP_CITIES = ['Miami','Fort Lauderdale','Hollywood','Miramar','Hialeah','Aventura','Doral','Pembroke Pines','Coral Springs','Davie'];
+const SOURCE_QUICK = [
+  {label:'Google',icon:'🔍'},{label:'Google Maps',icon:'🗺'},{label:'TikTok',icon:'🎵'},
+  {label:'Referral',icon:'🤝'},{label:'Returning Customer',icon:'🔁'},{label:'Roadside Flag',icon:'🚗'},
+];
+const DEFAULT_TIRE_SIZES = ['245/40R18','225/65R17','225/60R18','215/55R16','255/50R17','225/55R18','235/40R19','245/50R20','275/35R21','275/40R22','275/50R22','195/60R16'];
+const DEFAULT_SETTINGS = {
+  businessName:'Wheel Rush Mobile Tire Repair',owner1Name:'Owner 1',owner2Name:'Owner 2',
+  owner1Active:true,owner2Active:true,profitSplit1:50,profitSplit2:50,
+  weeklyGoal:1200,taxRate:25,repairTarget:90,replacementTarget:110,
+  skipThreshold:70,riskyMiles:25,costPerMile:0.65,
+  googleReviewUrl:'https://g.page/r/CfMRJkXrNBO5EBM/review',
+  expenses:[
+    {id:'e1',name:'Van Insurance',amount:434,active:true},
+    {id:'e2',name:'Marketing',amount:599,active:true},
+    {id:'e3',name:'Google PPC',amount:750,active:true},
+    {id:'e4',name:'Phone Bill',amount:250,active:true},
+    {id:'e5',name:'Storage',amount:160,active:true},
+    {id:'e6',name:'Equipment Payment',amount:232.37,active:true},
+  ],
+};
+const DEFAULT_INVENTORY = [
+  {id:'inv001',size:'195/55R15',qty:1,cost:0,notes:''},
+  {id:'inv002',size:'185/55R16',qty:1,cost:0,notes:''},
+  {id:'inv003',size:'195/60R16',qty:3,cost:0,notes:''},
+  {id:'inv004',size:'205/55R16',qty:1,cost:0,notes:''},
+  {id:'inv005',size:'205/60R16',qty:1,cost:0,notes:''},
+  {id:'inv006',size:'215/55R16',qty:4,cost:0,notes:''},
+  {id:'inv007',size:'215/65R16',qty:1,cost:0,notes:''},
+  {id:'inv008',size:'225/50R16',qty:1,cost:0,notes:''},
+  {id:'inv009',size:'235/65R16',qty:1,cost:0,notes:''},
+  {id:'inv010',size:'205/40R17',qty:1,cost:0,notes:''},
+  {id:'inv011',size:'215/45R17',qty:1,cost:0,notes:''},
+  {id:'inv012',size:'225/60R17',qty:1,cost:0,notes:''},
+  {id:'inv013',size:'225/65R17',qty:5,cost:0,notes:''},
+  {id:'inv014',size:'235/55R17',qty:1,cost:0,notes:''},
+  {id:'inv015',size:'245/55R17',qty:1,cost:0,notes:''},
+  {id:'inv016',size:'245/65R17',qty:1,cost:0,notes:''},
+  {id:'inv017',size:'255/50R17',qty:3,cost:0,notes:''},
+  {id:'inv018',size:'255/65R17',qty:1,cost:0,notes:''},
+  {id:'inv019',size:'265/70R17',qty:1,cost:0,notes:''},
+  {id:'inv020',size:'215/40R18',qty:1,cost:0,notes:''},
+  {id:'inv021',size:'225/50R18',qty:2,cost:0,notes:''},
+  {id:'inv022',size:'225/55R18',qty:3,cost:0,notes:''},
+  {id:'inv023',size:'225/60R18',qty:5,cost:0,notes:''},
+  {id:'inv024',size:'245/40R18',qty:6,cost:0,notes:''},
+  {id:'inv025',size:'255/55R18',qty:1,cost:0,notes:''},
+  {id:'inv026',size:'255/60R18',qty:1,cost:0,notes:''},
+  {id:'inv027',size:'225/35R19',qty:1,cost:0,notes:''},
+  {id:'inv028',size:'225/40R19',qty:1,cost:0,notes:''},
+  {id:'inv029',size:'235/40R19',qty:3,cost:0,notes:''},
+  {id:'inv030',size:'235/45R19',qty:1,cost:0,notes:''},
+  {id:'inv031',size:'235/50R19',qty:1,cost:0,notes:''},
+  {id:'inv032',size:'235/55R19',qty:1,cost:0,notes:''},
+  {id:'inv033',size:'285/40R19',qty:2,cost:0,notes:''},
+  {id:'inv034',size:'235/50R20',qty:1,cost:0,notes:''},
+  {id:'inv035',size:'245/35R20',qty:1,cost:0,notes:''},
+  {id:'inv036',size:'245/50R20',qty:3,cost:0,notes:''},
+  {id:'inv037',size:'255/50R20',qty:1,cost:0,notes:''},
+  {id:'inv038',size:'275/45R20',qty:1,cost:0,notes:''},
+  {id:'inv039',size:'285/45R20',qty:1,cost:0,notes:''},
+  {id:'inv040',size:'295/30R20',qty:1,cost:0,notes:''},
+  {id:'inv041',size:'315/55R20',qty:1,cost:0,notes:''},
+  {id:'inv042',size:'255/35R21',qty:2,cost:0,notes:''},
+  {id:'inv043',size:'255/40R21',qty:2,cost:0,notes:''},
+  {id:'inv044',size:'275/35R21',qty:3,cost:0,notes:''},
+  {id:'inv045',size:'295/35R21',qty:1,cost:0,notes:''},
+  {id:'inv046',size:'325/30R21',qty:2,cost:0,notes:''},
+  {id:'inv047',size:'275/40R22',qty:3,cost:0,notes:''},
+  {id:'inv048',size:'275/50R22',qty:3,cost:0,notes:''},
+  {id:'inv049',size:'285/40R22',qty:1,cost:0,notes:''},
+  {id:'inv050',size:'285/45R22',qty:2,cost:0,notes:''},
+  {id:'inv051',size:'315/35R22',qty:2,cost:0,notes:''},
+  {id:'inv052',size:'325/30R23',qty:1,cost:0,notes:''},
+];
+const EMPTY_JOB = function() { return {
+  id:'',date:TODAY(),service:'Tire Repair',area:'Miami',payment:'Cash',
+  status:'Completed',source:'Google Search',customerName:'',customerPhone:'',
+  tireSize:'',qty:1,revenue:'',tireCost:'',miscCost:'',miles:'',note:'',
+  emergency:false,lateNight:false,highway:false,weekend:false,
+}; };
+
+// ── Business logic ─────────────────────────────────────────────────────────────
+const jobDirectCost  = function(j,s) { return r2(Number(j.miles||0)*Number(s.costPerMile||0.65)+Number(j.tireCost||0)+Number(j.miscCost||0)); };
+const jobGrossProfit = function(j,s) { return r2(Number(j.revenue||0)-jobDirectCost(j,s)); };
+const weeklyFixed    = function(s) { return r2((s.expenses||[]).filter(function(e){return e.active;}).reduce(function(t,e){return t+Number(e.amount||0);},0)*12/52); };
+const monthlyFixed   = function(s) { return (s.expenses||[]).filter(function(e){return e.active;}).reduce(function(t,e){return t+Number(e.amount||0);},0); };
+
+function premiums(j) {
+  let p = 0;
+  if (j.emergency) p += 20;
+  if (j.lateNight) p += 20;
+  if (j.highway)   p += 15;
+  if (j.weekend)   p += 10;
+  if (Number(j.miles||0) > 25) p += 20;
+  return p;
+}
+function suggestedPrice(j, s) {
+  const direct = jobDirectCost(j, s);
+  const isRepl = /replacement|installation/i.test(j.service||'');
+  const target = isRepl ? Number(s.replacementTarget||110) : Number(s.repairTarget||90);
+  return Math.ceil((direct + target + premiums(j)) / 5) * 5;
+}
+function jobDecision(j, s, weekGP) {
+  if (weekGP === undefined) weekGP = 0;
+  const rev    = Number(j.revenue||0) || suggestedPrice(j,s);
+  const profit = r2(rev - jobDirectCost(j,s));
+  const skip   = Number(s.skipThreshold||70);
+  const miles  = Number(j.miles||0);
+  const goal   = Number(s.weeklyGoal||1200);
+  const goalPct= goal > 0 ? weekGP / goal : 0;
+  if (profit < skip) return {label:'Too Low', cls:'low', dec:'low', reason:'Profit '+money(profit)+' below min '+money(skip)};
+  if (goalPct >= 1.0 && miles > Number(s.riskyMiles||25)) return {label:'Too Low', cls:'low', dec:'low', reason:'Goal hit — skip the drive'};
+  if (miles > Number(s.riskyMiles||25)) {
+    const adj = goalPct < 0.5 ? skip-15 : skip;
+    if (profit < adj+30) return {label:'Take It', cls:'okay', dec:'okay', reason:miles+' mi — watch margin'};
+  }
+  if (profit >= skip+40) return {label:'Strong Margin', cls:'strong', dec:'strong', reason:money(profit)+' profit'};
+  return {label:'Take It', cls:'okay', dec:'okay', reason:money(profit)+' profit'};
+}
+function weekSummary(weekJobs, s) {
+  const jobs = Array.isArray(weekJobs) ? weekJobs : [];
+  const revenue     = r2(jobs.reduce(function(t,j){return t+Number(j.revenue||0);},0));
+  const directCosts = r2(jobs.reduce(function(t,j){return t+jobDirectCost(j,s);},0));
+  const grossProfit = r2(revenue - directCosts);
+  const fixed       = weeklyFixed(s);
+  const net         = r2(grossProfit - fixed);
+  return {revenue, directCosts, grossProfit, fixed, net, jobCount:jobs.length};
+}
+function getWeekStart(d) {
+  const dt = new Date(d+'T12:00:00'), day = dt.getDay();
+  // Use noon to avoid any DST-edge midnight issues
+  dt.setDate(dt.getDate() - (day >= 5 ? day-5 : day+2));
+  return dt.toLocaleDateString('en-CA', {timeZone:'America/New_York'});
+}
+function weekLabel(s) {
+  const d = new Date(s+'T12:00:00'), e = new Date(d);
+  e.setDate(e.getDate()+6);
+  const f = function(dt) { return dt.toLocaleDateString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric'}); };
+  return f(d)+' – '+f(e)+', '+e.toLocaleDateString('en-US',{timeZone:'America/New_York',year:'numeric'}).split('/')[2];
+}
+function nextFriday() {
+  const now = new Date();
+  // Get current day-of-week in Miami time
+  const dayStr = now.toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'short'});
+  const dayMap = {Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+  const day = dayMap[dayStr.slice(0,3)];
+  const diff = day===5 ? 7 : (5-day+7)%7;
+  const fri = new Date(now);
+  fri.setDate(fri.getDate()+diff);
+  return fri.toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'short',month:'short',day:'numeric'});
+}
+function groupByWeek(jobs) {
+  const map = {};
+  [...(Array.isArray(jobs)?jobs:[])].sort(function(a,b){return b.date.localeCompare(a.date)||b.id.localeCompare(a.id);}).forEach(function(j) {
+    const k = getWeekStart(j.date);
+    if (!map[k]) map[k] = [];
+    map[k].push(j);
+  });
+  return Object.entries(map).sort(function(a,b){return b[0].localeCompare(a[0]);});
+}
+
+// ── Invoice ────────────────────────────────────────────────────────────────────
+function buildInvoiceText(job, bizName) {
+  const biz = bizName || 'Wheel Rush Mobile Tire Repair';
+  const sep = '─────────────────────────────';
+  const parts = [
+    'INVOICE',
+    sep,
+    biz,
+    '305-897-7030',
+    sep,
+    'Date:     ' + job.date,
+  ];
+  if (job.customerName) parts.push('Customer: ' + job.customerName);
+  if (job.customerPhone) parts.push('Phone:    ' + job.customerPhone);
+  parts.push(sep);
+  parts.push('Service:  ' + job.service);
+  if (job.tireSize) parts.push('Tire:     ' + job.tireSize + (job.qty>1 ? ' x'+job.qty : ''));
+  if (job.area) parts.push('Location: ' + job.area);
+  parts.push(sep);
+  parts.push('TOTAL:    ' + money(Number(job.revenue||0)));
+  parts.push('Payment:  ' + job.payment);
+  if (job.note) parts.push('Notes:    ' + job.note);
+  parts.push(sep);
+  parts.push('Thank you for choosing Wheel Rush!');
+  return parts.join('\n');
+}
+function sendInvoice(job, settings) {
+  const text = buildInvoiceText(job, settings.businessName);
+  if (job.customerPhone) {
+    window.open('sms:'+job.customerPhone+'?body='+encodeURIComponent(text));
+  } else {
+    try {
+      navigator.clipboard.writeText(text).then(function() { alert('Invoice copied! Paste it to send.'); });
+    } catch(e) {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      alert('Invoice copied! Paste it to send.');
+    }
+  }
+}
+
+function exportCSV(jobs, settings) {
+  const headers = ['Date','Service','Area','Source','Revenue','Tire Cost','Misc Cost','Miles','Direct Cost','Gross Profit','Payment','Tire Size','Qty','Customer','Phone','Notes'];
+  const rows = [...(Array.isArray(jobs)?jobs:[])].sort(function(a,b){return a.date.localeCompare(b.date);}).map(function(j) {
+    const dc = jobDirectCost(j,settings); const gp = jobGrossProfit(j,settings);
+    return [j.date,j.service,j.area,j.source||'',Number(j.revenue||0).toFixed(2),Number(j.tireCost||0).toFixed(2),Number(j.miscCost||0).toFixed(2),Number(j.miles||0).toFixed(1),dc.toFixed(2),gp.toFixed(2),j.payment,j.tireSize||'',j.qty||1,j.customerName||'',j.customerPhone||'',(j.note||'').replace(/,/g,' ')].map(function(v){return '"'+v+'"';}).join(',');
+  });
+  const csv = [headers.join(',')].concat(rows).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'wheel-rush-'+TODAY()+'.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Shared ─────────────────────────────────────────────────────────────────────
+function EmptyState(props) {
+  return (
+    <div className="empty">
+      <div className="empty-icon">{props.icon}</div>
+      <div className="empty-title">{props.title}</div>
+      {props.sub && <div className="empty-sub">{props.sub}</div>}
+      {props.action && <div style={{marginTop:18}}>{props.action}</div>}
+    </div>
+  );
+}
+
+// ── CityInput ──────────────────────────────────────────────────────────────────
+function CityInput(props) {
+  const value = props.value; const onChange = props.onChange;
+  const [q, setQ]      = useState(value || '');
+  const [open, setOpen] = useState(false);
+  const inputRef        = useRef(null);
+  const recentCities    = useMemo(function(){return load(KEYS.cities,[]).slice(0,6);}, []);
+
+  useEffect(function(){ setQ(value||''); }, [value]);
+
+  const matches = useMemo(function() {
+    if (!q.trim()) return [];
+    const lq = q.toLowerCase();
+    return CITY_LIST.filter(function(c){return c.toLowerCase().includes(lq);}).slice(0,12);
+  }, [q]);
+
+  const pick = function(c) {
+    onChange(c); setQ(c); setOpen(false);
+    const recents = load(KEYS.cities,[]).filter(function(x){return x!==c;});
+    persist(KEYS.cities, [c].concat(recents).slice(0,8));
+    if (inputRef.current) inputRef.current.blur();
+  };
+
+  return (
+    <div className="city-input-wrap">
+      <input ref={inputRef} value={q}
+        onChange={function(e){ setQ(e.target.value); onChange(e.target.value); setOpen(true); }}
+        onFocus={function(){setOpen(true);}}
+        onBlur={function(){setTimeout(function(){setOpen(false);},200);}}
+        placeholder="Type a city…"
+        style={{width:'100%',border:'1.5px solid #e3e3e3',background:'#fff',borderRadius:12,padding:'12px 14px',outline:'none',fontSize:16}}
+      />
+      {!open && !q && (
+        <div className="chip-row" style={{marginTop:8}}>
+          {TOP_CITIES.slice(0,6).map(function(c) {
+            return <button key={c} type="button" className={'chip city sm'+(value===c?' active':'')} onClick={function(){pick(c);}}>{c}</button>;
+          })}
+        </div>
+      )}
+      {open && (
+        <div className="city-dropdown">
+          {!q && recentCities.length > 0 && (
+            <div>
+              <div className="city-section-head">Recent</div>
+              {recentCities.map(function(c){ return <div key={c} className="city-option" onMouseDown={function(){pick(c);}}><span>🕐</span>{c}</div>; })}
+              <div className="city-section-head">Quick picks</div>
+              {TOP_CITIES.map(function(c){ return <div key={c} className="city-option" onMouseDown={function(){pick(c);}}><span>📍</span>{c}</div>; })}
+            </div>
+          )}
+          {q && matches.map(function(c){ return <div key={c} className="city-option" onMouseDown={function(){pick(c);}}><span>📍</span>{c}</div>; })}
+          {q && matches.length === 0 && (
+            <div className="city-option" style={{color:'#999'}} onMouseDown={function(){pick(q);}}>
+              Use "<strong>{q}</strong>" →
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── QuickQuote ─────────────────────────────────────────────────────────────────
+function QuickQuote(props) {
+  const form = props.form; const settings = props.settings;
+  const onApply = props.onApply; const onFormChange = props.onFormChange;
+  const priceMode = props.priceMode || 'suggested';
+  const setPriceMode = props.setPriceMode;
+  const customRef = useRef(null);
+
+  const hasInputs = Number(form.miles||0)>0 || Number(form.tireCost||0)>0 || Number(form.miscCost||0)>0;
+  const directCost   = jobDirectCost(form, settings);
+  const suggested    = suggestedPrice(form, settings);
+  const isRepl       = /replacement|installation/i.test(form.service||'');
+  const premiumPrice = Math.ceil((directCost + (isRepl?130:105) + premiums(form))/5)*5;
+  const prem         = premiums(form);
+  const skip         = Number(settings.skipThreshold||70);
+  const displayPrice = priceMode==='custom' ? Number(form.revenue||0) : (priceMode==='premium' ? premiumPrice : suggested);
+  const profit       = r2(displayPrice - directCost);
+  const decLabel     = profit<skip ? 'Too Low' : profit>=skip+40 ? 'Strong Margin' : 'Take It';
+  const decCls       = profit<skip ? 'low' : 'take';
+
+  const handleMode = function(mode, price) {
+    if (setPriceMode) setPriceMode(mode);
+    onApply(price==='' ? '' : String(price));
+    if (mode==='custom') {
+      setTimeout(function(){ if(customRef.current) customRef.current.focus(); }, 80);
+    }
+  };
+
+  const inpSt = {background:'rgba(255,255,255,.1)',border:'1px solid rgba(255,255,255,.18)',borderRadius:8,padding:'8px 10px',color:'#fff',fontSize:15,outline:'none',width:'100%',fontFamily:'"IBM Plex Mono",monospace',fontWeight:600,textAlign:'center'};
+  const lbl   = {fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'.6px',color:'#555',marginBottom:5,textAlign:'center'};
+
+  return (
+    <div className="quote-box">
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:8,marginBottom:14}}>
+        <div>
+          <div style={lbl}>Miles</div>
+          <input type="number" min="0" inputMode="decimal" placeholder="0"
+            value={form.miles||''} onChange={function(e){onFormChange('miles',e.target.value);}} style={inpSt}/>
+        </div>
+        <div>
+          <div style={lbl}>Tire $</div>
+          <input type="number" min="0" inputMode="decimal" placeholder="0"
+            value={form.tireCost||''} onChange={function(e){onFormChange('tireCost',e.target.value);}} style={inpSt}/>
+        </div>
+        <div>
+          <div style={lbl}>Misc $</div>
+          <input type="number" min="0" inputMode="decimal" placeholder="0"
+            value={form.miscCost||''} onChange={function(e){onFormChange('miscCost',e.target.value);}} style={inpSt}/>
+        </div>
+        <div>
+          <div style={lbl}>Qty</div>
+          <input type="number" min="1" inputMode="numeric" placeholder="1"
+            value={form.qty||''} onChange={function(e){onFormChange('qty',e.target.value);}} style={inpSt}/>
+        </div>
+      </div>
+
+      {!hasInputs ? (
+        <div style={{textAlign:'center',padding:'8px 0'}}>
+          <div style={{fontSize:13,color:'#555',fontWeight:600}}>Enter job details above</div>
+          <div style={{fontSize:11,color:'#444',marginTop:4}}>Miles · Tire cost · Misc → auto-calculates</div>
+        </div>
+      ) : (
+        <div>
+          <div className="qq-suggested">
+            <div className="qq-suggested-label">
+              {priceMode==='custom' ? 'Custom Price' : priceMode==='premium' ? 'Premium Price' : 'Suggested Price'}
+            </div>
+            <div className="qq-suggested-price">{money(displayPrice)}</div>
+            <div style={{display:'flex',justifyContent:'center',gap:16,marginTop:8,marginBottom:8}}>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontSize:10,color:'#555',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:2}}>Cost</div>
+                <div style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:15,fontWeight:700,color:'#777'}}>{money(directCost)}</div>
+              </div>
+              <div style={{width:1,background:'#222'}}/>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontSize:10,color:'#555',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:2}}>Profit</div>
+                <div style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:15,fontWeight:700,color:profit>=skip?'#4ade80':'#ef4444'}}>{money(profit)}</div>
+              </div>
+              {prem>0 && (
+                <div>
+                  <div style={{width:1,background:'#222'}}/>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:10,color:'#555',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:2}}>Surcharge</div>
+                    <div style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:15,fontWeight:700,color:'#fb923c'}}>+{money(prem)}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <span className={'qq-dec-badge '+decCls}>{decLabel}</span>
+          </div>
+
+          <div className="qq-apply-row">
+            <button className={'qq-apply-btn suggested'+(priceMode==='suggested'?' active-sel':'')}
+              onClick={function(){handleMode('suggested',suggested);}}>
+              {priceMode==='suggested'?'✓ ':''}{money(suggested)}<br/>
+              <span style={{fontSize:10,opacity:.8}}>Suggested</span>
+            </button>
+            <button className={'qq-apply-btn premium'+(priceMode==='premium'?' active-sel':'')}
+              onClick={function(){handleMode('premium',premiumPrice);}}>
+              {priceMode==='premium'?'✓ ':''}{money(premiumPrice)}<br/>
+              <span style={{fontSize:10,opacity:.8}}>Premium</span>
+            </button>
+            <button className={'qq-apply-btn custom'+(priceMode==='custom'?' active-sel':'')}
+              onClick={function(){handleMode('custom','');}}>
+              {priceMode==='custom'?'✓ ':''}Custom<br/>
+              <span style={{fontSize:10,opacity:.8}}>Enter →</span>
+            </button>
+          </div>
+
+          {priceMode==='custom' && (
+            <div style={{padding:'10px 10px 4px'}}>
+              <div style={{fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'.6px',color:'#555',marginBottom:6,textAlign:'center'}}>Custom Price ($)</div>
+              <input ref={customRef} type="number" min="0" inputMode="decimal" placeholder="0.00"
+                value={form.revenue||''}
+                onChange={function(e){onFormChange('revenue',e.target.value);}}
+                style={{background:'rgba(255,255,255,.12)',border:'2px solid rgba(255,255,255,.3)',borderRadius:10,padding:'12px',color:'#fff',fontSize:22,outline:'none',width:'100%',fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,textAlign:'center'}}
+              />
+              <div style={{fontSize:10,color:'#555',textAlign:'center',marginTop:5}}>
+                {'Profit: '+money(r2(Number(form.revenue||0)-directCost))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────────────
+function AuthScreen(props) {
+  const onAuth = props.onAuth;
+  const [email,setEmail] = useState('');
+  const [pass,setPass]   = useState('');
+  const [mode,setMode]   = useState('login');
+  const [err,setErr]     = useState('');
+  const [busy,setBusy]   = useState(false);
+
+  const submit = async function() {
+    if (!email||!pass) { setErr('Enter your email and password.'); return; }
+    setBusy(true); setErr('');
+    try {
+      const c = mode==='login'
+        ? await _auth.signInWithEmailAndPassword(email,pass)
+        : await _auth.createUserWithEmailAndPassword(email,pass);
+      onAuth(c.user);
+    } catch(e) { setErr(e.message||'Auth failed.'); }
+    finally { setBusy(false); }
+  };
+  const google = async function() {
+    try { const c = await _auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); onAuth(c.user); }
+    catch(e) { setErr(e.message); }
+  };
+
+  return (
+    <div style={{height:'100%',display:'flex',flexDirection:'column',background:'#0a0a0a',padding:'0 24px',paddingTop:'env(safe-area-inset-top)'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',paddingBottom:16}}>
+        <img src={LOGO_SRC} alt="Wheel Rush" onError={function(e){e.target.style.display='none';}}
+          style={{width:84,height:84,objectFit:'contain',borderRadius:20,marginBottom:20,border:'1px solid #222'}}/>
+        <div style={{color:'#fff',fontSize:26,fontWeight:700,marginBottom:4}}>Wheel Rush</div>
+        <div style={{color:'#555',fontSize:13,fontWeight:600}}>Mobile Tire Repair · Miami</div>
+      </div>
+      <div style={{paddingBottom:'calc(32px + env(safe-area-inset-bottom))'}}>
+        {err && <div style={{background:'rgba(220,38,38,.15)',border:'1px solid rgba(220,38,38,.3)',color:'#f87171',padding:'12px 16px',borderRadius:12,fontSize:13,fontWeight:600,marginBottom:16,lineHeight:1.4}}>{err}</div>}
+        <div className="auth-field">
+          <label className="auth-label">Email</label>
+          <input className="auth-inp2" type="email" placeholder="you@email.com" value={email} onChange={function(e){setEmail(e.target.value);}} autoCapitalize="off"/>
+        </div>
+        <div className="auth-field" style={{marginBottom:20}}>
+          <label className="auth-label">Password</label>
+          <input className="auth-inp2" type="password" placeholder="••••••••" value={pass} onChange={function(e){setPass(e.target.value);}} onKeyDown={function(e){if(e.key==='Enter')submit();}}/>
+        </div>
+        <button className="auth-btn-main" onClick={submit} disabled={busy}>{busy?'Working…':mode==='login'?'Sign In':'Create Account'}</button>
+        <button className="auth-btn-google" onClick={google}>
+          <svg width="18" height="18" viewBox="0 0 18 18">
+            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+            <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
+          </svg>
+          Continue with Google
+        </button>
+        <div style={{textAlign:'center'}}>
+          <button style={{background:'none',border:'none',color:'#444',fontSize:13,cursor:'pointer',padding:'8px'}} onClick={function(){setMode(function(m){return m==='login'?'signup':'login';}); setErr('');}}>
+            {mode==='login' ? 'New here? Create account' : 'Have an account? Sign in'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Header ─────────────────────────────────────────────────────────────────────
+function Header(props) {
+  const syncStatus = props.syncStatus; const onSignOut = props.onSignOut;
+  const dot = syncStatus==='connected'?'#4ade80':syncStatus==='syncing'?'#666':'#333';
+  const lbl = syncStatus==='connected'?'Live':syncStatus==='syncing'?'↻':'Local';
+  return (
+    <div className="header-compact">
+      <div style={{display:'flex',alignItems:'center',gap:8}}>
+        <img src={LOGO_SRC} alt="WR"
+          style={{width:32,height:32,objectFit:'contain',borderRadius:7,flexShrink:0}}
+          onError={function(e){e.target.style.display='none';}}/>
+        <div>
+          <h1>Wheel Rush</h1>
+          <p>Mobile Tire Repair · 305-897-7030</p>
+        </div>
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:8}}>
+        <span style={{fontSize:10,fontWeight:700,color:dot}} className={syncStatus==='syncing'?'syncing':''}>● {lbl}</span>
+        {onSignOut && <button onClick={onSignOut} style={{background:'none',border:'none',color:'#444',fontSize:11,cursor:'pointer',padding:'4px 6px'}}>Out</button>}
+      </div>
+    </div>
+  );
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────────
+function Dashboard(props) {
+  const jobs=props.jobs||[]; const settings=props.settings; const setTab=props.setTab; const onRepeat=props.onRepeat;
+  const today=TODAY(), thisWeek=getWeekStart(today);
+  const weekJobs   = useMemo(function(){return jobs.filter(function(j){return getWeekStart(j.date)===thisWeek;});}, [jobs,thisWeek]);
+  const todayJobs  = useMemo(function(){return jobs.filter(function(j){return j.date===today;});}, [jobs,today]);
+  const totals     = useMemo(function(){return weekSummary(weekJobs,settings);}, [weekJobs,settings]);
+  const avgProfit  = weekJobs.length ? r2(totals.grossProfit/weekJobs.length) : 0;
+  const goalPct    = clamp((totals.grossProfit/(settings.weeklyGoal||1))*100,0,100);
+  const jobsNeeded = avgProfit>0 ? Math.max(0,Math.ceil(((settings.weeklyGoal||0)-totals.grossProfit)/avgProfit)) : '—';
+  const fixed      = weeklyFixed(settings);
+  const ao1=settings.owner1Active!==false, ao2=settings.owner2Active!==false;
+  const st=(ao1?Number(settings.profitSplit1||50):0)+(ao2?Number(settings.profitSplit2||50):0)||100;
+  const o1=totals.net>0&&ao1?r2(totals.net*(Number(settings.profitSplit1||50)/st)):0;
+  const o2=totals.net>0&&ao2?r2(totals.net*(Number(settings.profitSplit2||50)/st)):0;
+  const tax=totals.net>0&&settings.taxRate>0?r2(totals.net*(Number(settings.taxRate)/100)):0;
+  const sources = useMemo(function(){const m={};jobs.forEach(function(j){const s=j.source||'Other';m[s]=(m[s]||0)+1;});return Object.entries(m).sort(function(a,b){return b[1]-a[1];});}, [jobs]);
+  const maxSrc  = sources.length ? sources[0][1] : 1;
+  const recent  = useMemo(function(){return [...jobs].sort(function(a,b){return b.date.localeCompare(a.date)||b.id.localeCompare(a.id);}).slice(0,5);}, [jobs]);
+  const barColor = goalPct>=100?'full':goalPct>=50?'mid':'low';
+  const thisWeekLabel = weekLabel(thisWeek);
+
+  return (
+    <div className="screen"><div className="page">
+      {todayJobs.length>0 && (
+        <div>
+          <div className="section-label" style={{marginTop:0}}>Today</div>
+          <div className="mini-grid" style={{marginBottom:10}}>
+            <div className="mini-box"><strong>{todayJobs.length}</strong><span>Jobs</span></div>
+            <div className="mini-box"><strong>{money(todayJobs.reduce(function(s,j){return s+Number(j.revenue||0);},0))}</strong><span>Revenue</span></div>
+            <div className="mini-box"><strong>{money(todayJobs.reduce(function(s,j){return s+jobGrossProfit(j,settings);},0))}</strong><span>Gross Profit</span></div>
+            <div className="mini-box"><strong>{todayJobs.length?money(todayJobs.reduce(function(s,j){return s+jobGrossProfit(j,settings);},0)/todayJobs.length):'—'}</strong><span>Avg/Job</span></div>
+          </div>
+        </div>
+      )}
+      <div className="section-label" style={{marginTop:todayJobs.length?undefined:0}}>
+        {'This Week '}
+        <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'#bbb',fontSize:10}}>{'· '+thisWeekLabel}</span>
+      </div>
+      <div className="kpi-grid" style={{marginBottom:8}}>
+        <div className="kpi"><div className="kpi-label">Revenue</div><div className="kpi-value">{money(totals.revenue)}</div><div className="kpi-sub">{weekJobs.length+' job'+(weekJobs.length!==1?'s':'')}</div></div>
+        <div className="kpi"><div className="kpi-label">Gross Profit</div><div className="kpi-value">{money(totals.grossProfit)}</div><div className="kpi-sub">before fixed</div></div>
+        <div className="kpi"><div className="kpi-label">Fixed Exp.</div><div className="kpi-value">{money(fixed)}</div><div className="kpi-sub">weekly</div></div>
+        <div className="kpi"><div className="kpi-label">Net Profit</div><div className={'kpi-value '+(totals.net>=0?'green':'red')}>{money(totals.net)}</div><div className="kpi-sub">after all costs</div></div>
+      </div>
+      <div className="kpi-grid three" style={{marginBottom:10}}>
+        <div className="kpi"><div className="kpi-label">Direct Costs</div><div className="kpi-value">{money(totals.directCosts)}</div><div className="kpi-sub">travel + parts</div></div>
+        <div className="kpi"><div className="kpi-label">Avg/Job</div><div className="kpi-value">{money(avgProfit)}</div><div className="kpi-sub">gross profit</div></div>
+        <div className="kpi"><div className="kpi-label">Jobs Needed</div><div className="kpi-value">{jobsNeeded}</div><div className="kpi-sub">to hit goal</div></div>
+      </div>
+      <div className="card">
+        <div className="card-pad">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
+            <div>
+              <div className="label">Weekly Goal</div>
+              <div className="mono" style={{fontSize:15,fontWeight:700,marginTop:2}}>{money(totals.grossProfit)} <span style={{color:'#999',fontWeight:400}}>/ {money(settings.weeklyGoal)}</span></div>
+            </div>
+            {goalPct>=100?<span className="pill green">🎉 Goal Hit!</span>:<span className="pill gray">{goalPct.toFixed(0)+'%'}</span>}
+          </div>
+          <div className="goal-track"><div className={'goal-fill '+barColor} style={{width:goalPct+'%'}}/></div>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'#999'}}>
+            <span>Payout: {nextFriday()}</span>
+            {typeof jobsNeeded==='number'&&jobsNeeded>0&&<span>{jobsNeeded+' more'}</span>}
+          </div>
+        </div>
+      </div>
+      <div className="dark-card">
+        <div className="muted" style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.8px',marginBottom:12}}>Friday Payout Projection</div>
+        {[{name:settings.owner1Name,amt:o1,active:ao1},{name:settings.owner2Name,amt:o2,active:ao2}].map(function(o,i) {
+          return (
+            <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10,opacity:o.active?1:0.4}}>
+              <span style={{color:'#aaa',fontSize:14}}>{o.name}</span>
+              <strong style={{fontFamily:'"IBM Plex Mono",monospace',fontSize:22,color:o.active&&o.amt>0?'#4ade80':'#555'}}>{o.active?money(o.amt):'—'}</strong>
+            </div>
+          );
+        })}
+        <div style={{borderTop:'1px solid #1a1a1a',paddingTop:10,fontSize:11,color:'#444',lineHeight:1.8}}>
+          {money(totals.revenue)+' rev − '+money(totals.directCosts)+' costs = '+money(totals.grossProfit)+' gross'}<br/>
+          {money(totals.grossProfit)+' gross − '+money(fixed)+' fixed = '+money(totals.net)+' net'}
+        </div>
+        {tax>0&&<div className="tax-box" style={{marginTop:12}}><div className="tax-lbl">💰 Tax Reserve ({settings.taxRate}%)</div><div className="tax-amt">{money(tax)}</div><div className="tax-hint">~{money(tax/2)} per owner — move to savings</div></div>}
+      </div>
+      {sources.length>0 && (
+        <div>
+          <div className="section-label">Lead Sources</div>
+          <div className="card"><div className="card-pad">
+            {sources.slice(0,6).map(function(entry) {
+              const src=entry[0], count=entry[1];
+              return (
+                <div className="source-bar" key={src}>
+                  <div style={{fontSize:12,color:'#555',width:120,flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{src}</div>
+                  <div className="source-bar-track"><div className="source-bar-fill" style={{width:((count/maxSrc)*100)+'%'}}/></div>
+                  <div className="mono" style={{fontSize:12,color:'#999',width:20,textAlign:'right',flexShrink:0}}>{count}</div>
+                </div>
+              );
+            })}
+          </div></div>
+        </div>
+      )}
+      <div className="section-label">Recent Jobs</div>
+      {recent.length>0 ? (
+        <div className="stack">
+          {recent.map(function(job) {
+            const profit = jobGrossProfit(job,settings);
+            return (
+              <div className="job-row" key={job.id} style={{cursor:'pointer'}} onClick={function(){onRepeat(job);}}>
+                <div className="job-icon">🛞</div>
+                <div className="job-main">
+                  <div className="job-title">{job.service+' · '+job.area}</div>
+                  <div className="job-meta">{job.date+' · '+(job.tireSize||'No size')+' · '+(job.source||'—')}</div>
+                </div>
+                <div className="job-right">
+                  <div className="value">{money(job.revenue)}</div>
+                  <div className={'sub '+(profit>=0?'green':'red')} style={{fontWeight:700}}>{money(profit)}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState icon="🛞" title="No jobs yet" sub="Add your first job."
+          action={<button className="btn primary" onClick={function(){setTab('add');}}>Add First Job</button>}/>
+      )}
+    </div></div>
+  );
+}
+
+// ── AddJob ─────────────────────────────────────────────────────────────────────
+function AddJob(props) {
+  const onSave=props.onSave, settings=props.settings, jobs=props.jobs||[];
+  const prefill=props.prefill, onClearPrefill=props.onClearPrefill;
+  const editJob=props.editJob, onClearEdit=props.onClearEdit;
+
+  const [form,setForm]           = useState(EMPTY_JOB());
+  const [error,setError]         = useState('');
+  const [saved,setSaved]         = useState(null);
+  const [tick,setTick]           = useState(0);
+  const [editingId,setEditingId] = useState(null);
+  const [priceMode,setPriceMode] = useState('suggested');
+
+  const isEditing   = !!editingId;
+  const recentSizes = useMemo(function(){return [...new Set([...load(KEYS.sizes,[]),...DEFAULT_TIRE_SIZES])].slice(0,8);}, [tick]);
+  const weekGross   = useMemo(function(){
+    const tw = getWeekStart(TODAY());
+    return jobs.filter(function(j){return getWeekStart(j.date)===tw&&j.id!==editingId;}).reduce(function(s,j){return s+jobGrossProfit(j,settings);},0);
+  }, [jobs,settings,editingId]);
+  const lastJob = useMemo(function(){
+    return [...jobs].sort(function(a,b){return b.date.localeCompare(a.date)||b.id.localeCompare(a.id);}).find(function(j){return j.id!==editingId;})||null;
+  }, [jobs,editingId]);
+
+  useEffect(function() {
+    if (editJob && editJob.id) {
+      setForm({...EMPTY_JOB(),...editJob,revenue:String(editJob.revenue||''),tireCost:String(editJob.tireCost||''),miscCost:String(editJob.miscCost||''),miles:String(editJob.miles||'')});
+      setEditingId(editJob.id);
+      setSaved(null); setError(''); setPriceMode('suggested');
+      if (onClearEdit) onClearEdit();
+      return;
+    }
+    if (prefill) {
+      setForm({...EMPTY_JOB(),service:prefill.service||'Tire Repair',area:prefill.area||'Miami',payment:prefill.payment||'Cash',source:prefill.source||'Google Search',tireSize:prefill.tireSize||'',qty:prefill.qty||1,tireCost:String(prefill.tireCost||''),miscCost:String(prefill.miscCost||''),miles:String(prefill.miles||''),emergency:!!prefill.emergency,lateNight:!!prefill.lateNight,highway:!!prefill.highway,weekend:!!prefill.weekend,customerName:prefill.customerName||'',customerPhone:prefill.customerPhone||''});
+      setPriceMode('suggested');
+      if (onClearPrefill) onClearPrefill();
+    }
+  }, [prefill, editJob]);
+
+  const setF = function(k, v) { setForm(function(p){return {...p,[k]:v};}); setError(''); };
+
+  const useLastJob = function() {
+    if (!lastJob) return;
+    setForm({...EMPTY_JOB(),service:lastJob.service,area:lastJob.area,payment:lastJob.payment,source:lastJob.source,tireSize:lastJob.tireSize,tireCost:String(lastJob.tireCost||''),miscCost:String(lastJob.miscCost||''),miles:String(lastJob.miles||''),emergency:lastJob.emergency,lateNight:lastJob.lateNight,highway:lastJob.highway,weekend:lastJob.weekend});
+  };
+
+  const saveJob = function(andAdd) {
+    const rev = Number(form.revenue||0);
+    if (!rev) { setError('Enter the job price.'); return; }
+    if (form.tireSize) { try { const p=load(KEYS.sizes,[]); persist(KEYS.sizes,[form.tireSize,...p.filter(function(s){return s!==form.tireSize;})].slice(0,10)); } catch(e) {} }
+    const entry = {...form, id:editingId||uid(), qty:Number(form.qty||1), revenue:r2(rev), tireCost:r2(form.tireCost), miscCost:r2(form.miscCost), miles:r2(form.miles)};
+    onSave(entry, isEditing ? false : andAdd);
+    setTick(function(t){return t+1;});
+    if (isEditing) {
+      setEditingId(null); setForm(EMPTY_JOB()); setError(''); setPriceMode('suggested');
+    } else {
+      setSaved(entry);
+      if (andAdd) { setForm(EMPTY_JOB()); setError(''); setSaved(null); setPriceMode('suggested'); }
+    }
+  };
+
+  const cancelEdit = function() {
+    setEditingId(null); setPriceMode('suggested');
+    setForm(EMPTY_JOB()); setError(''); setSaved(null);
+  };
+
+  const requestReview = function() {
+    const url = (settings.googleReviewUrl||'').trim();
+    if (!url) { alert('Set your Google Review URL in Settings.'); return; }
+    const name = form.customerName ? ' '+form.customerName : '';
+    const msg = encodeURIComponent('Hi'+name+'! Thanks for choosing Wheel Rush today! We\'d really appreciate a quick Google review: '+url);
+    window.open(form.customerPhone ? 'sms:'+form.customerPhone+'?body='+msg : 'sms:?body='+msg);
+  };
+
+  const FLAGS = [['emergency','🚨 Emergency',20],['lateNight','🌙 Late Night',20],['highway','🛣 Highway',15],['weekend','📅 Weekend',10]];
+
+  return (
+    <div className="screen" style={{paddingBottom:0}}>
+      <div style={{padding:'14px 14px 0'}}>
+
+        {isEditing && (
+          <div style={{background:'#fef9c3',border:'1.5px solid #fde047',borderRadius:10,padding:'10px 14px',marginBottom:10,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <span style={{fontSize:13,fontWeight:700,color:'#854d0e'}}>✏️ Editing Job — {form.date}</span>
+            <button className="btn secondary sm" onClick={function(){cancelEdit();}}>Cancel Edit</button>
+          </div>
+        )}
+
+        <div style={{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap'}}>
+          {lastJob && !isEditing && <button type="button" className="btn secondary sm" onClick={function(){useLastJob();}}>↩ Use Last Job</button>}
+          {prefill && !isEditing && <button type="button" className="btn orange sm">🔁 Repeating Job</button>}
+          {!isEditing && <button type="button" className="btn secondary sm" onClick={function(){setForm(EMPTY_JOB());setSaved(null);setError('');setPriceMode('suggested');}}>✕ Clear</button>}
+        </div>
+
+        {error && <div style={{background:'#fee2e2',border:'1px solid #fca5a5',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#b91c1c',marginBottom:14,fontWeight:600}}>{error}</div>}
+
+        {saved && !isEditing && (
+          <div className="success-strip">
+            <div className="success-strip-title">{'✅ '+money(saved.revenue)+' · '+money(jobGrossProfit(saved,settings))+' profit'}</div>
+            <button className="btn primary sm" onClick={function(){sendInvoice(saved,settings);}}>
+              {'🧾 '+(saved.customerPhone?'Send Invoice':'Copy Invoice')}
+            </button>
+            {saved.status==='Completed' && <button className="btn success sm" onClick={function(){requestReview();}}>⭐ Review</button>}
+            {saved.customerPhone && <button className="btn success sm" onClick={function(){window.open('tel:'+saved.customerPhone);}}>📞 Call</button>}
+            <button className="btn secondary sm" onClick={function(){setForm({...saved,id:'',revenue:String(saved.revenue)});setSaved(null);}}>🔁 Dup</button>
+          </div>
+        )}
+
+        <QuickQuote form={form} settings={settings} weekGross={weekGross}
+          onApply={function(v){setF('revenue',v);}}
+          onFormChange={setF}
+          priceMode={priceMode}
+          setPriceMode={setPriceMode}
+        />
+
+        <div className="form-group">
+          <div className="form-group-title">Pricing &amp; Costs</div>
+          <div className="field-row">
+            <div className="field"><label>Job Price ($)</label>
+              <input type="number" min="0" inputMode="decimal" value={form.revenue} onChange={function(e){setF('revenue',e.target.value);}} placeholder={String(suggestedPrice(form,settings))} style={{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:18,padding:'14px'}}/>
+            </div>
+            <div className="field"><label>Tire Cost ($)</label>
+              <input type="number" min="0" inputMode="decimal" value={form.tireCost} onChange={function(e){setF('tireCost',e.target.value);}} placeholder="0" style={{fontFamily:'"IBM Plex Mono",monospace'}}/>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field"><label>Misc Cost ($)</label>
+              <input type="number" min="0" inputMode="decimal" value={form.miscCost} onChange={function(e){setF('miscCost',e.target.value);}} placeholder="plugs, stems…"/>
+            </div>
+            <div className="field"><label>Qty</label>
+              <input type="number" min="1" value={form.qty} onChange={function(e){setF('qty',e.target.value);}}/>
+            </div>
+          </div>
+          <div className="field">
+            <label>Conditions — adds premium</label>
+            <div className="chip-row">
+              {FLAGS.map(function(flag) {
+                const key=flag[0],label=flag[1],amt=flag[2];
+                return <button type="button" key={key} className={'chip'+(form[key]?' active':'')} onClick={function(){setF(key,!form[key]);}}>{label+(form[key]?' +$'+amt:'')}</button>;
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <div className="form-group-title">Job Details</div>
+          <div className="field"><label>Service</label>
+            <select value={form.service} onChange={function(e){setF('service',e.target.value);}} style={{width:'100%',border:'1.5px solid #e3e3e3',background:'#fff',borderRadius:12,padding:'12px 14px',outline:'none',fontSize:16}}>
+              {SERVICE_OPTIONS.map(function(s){return <option key={s}>{s}</option>;})}
+            </select>
+          </div>
+          <div className="field-row">
+            <div className="field"><label>Date</label><input type="date" value={form.date} onChange={function(e){setF('date',e.target.value);}}/></div>
+            <div className="field"><label>Status</label>
+              <select value={form.status} onChange={function(e){setF('status',e.target.value);}}>
+                <option>Completed</option><option>Pending</option>
+              </select>
+            </div>
+          </div>
+          <div className="field"><label>Lead Source</label>
+            <div className="src-grid">
+              {SOURCE_QUICK.map(function(s) {
+                return <button key={s.label} type="button" className={'src-btn'+(form.source===s.label?' active':'')} onClick={function(){setF('source',s.label);}}>{s.icon+' '+s.label}</button>;
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <div className="form-group-title">Location &amp; Travel</div>
+          <div className="field"><label>City / Area</label><CityInput value={form.area} onChange={function(v){setF('area',v);}}/></div>
+          <div className="field"><label>Miles Driven</label>
+            <input type="number" min="0" inputMode="decimal" value={form.miles} onChange={function(e){setF('miles',e.target.value);}} placeholder="0" style={{fontFamily:'"IBM Plex Mono",monospace'}}/>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <div className="form-group-title">Tire Size &amp; Payment</div>
+          <div className="field"><label>Tire Size</label>
+            <input value={form.tireSize} onChange={function(e){setF('tireSize',e.target.value);}} placeholder="225/55R17"/>
+            <div className="chip-row" style={{marginTop:8}}>
+              {recentSizes.map(function(sz){return <button type="button" key={sz} className={'chip sm'+(form.tireSize===sz?' active':'')} onClick={function(){setF('tireSize',sz);}}>{sz}</button>;})}
+            </div>
+          </div>
+          <div className="field"><label>Payment Method</label>
+            <div className="pay-grid">
+              {PAYMENT_OPTIONS.map(function(p){
+                return <button key={p.label} type="button" className={'pay-btn'+(form.payment===p.label?' active':'')} onClick={function(){setF('payment',p.label);}}><span className="pay-icon">{p.icon}</span>{p.label}</button>;
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <div className="form-group-title">Customer (optional)</div>
+          <div className="field-row">
+            <div className="field"><label>Name</label><input value={form.customerName} onChange={function(e){setF('customerName',e.target.value);}} placeholder="Customer name"/></div>
+            <div className="field"><label>Phone</label><input type="tel" value={form.customerPhone} onChange={function(e){setF('customerPhone',e.target.value);}} placeholder="(305)…"/></div>
+          </div>
+        </div>
+
+        <div className="field"><label>Notes</label><textarea value={form.note} onChange={function(e){setF('note',e.target.value);}} placeholder="Parking garage, roadside, no spare, etc."/></div>
+        <div className="inline-note">Direct cost = travel + tire + misc. Weekly fixed deducted at payout only.</div>
+        {form.status==='Completed' && <button className="btn blue" style={{width:'100%',marginBottom:10}} onClick={function(){requestReview();}}>{'⭐ Send Review'+(form.customerPhone?' via SMS':' (no phone)')}</button>}
+        <div style={{height:90}}/>
+      </div>
+
+      <div className="sticky-save">
+        {isEditing ? (
+          <div style={{display:'contents'}}>
+            <button className="btn secondary" onClick={function(){cancelEdit();}}>Cancel Edit</button>
+            <button className="btn primary" onClick={function(){saveJob(false);}}>Update Job ✓</button>
+          </div>
+        ) : (
+          <div style={{display:'contents'}}>
+            <button className="btn secondary" onClick={function(){saveJob(true);}}>Save + Add Another</button>
+            <button className="btn primary" onClick={function(){saveJob(false);}}>Save Job →</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── History ────────────────────────────────────────────────────────────────────
+function History(props) {
+  const jobs=props.jobs||[], settings=props.settings;
+  const onRepeat=props.onRepeat, onDelete=props.onDelete, onEdit=props.onEdit;
+  const [filter,setFilter] = useState('All');
+  const [search,setSearch] = useState('');
+  const [view,setView]     = useState('weeks');
+
+  const cities = useMemo(function(){return Array.from(new Set(jobs.map(function(j){return j.area;})));}, [jobs]);
+  const filtered = useMemo(function() {
+    let j = jobs;
+    if (filter==='Repair')       j=j.filter(function(x){return /repair/i.test(x.service);});
+    else if (filter==='Replacement') j=j.filter(function(x){return /replacement|installation/i.test(x.service);});
+    else if (filter==='Pending') j=j.filter(function(x){return x.status==='Pending';});
+    else if (filter!=='All')     j=j.filter(function(x){return x.area===filter;});
+    if (search.trim()) {
+      const q=search.toLowerCase();
+      j=j.filter(function(x){return (x.customerName||'').toLowerCase().includes(q)||(x.customerPhone||'').includes(q)||(x.tireSize||'').toLowerCase().includes(q)||(x.area||'').toLowerCase().includes(q)||(x.note||'').toLowerCase().includes(q);});
+    }
+    return [...j].sort(function(a,b){return b.date.localeCompare(a.date)||b.id.localeCompare(a.id);});
+  }, [jobs,filter,search]);
+  const weekGroups   = useMemo(function(){return groupByWeek(filtered);}, [filtered]);
+  const thisWeekGross= useMemo(function(){const tw=getWeekStart(TODAY());return jobs.filter(function(j){return getWeekStart(j.date)===tw;}).reduce(function(s,j){return s+jobGrossProfit(j,settings);},0);}, [jobs,settings]);
+
+  const handleDelete = function(id) { if (!window.confirm('Delete this job?')) return; onDelete(id); };
+  const markPaid     = function(job) { if (onEdit) onEdit({...job,status:'Completed',_markPaidOnly:true}); };
+
+  const JobRow = function(rowProps) {
+    const job = rowProps.job;
+    const profit = jobGrossProfit(job,settings);
+    const dec    = jobDecision(job,settings,thisWeekGross);
+    const decCls = dec.dec==='strong'?'green':dec.dec==='okay'?'yellow':'red';
+    const sendReview = function() {
+      const u=(settings.googleReviewUrl||'').trim();
+      if (!u) { alert('Set Google Review URL in Settings.'); return; }
+      const msg=encodeURIComponent('Hi'+(job.customerName?' '+job.customerName:'')+'! Thanks for choosing Wheel Rush! '+u);
+      window.open(job.customerPhone?'sms:'+job.customerPhone+'?body='+msg:'sms:?body='+msg);
+    };
+    return (
+      <div className="job-row">
+        <div className="job-icon">🛞</div>
+        <div className="job-main">
+          <div className="job-title">{job.service+' · '+job.area}</div>
+          <div className="job-meta">{job.date+' · '+(job.tireSize||'No size')+' · '+job.payment+(job.source?' · '+job.source:'')}</div>
+          {(job.customerName||job.customerPhone) && <div className="job-meta" style={{marginTop:2}}>{'👤 '+(job.customerName||'')+(job.customerPhone?' · '+job.customerPhone:'')}</div>}
+          <div style={{marginTop:5,display:'flex',gap:6,flexWrap:'wrap'}}>
+            <span className={'pill '+decCls}>{dec.label}</span>
+            {job.emergency && <span className="pill orange">🚨</span>}
+            {job.lateNight && <span className="pill gray">🌙</span>}
+            {job.status==='Pending' && <span className="pill orange">⏳ Pending</span>}
+          </div>
+        </div>
+        <div className="job-right">
+          <div className="value">{money(job.revenue)}</div>
+          <div className={'sub '+(profit>=0?'green':'red')} style={{fontWeight:700}}>{money(profit)}</div>
+          <div style={{display:'flex',gap:5,marginTop:8,justifyContent:'flex-end',flexWrap:'wrap'}}>
+            {onEdit && <button className="btn blue xs" onClick={function(){onEdit(job);}}>✏️</button>}
+            <button className="btn success xs" onClick={function(){onRepeat(job);}}>🔁</button>
+            <button className="btn blue xs" onClick={function(){sendReview();}}>⭐</button>
+            {job.status==='Pending' && <button className="btn success xs" onClick={function(){markPaid(job);}}>✓ Paid</button>}
+            {job.customerPhone && <button className="btn secondary xs" onClick={function(){window.open('tel:'+job.customerPhone);}}>📞</button>}
+            <button className="btn danger xs" onClick={function(){handleDelete(job.id);}}>×</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="screen"><div className="page">
+      <div style={{marginBottom:10}}>
+        <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder="🔍 Name, phone, city, tire size…"
+          style={{width:'100%',border:'1.5px solid #e3e3e3',borderRadius:12,padding:'12px 14px',outline:'none',fontSize:15}}/>
+      </div>
+      <div className="chip-row" style={{marginBottom:10}}>
+        {['All','Repair','Replacement','Pending'].concat(cities).slice(0,9).map(function(c){
+          return <button key={c} className={'chip'+(filter===c?' active':'')} onClick={function(){setFilter(c);}}>{c}</button>;
+        })}
+      </div>
+      <div style={{display:'flex',gap:8,marginBottom:14}}>
+        <button className={'chip'+(view==='weeks'?' active':'')} onClick={function(){setView('weeks');}}>By Week</button>
+        <button className={'chip'+(view==='list'?' active':'')} onClick={function(){setView('list');}}>All Jobs</button>
+        <span style={{marginLeft:'auto',fontFamily:'"IBM Plex Mono",monospace',fontSize:12,color:'#999',alignSelf:'center'}}>{filtered.length+' jobs'}</span>
+      </div>
+      {filtered.length===0 ? (
+        <EmptyState icon="📋" title="No jobs found" sub={search?'Try different search.':'No jobs match.'}/>
+      ) : view==='weeks' ? (
+        <div>
+          {weekGroups.map(function(entry) {
+            const wk=entry[0], wkJobs=entry[1];
+            const t = weekSummary(wkJobs,settings);
+            return (
+              <div key={wk} style={{marginBottom:20}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0'}}>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:13}}>{weekLabel(wk)}</div>
+                    <div className="sub">{wkJobs.length+' jobs · '+money(t.revenue)+' rev · '+money(t.grossProfit)+' gross'}</div>
+                  </div>
+                  <div style={{textAlign:'right'}}>
+                    <div className={'value '+(t.net>=0?'green':'red')}>{money(t.net)}</div>
+                    <div className="sub">net</div>
+                  </div>
+                </div>
+                <div className="stack">
+                  {wkJobs.map(function(job){return <JobRow key={job.id} job={job}/>;} )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="stack">{filtered.map(function(job){return <JobRow key={job.id} job={job}/>;})}</div>
+      )}
+    </div></div>
+  );
+}
+
+// ── Expenses ───────────────────────────────────────────────────────────────────
+function Expenses(props) {
+  const expenses=Array.isArray(props.expenses)?props.expenses:[], setExpenses=props.setExpenses;
+  const [form,setForm] = useState({date:TODAY(),category:'Fuel',amount:'',note:''});
+  const CATS = ['Fuel','Oil/Fluids','Equipment Repair','Supplies','Food','Tolls/Parking','Other'];
+  const setF = function(k,v){setForm(function(p){return {...p,[k]:v};});};
+  const add  = function(){
+    const amt=Number(form.amount||0);
+    if(!amt){alert('Enter an amount.');return;}
+    setExpenses(function(prev){return [{...form,id:uid(),amount:amt},...prev];});
+    setForm({date:TODAY(),category:'Fuel',amount:'',note:''});
+  };
+  const remove = function(id){if(!window.confirm('Delete?'))return;setExpenses(function(prev){return prev.filter(function(e){return e.id!==id;});});};
+  const total    = expenses.reduce(function(s,e){return s+Number(e.amount||0);},0);
+  const thisWeek = getWeekStart(TODAY());
+  const weekTotal= expenses.filter(function(e){return getWeekStart(e.date||TODAY())===thisWeek;}).reduce(function(s,e){return s+Number(e.amount||0);},0);
+  return (
+    <div className="screen"><div className="page">
+      <div className="section-label" style={{marginTop:0}}>Variable Expenses</div>
+      <div className="mini-grid" style={{marginBottom:14}}>
+        <div className="mini-box"><strong>{money(weekTotal)}</strong><span>This Week</span></div>
+        <div className="mini-box"><strong>{money(total)}</strong><span>All Time</span></div>
+        <div className="mini-box"><strong>{expenses.length}</strong><span>Receipts</span></div>
+        <div className="mini-box"><strong>{expenses.length?money(total/expenses.length):'—'}</strong><span>Avg</span></div>
+      </div>
+      <div className="card" style={{marginBottom:14}}>
+        <div className="card-pad">
+          <div className="field-row">
+            <div className="field" style={{marginBottom:8}}><label>Date</label><input type="date" value={form.date} onChange={function(e){setF('date',e.target.value);}}/></div>
+            <div className="field" style={{marginBottom:8}}><label>Amount ($)</label><input type="number" min="0" inputMode="decimal" value={form.amount} onChange={function(e){setF('amount',e.target.value);}} placeholder="0.00" style={{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700}}/></div>
+          </div>
+          <div className="field" style={{marginBottom:8}}><label>Category</label>
+            <select value={form.category} onChange={function(e){setF('category',e.target.value);}}>
+              {CATS.map(function(c){return <option key={c}>{c}</option>;})}
+            </select>
+          </div>
+          <div className="field" style={{marginBottom:10}}><label>Note (optional)</label><input value={form.note} onChange={function(e){setF('note',e.target.value);}} placeholder="BP station, etc."/></div>
+          <button className="btn primary" style={{width:'100%'}} onClick={add}>+ Log Expense</button>
+        </div>
+      </div>
+      {expenses.length===0 ? <EmptyState icon="🧾" title="No expenses logged" sub="Track fuel, supplies, repairs."/> : (
+        <div className="stack">
+          {[...expenses].sort(function(a,b){return (b.date||'').localeCompare(a.date||'');}).map(function(exp) {
+            return (
+              <div className="job-row" key={exp.id}>
+                <div className="job-icon" style={{fontSize:16}}>🧾</div>
+                <div className="job-main">
+                  <div className="job-title">{exp.category}</div>
+                  <div className="job-meta">{exp.date+(exp.note?' · '+exp.note:'')}</div>
+                </div>
+                <div className="job-right">
+                  <div className="value red">{money(exp.amount)}</div>
+                  <button className="btn danger sm" style={{marginTop:8}} onClick={function(){remove(exp.id);}}>×</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div></div>
+  );
+}
+
+// ── Payouts ────────────────────────────────────────────────────────────────────
+function Payouts(props) {
+  const jobs=Array.isArray(props.jobs)?props.jobs:[], settings=props.settings||DEFAULT_SETTINGS;
+  const weeks = useMemo(function(){return groupByWeek(jobs);}, [jobs]);
+  if (!weeks.length) return <div className="screen"><div className="page"><EmptyState icon="💰" title="No payout history" sub="Log jobs to see weekly payout breakdowns."/></div></div>;
+  return (
+    <div className="screen"><div className="page">
+      <div className="section-label" style={{marginTop:0}}>Weekly Payouts</div>
+      {weeks.map(function(entry) {
+        const wk=entry[0], weekJobs=Array.isArray(entry[1])?entry[1]:[];
+        const t  = weekSummary(weekJobs,settings);
+        const ao1=settings.owner1Active!==false, ao2=settings.owner2Active!==false;
+        const st =(ao1?Number(settings.profitSplit1||50):0)+(ao2?Number(settings.profitSplit2||50):0)||100;
+        const o1 =t.net>0&&ao1?r2(t.net*(Number(settings.profitSplit1||50)/st)):0;
+        const o2 =t.net>0&&ao2?r2(t.net*(Number(settings.profitSplit2||50)/st)):0;
+        const tax=t.net>0&&settings.taxRate>0?r2(t.net*(Number(settings.taxRate)/100)):0;
+        return (
+          <div className="card" key={wk} style={{marginBottom:14}}>
+            <div className="card-pad" style={{borderBottom:'1px solid #f0f0f0'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <div><div style={{fontWeight:700,fontSize:14}}>{weekLabel(wk)}</div><div className="sub">{weekJobs.length+' jobs'}</div></div>
+                <div className={'value big '+(t.net>=0?'green':'red')}>{money(t.net)}</div>
+              </div>
+            </div>
+            <div className="card-row"><div className="label">Revenue</div><div className="value">{money(t.revenue)}</div></div>
+            <div className="card-row"><div className="label">Direct Costs</div><div className="value red">{money(t.directCosts)}</div></div>
+            <div className="card-row"><div className="label">Gross Profit</div><div className="value">{money(t.grossProfit)}</div></div>
+            <div className="card-row"><div className="label">Weekly Fixed</div><div className="value red">{money(t.fixed)}</div></div>
+            {[{name:settings.owner1Name||'Owner 1',pct:settings.profitSplit1,amt:o1,active:ao1},{name:settings.owner2Name||'Owner 2',pct:settings.profitSplit2,amt:o2,active:ao2}].map(function(o,i) {
+              return (
+                <div key={i} className="card-row" style={{background:'#f9f9f9',opacity:o.active?1:0.4}}>
+                  <div><div className="label">{o.name}</div><div className="sub">{o.pct+'% split'}</div></div>
+                  <div className={'value '+(o.active&&o.amt>0?'green':'')}>{o.active?money(o.amt):'—'}</div>
+                </div>
+              );
+            })}
+            {tax>0 && <div className="card-pad"><div className="tax-box" style={{marginTop:0}}><div className="tax-lbl">💰 Tax Reserve ({settings.taxRate}%)</div><div className="tax-amt">{money(tax)}</div><div className="tax-hint">~{money(tax/2)} per owner</div></div></div>}
+          </div>
+        );
+      })}
+    </div></div>
+  );
+}
+
+// ── Inventory ──────────────────────────────────────────────────────────────────
+const LOW_STOCK = 2;
+function Inventory(props) {
+  const inventory=Array.isArray(props.inventory)?props.inventory:[], setInventory=props.setInventory;
+  const [search,setSearch] = useState('');
+  const [editId,setEditId] = useState(null);
+  const update = function(id,patch){setInventory(function(prev){return prev.map(function(i){return i.id===id?{...i,...patch}:i;});});};
+  const add    = function(){const id=uid();setInventory(function(prev){return [{id,size:'',qty:0,cost:0,notes:''},...prev];});setEditId(id);};
+  const remove = function(id){if(!window.confirm('Remove?'))return;setInventory(function(prev){return prev.filter(function(i){return i.id!==id;});});setEditId(null);};
+  const step   = function(id,delta){setInventory(function(prev){return prev.map(function(i){return i.id===id?{...i,qty:Math.max(0,(Number(i.qty)||0)+delta)}:i;});});};
+  const totalQty  = inventory.reduce(function(s,i){return s+Number(i.qty||0);},0);
+  const totalValue= inventory.reduce(function(s,i){return s+Number(i.qty||0)*Number(i.cost||0);},0);
+  const lowStock  = inventory.filter(function(i){return Number(i.qty||0)>0&&Number(i.qty||0)<=LOW_STOCK;});
+  const outOfStock= inventory.filter(function(i){return Number(i.qty||0)===0;});
+  const filtered  = search.trim()?inventory.filter(function(i){return (i.size||'').toLowerCase().includes(search.toLowerCase());}):inventory;
+  const sorted    = [...filtered].sort(function(a,b){return (a.size||'').localeCompare(b.size||'');});
+  return (
+    <div className="screen"><div className="page">
+      <div className="kpi-grid three" style={{marginBottom:10}}>
+        <div className="kpi"><div className="kpi-label">Total Tires</div><div className="kpi-value">{totalQty}</div><div className="kpi-sub">{inventory.length+' sizes'}</div></div>
+        <div className="kpi"><div className="kpi-label">Stock Value</div><div className="kpi-value">{money(totalValue)}</div><div className="kpi-sub">at cost</div></div>
+        <div className="kpi"><div className="kpi-label">Low Stock</div><div className={'kpi-value '+(lowStock.length+outOfStock.length>0?'red':'green')}>{lowStock.length+outOfStock.length}</div><div className="kpi-sub">need reorder</div></div>
+      </div>
+      {outOfStock.length>0 && <div style={{background:'#fee2e2',border:'1px solid #fca5a5',borderRadius:10,padding:'10px 14px',marginBottom:8}}><div style={{fontWeight:700,fontSize:12,color:'#b91c1c',marginBottom:4}}>{'🚫 Out of Stock ('+outOfStock.length+')'}</div><div style={{fontSize:12,color:'#b91c1c',lineHeight:1.8}}>{outOfStock.map(function(i){return i.size||'Unnamed';}).join(' · ')}</div></div>}
+      {lowStock.length>0  && <div style={{background:'#fff8f8',border:'1px solid #fca5a5',borderRadius:10,padding:'10px 14px',marginBottom:8}}><div style={{fontWeight:700,fontSize:12,color:'#b91c1c',marginBottom:4}}>{'⚠️ Low Stock ('+lowStock.length+')'}</div><div style={{fontSize:12,color:'#b91c1c',lineHeight:1.8}}>{lowStock.map(function(i){return i.size+' — '+i.qty;}).join(' · ')}</div></div>}
+      <div style={{display:'flex',gap:8,marginBottom:12}}>
+        <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder="🔍 Search tire size…" style={{flex:1,border:'1.5px solid #e3e3e3',borderRadius:12,padding:'11px 14px',fontSize:15,outline:'none',background:'#fff'}}/>
+        <button className="btn primary" style={{flexShrink:0,padding:'11px 16px',fontSize:13}} onClick={add}>+ Add</button>
+      </div>
+      {sorted.length===0 ? (
+        search ? <EmptyState icon="🔍" title="No match" sub={'No sizes matching "'+search+'"'}/> : <EmptyState icon="🛞" title="No inventory" sub="Tap + Add to add a tire size."/>
+      ) : (
+        <div className="card">
+          {sorted.map(function(item,idx) {
+            const isEditing=editId===item.id, qty=Number(item.qty||0);
+            const isLow=qty>0&&qty<=LOW_STOCK, isOut=qty===0;
+            return (
+              <div key={item.id} style={{borderBottom:idx<sorted.length-1?'1px solid #f2f2f2':'none'}}>
+                <div style={{display:'flex',alignItems:'center',padding:'11px 14px',gap:10,cursor:'pointer'}} onClick={function(){setEditId(isEditing?null:item.id);}}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15}}>{item.size||<span style={{color:'#ccc'}}>No size</span>}</div>
+                    {item.cost>0 && <div style={{fontSize:11,color:'#aaa',marginTop:1}}>{'Cost: '+money(item.cost)+' · Value: '+money(qty*item.cost)}</div>}
+                  </div>
+                  {isOut && <span style={{fontSize:10,fontWeight:700,background:'#fee2e2',color:'#b91c1c',borderRadius:6,padding:'2px 7px'}}>OUT</span>}
+                  {isLow&&!isOut && <span style={{fontSize:10,fontWeight:700,background:'#ffedd5',color:'#c2410c',borderRadius:6,padding:'2px 7px'}}>LOW</span>}
+                  <div style={{display:'flex',alignItems:'center',border:'1.5px solid #e3e3e3',borderRadius:10,overflow:'hidden',flexShrink:0}} onClick={function(e){e.stopPropagation();}}>
+                    <button onClick={function(){step(item.id,-1);}} style={{background:'#f4f4f4',border:'none',width:34,height:34,fontSize:18,fontWeight:700,color:'#555'}}>−</button>
+                    <div style={{width:42,textAlign:'center',fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15,color:isOut?'#dc2626':isLow?'#ea580c':'#111'}}>{qty}</div>
+                    <button onClick={function(){step(item.id,1);}} style={{background:'#f4f4f4',border:'none',width:34,height:34,fontSize:18,fontWeight:700,color:'#555'}}>+</button>
+                  </div>
+                  <div style={{color:'#ccc',fontSize:12}}>{isEditing?'▲':'▼'}</div>
+                </div>
+                {isEditing && (
+                  <div style={{padding:'0 14px 14px',display:'grid',gridTemplateColumns:'1fr 1fr auto',gap:8,alignItems:'center',background:'#fafafa'}}>
+                    <input value={item.size} onChange={function(e){update(item.id,{size:e.target.value});}} placeholder="225/55R17" style={{border:'1.5px solid #ddd',borderRadius:9,padding:'9px 12px',fontSize:15,fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,outline:'none',width:'100%'}}/>
+                    <input value={item.cost||''} type="number" min="0" onChange={function(e){update(item.id,{cost:Number(e.target.value||0)});}} placeholder="Cost $" style={{border:'1.5px solid #ddd',borderRadius:9,padding:'9px 12px',fontSize:14,outline:'none',width:'100%'}}/>
+                    <button className="btn danger sm" onClick={function(){remove(item.id);}}>Remove</button>
+                    <input value={item.notes} onChange={function(e){update(item.id,{notes:e.target.value});}} placeholder="Notes" style={{border:'1.5px solid #ddd',borderRadius:9,padding:'9px 12px',fontSize:14,outline:'none',width:'100%',gridColumn:'1/3'}}/>
+                    <button className="btn secondary sm" onClick={function(){setEditId(null);}}>Done</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div></div>
+  );
+}
+
+// ── Settings ───────────────────────────────────────────────────────────────────
+function Settings(props) {
+  const settings=props.settings, setSettings=props.setSettings;
+  const jobs=props.jobs, setJobs=props.setJobs, inventory=props.inventory, expenses=props.expenses;
+  const upd    = function(k,v){setSettings(function(p){return {...p,[k]:v};});};
+  const updExp = function(id,patch){setSettings(function(p){return {...p,expenses:p.expenses.map(function(e){return e.id===id?{...e,...patch}:e;})};});};
+  const addExp = function(){setSettings(function(p){return {...p,expenses:[...p.expenses,{id:uid(),name:'New Expense',amount:0,active:true}]};});};
+  const delExp = function(id){setSettings(function(p){return {...p,expenses:p.expenses.filter(function(e){return e.id!==id;})};});};
+  const exportData = function(){
+    const d={jobs,settings,inventory,expenses,exportedAt:new Date().toISOString(),version:'4'};
+    const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download='wheel-rush-backup-'+TODAY()+'.json'; a.click(); URL.revokeObjectURL(url);
+  };
+  const importData = function(){
+    const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
+    inp.onchange=async function(e){
+      const file=e.target.files[0]; if(!file) return;
+      try{const data=JSON.parse(await file.text());if(Array.isArray(data.jobs))setJobs(data.jobs);if(data.settings&&typeof data.settings==='object')setSettings({...DEFAULT_SETTINGS,...data.settings});alert('Import complete.');}
+      catch(err){alert('Could not import — must be a Wheel Rush backup.');}
+    };
+    inp.click();
+  };
+  const clearAll=function(){if(!window.confirm('Clear ALL data? Cannot be undone.'))return;Object.values(KEYS).forEach(function(k){localStorage.removeItem(k);});window.location.reload();};
+  const monthly=monthlyFixed(settings), weekly=weeklyFixed(settings);
+  const ao1=settings.owner1Active!==false, ao2=settings.owner2Active!==false;
+  const splitTotal=(ao1?Number(settings.profitSplit1||0):0)+(ao2?Number(settings.profitSplit2||0):0);
+  return (
+    <div className="screen"><div className="page">
+      <div className="section-label" style={{marginTop:0}}>Owners &amp; Split</div>
+      <div className="card">
+        {[{nk:'owner1Name',pk:'profitSplit1',ak:'owner1Active',lbl:'Owner 1'},{nk:'owner2Name',pk:'profitSplit2',ak:'owner2Active',lbl:'Owner 2'}].map(function(cfg) {
+          const nk=cfg.nk,pk=cfg.pk,ak=cfg.ak,lbl=cfg.lbl;
+          const active=settings[ak]!==false;
+          return (
+            <div key={nk} style={{opacity:active?1:0.55}}>
+              <div className="settings-row" style={{alignItems:'flex-start'}}>
+                <div style={{flex:1}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                    <div className="label">{lbl}</div>
+                    <button onClick={function(){upd(ak,!active);}} style={{border:'none',borderRadius:20,padding:'3px 10px',fontSize:11,fontWeight:700,cursor:'pointer',background:active?'#111':'#e5e7eb',color:active?'#fff':'#9ca3af'}}>{active?'● ON':'○ OFF'}</button>
+                  </div>
+                  <input className="settings-inp" style={{width:'100%'}} value={settings[nk]} onChange={function(e){upd(nk,e.target.value);}} disabled={!active}/>
+                </div>
+                <div style={{flexShrink:0,marginLeft:12}}>
+                  <div className="label" style={{marginBottom:6}}>Split %</div>
+                  <input type="number" className="settings-inp" style={{width:80}} value={settings[pk]} onChange={function(e){upd(pk,Number(e.target.value||0));}} disabled={!active}/>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {ao1&&ao2&&splitTotal!==100&&<div className="card-pad" style={{color:'#dc2626',fontSize:12,fontWeight:600}}>{'⚠️ Splits must add to 100% (currently '+splitTotal+'%)'}</div>}
+      </div>
+      <div className="section-label">Goals &amp; Tax</div>
+      <div className="card">
+        <div className="settings-row"><div><div className="label">Weekly Goal (Gross Profit)</div></div><input type="number" className="settings-inp" style={{width:110}} value={settings.weeklyGoal||''} onChange={function(e){upd('weeklyGoal',e.target.value===''?'':Number(e.target.value));}}/></div>
+        <div className="settings-row"><div><div className="label">Tax Rate (%)</div></div><input type="number" className="settings-inp" style={{width:80}} value={settings.taxRate||''} onChange={function(e){upd('taxRate',e.target.value===''?'':Number(e.target.value));}}/></div>
+      </div>
+      <div className="section-label">Pricing &amp; Decision</div>
+      <div className="card">
+        <div className="settings-row"><div><div className="label">Repair Target Profit ($)</div></div><input type="number" className="settings-inp" style={{width:90}} value={settings.repairTarget||''} onChange={function(e){upd('repairTarget',e.target.value===''?'':Number(e.target.value));}}/></div>
+        <div className="settings-row"><div><div className="label">Replacement Target Profit ($)</div></div><input type="number" className="settings-inp" style={{width:90}} value={settings.replacementTarget||''} onChange={function(e){upd('replacementTarget',e.target.value===''?'':Number(e.target.value));}}/></div>
+        <div className="settings-row"><div><div className="label">Too Low Below ($)</div><div className="sub">Profit below this = Too Low</div></div><input type="number" className="settings-inp" style={{width:90}} value={settings.skipThreshold||''} onChange={function(e){upd('skipThreshold',e.target.value===''?'':Number(e.target.value));}}/></div>
+        <div className="settings-row"><div><div className="label">Risky Beyond (miles)</div></div><input type="number" className="settings-inp" style={{width:90}} value={settings.riskyMiles||''} onChange={function(e){upd('riskyMiles',e.target.value===''?'':Number(e.target.value));}}/></div>
+        <div className="settings-row"><div><div className="label">Cost Per Mile ($)</div></div><input type="number" step="0.01" className="settings-inp" style={{width:90}} value={settings.costPerMile||''} onChange={function(e){upd('costPerMile',e.target.value===''?'':Number(e.target.value));}}/></div>
+      </div>
+      <div className="section-label">Google Review Link</div>
+      <div className="card"><div className="card-pad">
+        <div className="label" style={{marginBottom:6}}>Your Google Review URL</div>
+        <input className="settings-inp" style={{width:'100%'}} value={settings.googleReviewUrl||''} onChange={function(e){upd('googleReviewUrl',e.target.value);}} placeholder="https://g.page/r/…/review"/>
+        {(settings.googleReviewUrl||'').trim()&&<button className="btn success sm" style={{marginTop:10,width:'100%'}} onClick={function(){window.open(settings.googleReviewUrl,'_blank');}}>✓ Test Link</button>}
+      </div></div>
+      <div className="section-label">Monthly Fixed Expenses</div>
+      <div className="card">
+        {(settings.expenses||[]).map(function(exp) {
+          return (
+            <div className="expense-row" key={exp.id}>
+              <input value={exp.name} onChange={function(e){updExp(exp.id,{name:e.target.value});}} placeholder="Expense name"/>
+              <input type="number" value={exp.amount} onChange={function(e){updExp(exp.id,{amount:Number(e.target.value||0)});}} placeholder="0"/>
+              <button className={'btn sm '+(exp.active?'success':'secondary')} onClick={function(){updExp(exp.id,{active:!exp.active});}}>{exp.active?'On':'Off'}</button>
+              <button className="btn danger sm" onClick={function(){delExp(exp.id);}}>×</button>
+            </div>
+          );
+        })}
+        <div className="card-row"><button className="btn secondary sm" onClick={addExp}>+ Add</button><div style={{textAlign:'right'}}><div className="value">{money(monthly)+'/mo'}</div><div className="sub">{money(weekly)+'/wk'}</div></div></div>
+      </div>
+      <div className="section-label">Data &amp; Export</div>
+      <div className="card">
+        <div className="card-row"><div><div className="label">Export CSV</div><div className="sub">For QuickBooks / Excel</div></div><button className="btn secondary sm" onClick={function(){exportCSV(jobs,settings);}}>CSV</button></div>
+        <div className="card-row"><div><div className="label">Export Full Backup</div></div><button className="btn secondary sm" onClick={exportData}>JSON</button></div>
+        <div className="card-row"><div><div className="label">Import Backup</div></div><button className="btn secondary sm" onClick={importData}>Import</button></div>
+        <div className="card-row"><div><div className="label">Reset Everything</div><div className="sub" style={{color:'#dc2626'}}>Cannot be undone</div></div><button className="btn danger sm" onClick={clearAll}>Reset</button></div>
+      </div>
+      <div style={{padding:'8px 0 4px',textAlign:'center',fontSize:11,color:'#ccc'}}>Wheel Rush Business Tracker · v5 · Firebase Sync</div>
+    </div></div>
+  );
+}
+
+// ── App ────────────────────────────────────────────────────────────────────────
+function App() {
+  const [user,setUser]           = useState(null);
+  const [authReady,setAuthReady] = useState(false);
+  const [tab,setTab]             = useState('dashboard');
+  const [jobs,setJobs]           = useState(function(){return migrateOldJobs();});
+  const [settings,setSettings]   = useState(function(){return {...DEFAULT_SETTINGS,...load(KEYS.settings,{})};});
+  const [inventory,setInventory] = useState(function(){return migrateOldInventory()||DEFAULT_INVENTORY;});
+  const [expenses,setExpenses]   = useState(function(){return load(KEYS.expenses,[]);});
+  const [prefill,setPrefill]     = useState(null);
+  const [editJob,setEditJob]     = useState(null);
+  const [sync,setSync]           = useState('local');
+  const settingsLoadedRef        = useRef(false);
+
+  useEffect(function() {
+    let authUnsub = null, cancelled = false;
+    const giveUp = setTimeout(function(){ if(!cancelled) setAuthReady(true); }, 12000);
+    const attachFirestore = function(u) {
+      if (!u||!_db) return;
+      setSync('syncing');
+      const u1 = fbListen(jobCol(), function(docs) {
+        if (docs.length>0) {
+          const fbIds     = new Set(docs.map(function(d){return String(d.id);}));
+          const localQueue= load('wr2-upload-queue',[]);
+          const toUpload  = localQueue.filter(function(j){return !fbIds.has(String(j.id));});
+          if (toUpload.length>0) { toUpload.forEach(function(j){fbSet(jobCol(),j.id,j);}); persist('wr2-upload-queue',[]); }
+          setJobs(docs);
+        } else {
+          const local = load(KEYS.jobs,[]);
+          if (local.length>0) { fbSetAll(jobCol(),local); persist('wr2-upload-queue',[]); }
+          setJobs(local);
+        }
+        setSync('connected');
+      });
+      const u2 = fbListen(invCol(), function(docs) {
+        if (docs.length>0) setInventory(docs);
+        else { const l=load(KEYS.inventory,[]); if(l.length>0) fbSetAll(invCol(),l); }
+      });
+      const u3 = fbListen(expCol(), function(docs){setExpenses(docs);});
+      const sDoc = settingDoc();
+      if (sDoc) {
+        sDoc.get().then(function(snap) {
+          if (snap.exists) {
+            setSettings(function(){return {...DEFAULT_SETTINGS,...snap.data()};});
+            setTimeout(function(){settingsLoadedRef.current=true;},100);
+          } else {
+            const local = load(KEYS.settings,{});
+            sDoc.set({...DEFAULT_SETTINGS,...local}).catch(function(e){});
+            settingsLoadedRef.current = true;
+          }
+        }).catch(function(e){});
+      }
+    };
+    const init = function() {
+      if (cancelled) return;
+      if (!_auth||!_db) { setTimeout(init,100); return; }
+      clearTimeout(giveUp);
+      authUnsub = _auth.onAuthStateChanged(function(u) {
+        if (cancelled) return;
+        setUser(u||null); setAuthReady(true);
+        attachFirestore(u);
+        if (!u) { setSync('local'); settingsLoadedRef.current=true; }
+      });
+    };
+    init();
+    return function(){ cancelled=true; clearTimeout(giveUp); if(authUnsub)authUnsub(); };
+  }, []);
+
+  useEffect(function() {
+    persist(KEYS.settings, settings);
+    if (!settingsLoadedRef.current) return;
+    const t = setTimeout(function(){const doc=settingDoc();if(user&&doc)doc.set(settings).catch(function(e){});},1000);
+    return function(){clearTimeout(t);};
+  }, [settings,user]);
+
+  useEffect(function(){ if(user&&_db)fbSetAll(invCol(),inventory); }, [inventory,user]);
+
+  const deleteJob = useCallback(function(id) {
+    setJobs(function(prev){
+      const next = prev.filter(function(j){return j.id!==id;});
+      persist(KEYS.jobs, next);
+      return next;
+    });
+    if (user) fbDel(jobCol(), id);
+    const q = load('wr2-upload-queue',[]);
+    if (q.some(function(j){return j.id===id;})) persist('wr2-upload-queue', q.filter(function(j){return j.id!==id;}));
+  }, [user]);
+
+  const saveJob = useCallback(async function(job, andAdd) {
+    const isRepl = /replacement|installation/i.test(job.service||'');
+    if (isRepl && job.tireSize) {
+      setInventory(function(prev){return prev.map(function(item){
+        if (item.size.toLowerCase()===job.tireSize.toLowerCase()&&Number(item.qty||0)>0)
+          return {...item,qty:Math.max(0,Number(item.qty||0)-Number(job.qty||1))};
+        return item;
+      });});
+    }
+    // Sanitize: only write known primitive fields to Firestore
+    const entry = {
+      id:            String(job.id||uid()),
+      date:          String(job.date||''),
+      service:       String(job.service||''),
+      area:          String(job.area||''),
+      payment:       String(job.payment||''),
+      status:        String(job.status||'Completed'),
+      source:        String(job.source||''),
+      customerName:  String(job.customerName||''),
+      customerPhone: String(job.customerPhone||''),
+      tireSize:      String(job.tireSize||''),
+      qty:           Number(job.qty||1),
+      revenue:       Number(job.revenue||0),
+      tireCost:      Number(job.tireCost||0),
+      miscCost:      Number(job.miscCost||0),
+      miles:         Number(job.miles||0),
+      note:          String(job.note||''),
+      emergency:     !!job.emergency,
+      lateNight:     !!job.lateNight,
+      highway:       !!job.highway,
+      weekend:       !!job.weekend,
+    };
+    setJobs(function(prev){const next=[entry,...prev.filter(function(j){return j.id!==entry.id;})];persist(KEYS.jobs,next);return next;});
+    if (user) { fbSet(jobCol(),entry.id,entry); }
+    else {
+      const q = load('wr2-upload-queue',[]);
+      persist('wr2-upload-queue',[entry,...q.filter(function(j){return j.id!==entry.id;})]);
+    }
+    setEditJob(null);
+    if (!andAdd) setTab('dashboard');
+  }, [user]);
+
+  const handleEdit = useCallback(function(job) {
+    if (job._markPaidOnly) {
+      const updated = {...job,status:'Completed'};
+      delete updated._markPaidOnly;
+      saveJob(updated, true);
+      return;
+    }
+    setEditJob(job);
+    setTab('add');
+  }, [saveJob]);
+
+  const signOut = async function(){try{await _auth.signOut();setUser(null);setSync('local');}catch(e){}};
+
+  const NAV = [
+    {id:'dashboard',ico:'📊',label:'Home'},
+    {id:'add',ico:'＋',label:'Add'},
+    {id:'history',ico:'📋',label:'History'},
+    {id:'payouts',ico:'💰',label:'Payouts'},
+    {id:'expenses',ico:'🧾',label:'Expenses'},
+    {id:'inventory',ico:'🛞',label:'Stock'},
+    {id:'settings',ico:'⚙️',label:'Settings'},
+  ];
+
+  if (!authReady) return (
+    <div style={{height:'100%',display:'flex',alignItems:'center',justifyContent:'center',background:'#111',flexDirection:'column',gap:14}}>
+      <div style={{fontSize:48}}>🛞</div>
+      <div style={{color:'#444',fontSize:13,fontFamily:'"IBM Plex Sans",sans-serif'}}>Loading…</div>
+    </div>
+  );
+  if (!user) return <AuthScreen onAuth={function(u){setUser(u);}} />;
+
+  return (
+    <div className="app">
+      <Header settings={settings} syncStatus={sync} onSignOut={signOut}/>
+      {tab==='dashboard' && <Dashboard jobs={jobs} varExpenses={expenses} settings={settings} setTab={setTab} onRepeat={function(j){setPrefill(j);setTab('add');}}/>}
+      {tab==='add'       && <AddJob onSave={saveJob} settings={settings} jobs={jobs} prefill={prefill} onClearPrefill={function(){setPrefill(null);}} editJob={editJob} onClearEdit={function(){setEditJob(null);}}/>}
+      {tab==='history'   && <History jobs={jobs} settings={settings} onRepeat={function(j){setPrefill(j);setTab('add');}} onDelete={deleteJob} onEdit={handleEdit}/>}
+      {tab==='payouts'   && <Payouts jobs={jobs} settings={settings}/>}
+      {tab==='expenses'  && <Expenses expenses={expenses} setExpenses={function(e){setExpenses(e);if(user)e.forEach(function(x){fbSet(expCol(),x.id,{id:String(x.id||''),date:String(x.date||''),category:String(x.category||''),amount:Number(x.amount||0),note:String(x.note||'')});});}}/>}
+      {tab==='inventory' && <Inventory inventory={inventory} setInventory={setInventory}/>}
+      {tab==='settings'  && <Settings settings={settings} setSettings={setSettings} jobs={jobs} setJobs={setJobs} inventory={inventory} expenses={expenses}/>}
+      <nav className="bottom-nav">
+        {NAV.map(function(item){
+          return <button key={item.id} className={'nav-btn'+(tab===item.id?' active':'')} onClick={function(){setTab(item.id);}}><span className="ico">{item.ico}</span>{item.label}</button>;
+        })}
+      </nav>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</html>
