@@ -239,185 +239,373 @@
       .page{padding:16px 14px calc(110px + env(safe-area-inset-bottom))}
     }
   
-    /* ═══════════════════════════════════════════════════
-       PREMIUM UPGRADE — Home screen + global refinements
-       ═══════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════
+       WHEEL RUSH — PREMIUM DESIGN SYSTEM
+       ═══════════════════════════════════════════════════════════ */
 
-    /* Background tone */
-    .screen { background: #f5f5f7; }
-    .page { padding: 18px 16px calc(100px + env(safe-area-inset-bottom)); }
+    /* ── Global canvas ── */
+    html,body,#root { background: #f0f0f2; }
+    .screen { background: #f0f0f2; }
+    .page {
+      padding: 20px 16px calc(110px + env(safe-area-inset-bottom));
+      max-width: 100%;
+    }
 
-    /* Section labels — more refined */
+    /* ── Section labels — executive style ── */
     .section-label {
       font-size: 9px;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 1.4px;
-      color: #b0b0b0;
-      margin: 22px 0 10px;
+      letter-spacing: 1.6px;
+      color: #a0a0a8;
+      margin: 26px 0 10px;
     }
-    .section-label:first-child { margin-top: 4px; }
+    .section-label:first-child { margin-top: 0; }
 
-    /* Cards — deeper radius, stronger shadow */
+    /* ── Cards — deep radius, layered shadow ── */
     .card {
-      background: #fff;
-      border-radius: 18px;
+      background: #ffffff;
+      border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.04);
+      box-shadow:
+        0 1px 2px rgba(0,0,0,.04),
+        0 4px 16px rgba(0,0,0,.06);
       margin-bottom: 12px;
+      border: 1px solid rgba(0,0,0,.04);
     }
-    .card-pad { padding: 16px 18px; }
+    .card-pad { padding: 18px 20px; }
     .card-row {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; padding: 14px 18px; border-bottom: 1px solid #f2f2f2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f2f2f5;
     }
     .card-row:last-child { border-bottom: none; }
 
-    /* KPI grid — premium tiles */
+    /* ── KPI grid ── */
     .kpi-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 2px; background: #e8e8ea;
-      border-radius: 18px; overflow: hidden; margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: #e2e2e6;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.05);
     }
     .kpi-grid.three { grid-template-columns: 1fr 1fr 1fr; }
     .kpi {
-      background: #fff; padding: 16px 14px;
+      background: #ffffff;
+      padding: 16px 16px 14px;
     }
     .kpi-label {
-      font-size: 9px; font-weight: 800; text-transform: uppercase;
-      letter-spacing: .8px; color: #b0b0b0; margin-bottom: 6px;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #a8a8b0;
+      margin-bottom: 7px;
     }
     .kpi-value {
       font-family: "IBM Plex Mono", monospace;
-      font-size: 20px; font-weight: 700; line-height: 1.1; color: #111;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+      color: #111;
+      letter-spacing: -.5px;
     }
     .kpi-value.green { color: #15803d; }
     .kpi-value.red   { color: #dc2626; }
-    .kpi-sub { font-size: 10px; color: #bbb; margin-top: 5px; font-weight: 500; }
-
-    /* Today mini-grid — premium */
-    .mini-grid {
-      display: grid; grid-template-columns: repeat(4,1fr);
-      gap: 2px; background: #e8e8ea;
-      border-radius: 18px; overflow: hidden; margin-bottom: 12px;
+    .kpi-sub {
+      font-size: 10px;
+      color: #b8b8c0;
+      margin-top: 5px;
+      font-weight: 500;
     }
-    .mini-box { background: #fff; padding: 13px 8px; text-align: center; }
+
+    /* ── Mini-grid (Today strip) ── */
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 2px;
+      background: #e2e2e6;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    }
+    .mini-box {
+      background: #ffffff;
+      padding: 14px 8px;
+      text-align: center;
+    }
     .mini-box strong {
       display: block;
       font-family: "IBM Plex Mono", monospace;
-      font-size: 15px; font-weight: 700; line-height: 1.2; color: #111;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #111;
+      letter-spacing: -.3px;
     }
     .mini-box span {
-      display: block; font-size: 8px; color: #bbb;
-      text-transform: uppercase; letter-spacing: .6px; margin-top: 4px; font-weight: 700;
+      display: block;
+      font-size: 8px;
+      color: #b0b0b8;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-top: 5px;
+      font-weight: 700;
     }
 
-    /* Goal track — refined */
+    /* ── Goal progress bar ── */
     .goal-track {
-      height: 6px; background: #f0f0f2;
-      border-radius: 999px; overflow: hidden; margin: 12px 0 8px;
+      height: 5px;
+      background: #f0f0f4;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 12px 0 8px;
     }
-    .goal-fill { height: 100%; border-radius: 999px; transition: width .5s ease; }
+    .goal-fill { height: 100%; border-radius: 999px; transition: width .6s cubic-bezier(.4,0,.2,1); }
     .goal-fill.full  { background: #15803d; }
-    .goal-fill.mid   { background: #111; }
+    .goal-fill.mid   { background: #111111; }
     .goal-fill.low   { background: #ea580c; }
 
-    /* Job rows — premium feel */
+    /* ── Job rows on Home (recent jobs) ── */
     .job-row {
-      background: #fff; border-radius: 14px; padding: 14px 16px;
-      display: flex; align-items: flex-start; gap: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow:
+        0 1px 2px rgba(0,0,0,.04),
+        0 3px 12px rgba(0,0,0,.05);
+      border: 1px solid rgba(0,0,0,.04);
     }
     .job-icon {
-      width: 40px; height: 40px; border-radius: 11px;
-      background: #f5f5f7; display: flex; align-items: center;
-      justify-content: center; flex-shrink: 0; font-size: 18px;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: #f5f5f8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
     }
     .job-title {
-      font-size: 14px; font-weight: 700;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      letter-spacing: -.1px; color: #111;
+      font-size: 14px;
+      font-weight: 700;
+      color: #111;
+      letter-spacing: -.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .job-meta { font-size: 11px; color: #b0b0b0; margin-top: 3px; line-height: 1.6; }
-    .value { font-family: "IBM Plex Mono", monospace; font-size: 15px; font-weight: 700; }
-    .value.big  { font-size: 22px; }
+    .job-meta {
+      font-size: 11px;
+      color: #b0b0b8;
+      margin-top: 3px;
+      line-height: 1.6;
+    }
+    .job-right { text-align: right; flex-shrink: 0; }
+
+    /* ── Shared value / sub styles ── */
+    .value {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+    }
+    .value.big   { font-size: 22px; }
     .value.green { color: #15803d; }
     .value.red   { color: #dc2626; }
     .value.orange{ color: #ea580c; }
-    .sub { font-size: 11px; color: #b0b0b0; }
-    .sub.green   { color: #15803d; }
-    .sub.red     { color: #dc2626; }
-    .sub.orange  { color: #ea580c; }
+    .sub { font-size: 11px; color: #b0b0b8; font-weight: 500; }
+    .sub.green  { color: #15803d; font-weight: 700; }
+    .sub.red    { color: #dc2626; font-weight: 700; }
+    .sub.orange { color: #ea580c; font-weight: 700; }
 
-    /* Pills — refined */
+    /* ── Pills ── */
     .pill {
-      display: inline-block; padding: 3px 9px;
-      border-radius: 999px; font-size: 10px; font-weight: 700; line-height: 1.5;
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1.5;
+      letter-spacing: .2px;
     }
     .pill.green  { background: #f0fdf4; color: #15803d; }
     .pill.red    { background: #fef2f2; color: #dc2626; }
     .pill.orange { background: #fff7ed; color: #c2410c; }
-    .pill.gray   { background: #f5f5f7; color: #888; }
+    .pill.gray   { background: #f5f5f8; color: #888; }
     .pill.blue   { background: #eff6ff; color: #1d4ed8; }
 
-    /* Pending banner — premium amber */
+    /* ── Pending payments banner ── */
     .pending-banner {
-      background: #fffbf0;
-      border: 1.5px solid #f0d060;
-      border-radius: 14px; padding: 14px 16px; margin-bottom: 12px;
-      display: flex; justify-content: space-between; align-items: center;
+      background: #fffbf2;
+      border: 1.5px solid #e8c84a;
+      border-radius: 16px;
+      padding: 14px 18px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(232,200,74,.12);
     }
-    .pending-banner-title { font-size: 13px; font-weight: 700; color: #92400e; }
-    .pending-banner-sub   { font-size: 11px; color: #b45309; margin-top: 2px; }
+    .pending-banner-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #92400e;
+      letter-spacing: -.1px;
+    }
+    .pending-banner-sub {
+      font-size: 11px;
+      color: #b45309;
+      margin-top: 3px;
+      font-weight: 600;
+    }
 
-    /* Source bar — refined */
-    .source-bar { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f5f5f5; }
+    /* ── Lead source bars ── */
+    .source-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f8;
+    }
     .source-bar:last-child { border-bottom: none; }
-    .source-bar-track { flex:1; height:5px; background:#f0f0f2; border-radius:999px; overflow:hidden; }
-    .source-bar-fill  { height:100%; background:#111; border-radius:999px; }
-
-    /* Header — slightly taller, more premium */
-    .header-compact {
-      background: #111; color: #fff;
-      padding: 10px 16px;
-      padding-top: calc(10px + env(safe-area-inset-top));
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; flex-shrink: 0;
-      border-bottom: 1px solid rgba(255,255,255,.04);
+    .source-bar-track {
+      flex: 1;
+      height: 4px;
+      background: #f0f0f4;
+      border-radius: 999px;
+      overflow: hidden;
     }
-    .header-compact h1 { font-size: 17px; font-weight: 700; line-height: 1; letter-spacing: -.3px; }
-    .header-compact p  { font-size: 10px; color: #555; margin-top: 2px; }
+    .source-bar-fill {
+      height: 100%;
+      background: #111;
+      border-radius: 999px;
+    }
 
-    /* Bottom nav — premium */
+    /* ── Header ── */
+    .header-compact {
+      background: #111111;
+      color: #fff;
+      padding: 12px 18px;
+      padding-top: calc(12px + env(safe-area-inset-top));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(255,255,255,.03);
+    }
+    .header-compact h1 {
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -.4px;
+    }
+    .header-compact p {
+      font-size: 10px;
+      color: #505058;
+      margin-top: 2px;
+      letter-spacing: .1px;
+    }
+
+    /* ── Bottom nav ── */
     .bottom-nav {
-      display: flex; background: #fff;
-      border-top: 1px solid rgba(0,0,0,.07);
+      display: flex;
+      background: #ffffff;
+      border-top: 1px solid #eeeef2;
       padding-bottom: env(safe-area-inset-bottom);
       flex-shrink: 0;
-      box-shadow: 0 -4px 20px rgba(0,0,0,.06);
+      box-shadow: 0 -4px 24px rgba(0,0,0,.07);
     }
     .nav-btn {
-      flex: 1; border: none; background: none;
-      padding: 9px 2px 7px;
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 3px;
-      color: #c0c0c0; font-size: 8.5px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .4px;
-      transition: color .12s;
+      flex: 1;
+      border: none;
+      background: none;
+      padding: 10px 2px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: #c8c8d0;
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      transition: color .1s;
+      position: relative;
     }
-    .nav-btn.active { color: #111; }
-    .nav-btn .ico { font-size: 18px; line-height: 1; }
+    .nav-btn.active {
+      color: #111111;
+    }
+    .nav-btn.active::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 24px; height: 2px;
+      background: #111;
+      border-radius: 0 0 4px 4px;
+    }
+    .nav-btn .ico {
+      font-size: 19px;
+      line-height: 1;
+    }
 
-    /* Stack spacing */
-    .stack { display: grid; gap: 9px; }
+    /* ── Stack spacing ── */
+    .stack { display: grid; gap: 10px; }
 
-    /* Dark card — goal projection */
+    /* ── Dark card ── */
     .dark-card {
-      background: #111; color: #fff;
-      border-radius: 18px; padding: 18px;
-      box-shadow: 0 4px 20px rgba(0,0,0,.18); margin-bottom: 12px;
+      background: #111111;
+      color: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.20);
+      margin-bottom: 12px;
     }
     .dark-card .muted { color: #444; }
+
+    /* ── Quick quote colors ── */
+    .qq-apply-btn.active-sel { outline: 2px solid rgba(255,255,255,.5); outline-offset: 1px; }
+    .qq-apply-btn.suggested.active-sel { background: #4ade80; color: #14532d; }
+    .qq-apply-btn.premium.active-sel   { background: #fb923c; color: #431407; }
+    .qq-apply-btn.custom.active-sel    { background: rgba(255,255,255,.22); color: #fff; }
+
+    /* ── Pills compat (already above, keep for other screens) ── */
+    .pill.green  { background: #f0fdf4; color: #15803d; }
+    .pill.red    { background: #fef2f2; color: #dc2626; }
+    .pill.orange { background: #fff7ed; color: #c2410c; }
+    .pill.gray   { background: #f5f5f8; color: #888; }
+    .pill.blue   { background: #eff6ff; color: #1d4ed8; }
+
+    /* ── Responsive ── */
+    @media(min-width:600px){
+      .app{max-width:480px;margin:0 auto;box-shadow:0 0 60px rgba(0,0,0,.12)}
+      html,body,#root{background:#dadadd}
+    }
+    @media(max-width:360px){
+      .pay-grid{grid-template-columns:repeat(2,1fr)!important}
+      .field-row{grid-template-columns:1fr!important}
+      .kpi-grid{grid-template-columns:1fr 1fr!important}
+      .mini-grid{grid-template-columns:1fr 1fr!important}
+      .page{padding:14px 12px calc(100px + env(safe-area-inset-bottom))}
+    }
+    @media(min-height:812px){
+      .page{padding:20px 16px calc(120px + env(safe-area-inset-bottom))}
+    }
+
 </style>
 </head>
 <body>
@@ -1003,14 +1191,17 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory}) {
       </div>
       <button class="btn secondary sm" onClick=${()=>setTab("history")}>View →</button>
     </div>`}
-    <div class="section-label" style=${{marginTop:todayJobs.length?undefined:0}}>This Week <span style=${{fontWeight:400,textTransform:"none",letterSpacing:0,color:"#bbb",fontSize:10}}>· ${weekLabel(thisWeek)}</span></div>
-    <div class="kpi-grid" style=${{marginBottom:8}}>
+    <div class="section-label" style=${{marginTop:todayJobs.length?undefined:0}}>
+      This Week
+      <span style=${{fontWeight:500,textTransform:"none",letterSpacing:0,color:"#b8b8c0",fontSize:9,marginLeft:6}}>${weekLabel(thisWeek)}</span>
+    </div>
+    <div class="kpi-grid">
       <div class="kpi"><div class="kpi-label">Revenue</div><div class="kpi-value">${money(totals.revenue)}</div><div class="kpi-sub">${weekJobs.length} job${weekJobs.length!==1?"s":""}</div></div>
       <div class="kpi"><div class="kpi-label">Gross Profit</div><div class="kpi-value">${money(totals.grossProfit)}</div><div class="kpi-sub">before fixed</div></div>
       <div class="kpi"><div class="kpi-label">Fixed Exp.</div><div class="kpi-value">${money(fixed)}</div><div class="kpi-sub">weekly</div></div>
       <div class="kpi"><div class="kpi-label">Net Profit</div><div class=${"kpi-value "+(totals.net>=0?"green":"red")}>${money(totals.net)}</div><div class="kpi-sub">after all costs</div></div>
     </div>
-    <div class="kpi-grid three" style=${{marginBottom:10}}>
+    <div class="kpi-grid three">
       <div class="kpi"><div class="kpi-label">Direct Costs</div><div class="kpi-value">${money(totals.directCosts)}</div><div class="kpi-sub">travel+parts</div></div>
       <div class="kpi"><div class="kpi-label">Avg/Job</div><div class="kpi-value">${money(avgProfit)}</div><div class="kpi-sub">gross profit</div></div>
       <div class="kpi"><div class="kpi-label">Jobs Needed</div><div class="kpi-value">${jobsNeeded}</div><div class="kpi-sub">to hit goal</div></div>
@@ -1039,7 +1230,7 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory}) {
     </div>
 
     ${top5Tires.length>0&&html`<div>
-      <div class="section-label">Top 5 Stock</div>
+      <div class="section-label">Top 5 in Stock</div>
       <div class="card">
         ${top5Tires.map((t,idx)=>html`<div key=${t.id} class="card-row" style=${{padding:"12px 18px"}}>
           <div style=${{display:"flex",alignItems:"center",gap:10}}>
@@ -1056,7 +1247,7 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory}) {
       </div>
     </div>`}
     ${sources.length>0&&html`<div>
-      <div class="section-label">Lead Sources</div>
+      <div class="section-label">Sources</div>
       <div class="card"><div class="card-pad">
         ${sources.slice(0,6).map(([srcName,count])=>html`<div class="source-bar" key=${srcName}>
           <div style=${{fontSize:12,fontWeight:600,color:"#666",width:130,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>${srcName}</div>
@@ -1065,7 +1256,7 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory}) {
         </div>`)}
       </div></div>
     </div>`}
-    <div class="section-label">Recent Jobs</div>
+    <div class="section-label">Recent</div>
     ${recent.length>0?html`<div class="stack">${recent.map(job=>{ const profit=jobGrossProfit(job,settings); const profitGood=profit>=70, profitOk=profit>=40&&profit<70; return html`<div class="job-row" key=${job.id} style=${{cursor:"pointer"}} onClick=${()=>onRepeat(job)}>
       <div class="job-icon" style=${{background:"#f5f5f7"}}>🛞</div>
       <div class="job-main">
