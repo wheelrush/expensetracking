@@ -536,42 +536,73 @@ function groupByWeek(jobs) {
 
 // ── Invoice ────────────────────────────────────────────────────────────────────
 function buildInvoiceText(job, bizName) {
-  const biz = bizName || 'Wheel Rush Mobile Tire Repair';
-  const sep = '─────────────────────────────';
-  const parts = [
-    'INVOICE',
-    sep,
-    biz,
-    '305-897-7030',
-    sep,
-    'Date:     ' + job.date,
-  ];
-  if (job.customerName) parts.push('Customer: ' + job.customerName);
-  if (job.customerPhone) parts.push('Phone:    ' + job.customerPhone);
-  parts.push(sep);
-  parts.push('Service:  ' + job.service);
-  if (job.tireSize) parts.push('Tire:     ' + job.tireSize + (job.qty>1 ? ' x'+job.qty : ''));
-  if (job.area) parts.push('Location: ' + job.area);
-  parts.push(sep);
-  parts.push('TOTAL:    ' + money(Number(job.revenue||0)));
-  parts.push('Payment:  ' + job.payment);
-  if (job.note) parts.push('Notes:    ' + job.note);
-  parts.push(sep);
-  parts.push('Thank you for choosing Wheel Rush!');
-  return parts.join('\n');
-}
-function sendInvoice(job, settings) {
-  const text = buildInvoiceText(job, settings.businessName);
-  if (job.customerPhone) {
-    window.open('sms:'+job.customerPhone+'?body='+encodeURIComponent(text));
+  var biz  = (bizName || 'Wheel Rush Mobile Tire Repair').trim();
+  var sep  = '================================';
+  var pad  = function(label, val) { return label + ': ' + val; };
+  var lines = [];
+
+  lines.push(biz);
+  lines.push('Phone: 305-897-7030');
+  lines.push(sep);
+  lines.push('INVOICE');
+  lines.push(sep);
+
+  // Job details
+  lines.push(pad('Date',    job.date || ''));
+  lines.push(pad('Service', job.service || ''));
+  if (job.tireSize) {
+    var tireStr = job.tireSize;
+    if (Number(job.qty||1) > 1) tireStr += ' (x' + job.qty + ')';
+    lines.push(pad('Tire Size', tireStr));
+  }
+  if (job.area) lines.push(pad('Location', job.area));
+
+  // Customer
+  if (job.customerName)  lines.push(pad('Customer', job.customerName));
+  if (job.customerPhone) lines.push(pad('Phone',    job.customerPhone));
+
+  lines.push(sep);
+
+  // Financials — customer-facing only, NO material/tire cost
+  lines.push(pad('Total',   money(Number(job.revenue||0))));
+  lines.push(pad('Payment', job.payment || ''));
+
+  // Status
+  if (job.status === 'Pending') {
+    lines.push('Status: PENDING - Payment Due');
   } else {
+    lines.push('Status: Paid');
+  }
+
+  // Notes — only if useful for customer
+  if ((job.note||'').trim()) lines.push(pad('Notes', job.note));
+
+  lines.push(sep);
+  lines.push('Thank you for choosing Wheel Rush!');
+  lines.push('Mobile Tire Repair - We Come to You');
+
+  return lines.join('\n');
+}
+
+function sendInvoice(job, settings) {
+  var text    = buildInvoiceText(job, settings.businessName);
+  var encoded = encodeURIComponent(text);
+  if (job.customerPhone) {
+    window.open('sms:' + job.customerPhone + '?body=' + encoded);
+  } else {
+    // Clipboard fallback
     try {
-      navigator.clipboard.writeText(text).then(function() { alert('Invoice copied! Paste it to send.'); });
+      navigator.clipboard.writeText(text).then(function() {
+        alert('Invoice copied to clipboard! Paste it to send.');
+      });
     } catch(e) {
-      const ta = document.createElement('textarea');
-      ta.value = text; document.body.appendChild(ta); ta.select();
-      document.execCommand('copy'); document.body.removeChild(ta);
-      alert('Invoice copied! Paste it to send.');
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      alert('Invoice copied to clipboard! Paste it to send.');
     }
   }
 }
@@ -1069,11 +1100,13 @@ function AddJob(props) {
   };
 
   const requestReview = function() {
-    const url = (settings.googleReviewUrl||'').trim();
-    if (!url) { alert('Set your Google Review URL in Settings.'); return; }
-    const name = form.customerName ? ' '+form.customerName : '';
-    const msg = encodeURIComponent('Hi'+name+'! Thanks for choosing Wheel Rush today! We\'d really appreciate a quick Google review: '+url);
-    window.open(form.customerPhone ? 'sms:'+form.customerPhone+'?body='+msg : 'sms:?body='+msg);
+    openReviewSMS(
+      form.customerPhone,
+      (settings.googleReviewUrl||'').trim(),
+      form.customerName,
+      form.service,
+      form.area
+    );
   };
 
   const FLAGS = [['emergency','🚨 Emergency',20],['lateNight','🌙 Late Night',20],['highway','🛣 Highway',15],['weekend','📅 Weekend',10]];
@@ -1101,9 +1134,9 @@ function AddJob(props) {
           <div className="success-strip">
             <div className="success-strip-title">{'✅ '+money(saved.revenue)+' · '+money(jobGrossProfit(saved,settings))+' profit'}</div>
             <button className="btn primary sm" onClick={function(){sendInvoice(saved,settings);}}>
-              {'🧾 '+(saved.customerPhone?'Send Invoice':'Copy Invoice')}
+              {saved.customerPhone ? '🧾 Send Invoice' : '🧾 Copy Invoice'}
             </button>
-            {saved.status==='Completed' && <button className="btn success sm" onClick={function(){requestReview();}}>⭐ Review</button>}
+            {saved.status==='Completed' && <button className="btn success sm" onClick={function(){requestReview();}}>⭐ Send Review</button>}
             {saved.customerPhone && <button className="btn success sm" onClick={function(){window.open('tel:'+saved.customerPhone);}}>📞 Call</button>}
             <button className="btn secondary sm" onClick={function(){setForm({...saved,id:'',revenue:String(saved.revenue)});setSaved(null);}}>🔁 Dup</button>
           </div>
@@ -1204,7 +1237,7 @@ function AddJob(props) {
 
         <div className="field"><label>Notes</label><textarea value={form.note} onChange={function(e){setF('note',e.target.value);}} placeholder="Parking garage, roadside, no spare, etc."/></div>
         <div className="inline-note">Direct cost = travel + tire + misc. Weekly fixed deducted at payout only.</div>
-        {form.status==='Completed' && <button className="btn blue" style={{width:'100%',marginBottom:10}} onClick={function(){requestReview();}}>{'⭐ Send Review'+(form.customerPhone?' via SMS':' (no phone)')}</button>}
+        {form.status==='Completed' && <button className="btn blue" style={{width:'100%',marginBottom:10}} onClick={function(){requestReview();}}>{form.customerPhone ? '⭐ Send Review Text' : '⭐ Send Review (no phone on file)'}</button>}
         <div style={{height:90}}/>
       </div>
 
@@ -1258,10 +1291,13 @@ function History(props) {
     const dec    = jobDecision(job,settings,thisWeekGross);
     const decCls = dec.dec==='strong'?'green':dec.dec==='okay'?'yellow':'red';
     const sendReview = function() {
-      const u=(settings.googleReviewUrl||'').trim();
-      if (!u) { alert('Set Google Review URL in Settings.'); return; }
-      const msg=encodeURIComponent('Hi'+(job.customerName?' '+job.customerName:'')+'! Thanks for choosing Wheel Rush! '+u);
-      window.open(job.customerPhone?'sms:'+job.customerPhone+'?body='+msg:'sms:?body='+msg);
+      openReviewSMS(
+        job.customerPhone,
+        (settings.googleReviewUrl||'').trim(),
+        job.customerName,
+        job.service,
+        job.area
+      );
     };
     return (
       <div className="job-row">
@@ -1283,6 +1319,7 @@ function History(props) {
           <div style={{display:'flex',gap:5,marginTop:8,justifyContent:'flex-end',flexWrap:'wrap'}}>
             {onEdit && <button className="btn blue xs" onClick={function(){onEdit(job);}}>✏️</button>}
             <button className="btn success xs" onClick={function(){onRepeat(job);}}>🔁</button>
+            <button className="btn primary xs" onClick={function(){sendInvoice(job,settings);}}>🧾</button>
             <button className="btn blue xs" onClick={function(){sendReview();}}>⭐</button>
             {job.status==='Pending' && <button className="btn success xs" onClick={function(){markPaid(job);}}>✓ Paid</button>}
             {job.customerPhone && <button className="btn secondary xs" onClick={function(){window.open('tel:'+job.customerPhone);}}>📞</button>}
@@ -1450,6 +1487,42 @@ function Payouts(props) {
 }
 
 // ── Inventory ──────────────────────────────────────────────────────────────────
+// ── Review message builder ───────────────────────────────────────────────────
+function buildReviewMsg(url, customerName, service, city) {
+  var name     = (customerName||'').trim();
+  var greeting = name ? 'Hi ' + name + ',' : 'Hi,';
+  // Normalize service to a readable phrase
+  var svcMap   = {
+    'Tire Repair':        'flat tire repair',
+    'Tire Replacement':   'tire replacement',
+    'Tire Installation':  'tire installation',
+    'Lug Nut Removal':    'lug nut removal',
+    'Valve Stem Service': 'valve stem service',
+    'Roadside Assistance':'roadside assistance',
+    'Other':              'tire service',
+  };
+  var svcPhrase = svcMap[service] || (service ? service.toLowerCase() : 'tire service');
+  var cityStr   = (city||'').trim() || 'your area';
+  // Two line breaks become %0A%0A in SMS — use plain newlines, encodeURIComponent handles it
+  var body = greeting + ' thanks again for choosing Wheel Rush. '
+    + 'If you have a minute, please leave a review here:\n\n'
+    + url + '\n\n'
+    + 'Please mention the ' + svcPhrase + ' we did and that we helped you in ' + cityStr + '.';
+  return body;
+}
+
+function openReviewSMS(phone, url, customerName, service, city) {
+  if (!url) { alert('Set your Google Review URL in Settings first.'); return; }
+  var msg = buildReviewMsg(url, customerName, service, city);
+  var encoded = encodeURIComponent(msg);
+  if (phone) {
+    // Works on both iPhone (sms:+1xxx?body=) and Android (sms:+1xxx?body=)
+    window.open('sms:' + phone + '?body=' + encoded);
+  } else {
+    window.open('sms:?body=' + encoded);
+  }
+}
+
 const LOW_STOCK = 2;
 const BEST_SELLER_COUNT = 5; // top N sizes by job frequency
 function Inventory(props) {
