@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Wheel Rush" />
   <meta name="theme-color" content="#111111" />
@@ -244,11 +245,9 @@
     }
   </style>
 
-  <!-- PWA: Home Screen icon (icon.png must be in same folder as this HTML) -->
-  <link rel="apple-touch-icon" href="icon.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
-  <link rel="icon" type="image/png" href="icon.png">
-  <link rel="manifest" href="manifest.json">
+  <!-- PWA icons — inline SVG favicon so no external file needed -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛞</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛞</text></svg>">
 </head>
 <body>
 <div id="root"></div>
@@ -1461,36 +1460,56 @@ function Inventory(props) {
   const [search,setSearch] = useState('');
   const [editId,setEditId] = useState(null);
 
-  // Compute best-seller sizes from job history (by frequency of tire size used)
-  const bestSellers = useMemo(function() {
-    const freq = {};
+  // Top 5 Best Tires: built from job history
+  const top5 = useMemo(function() {
+    const stats = {};
     jobs.forEach(function(j) {
       const s = (j.tireSize||'').trim();
-      if (s) freq[s] = (freq[s]||0) + (Number(j.qty)||1);
+      if (!s) return;
+      if (!stats[s]) stats[s] = {size:s, jobs:0, qtySold:0, revenue:0, profit:0};
+      stats[s].jobs    += 1;
+      stats[s].qtySold += Number(j.qty||1);
+      stats[s].revenue += Number(j.revenue||0);
+      stats[s].profit  += jobGrossProfit(j, {costPerMile:0.65});
     });
-    return Object.entries(freq)
-      .sort(function(a,b){return b[1]-a[1];})
-      .slice(0, BEST_SELLER_COUNT)
-      .map(function(e){return e[0];});
+    return Object.values(stats)
+      .sort(function(a,b){ return b.jobs!==a.jobs ? b.jobs-a.jobs : b.profit-a.profit; })
+      .slice(0, 5);
   }, [jobs]);
+  // List of best-seller size strings (for badge logic in the stock list)
+  const bestSellers = top5.map(function(t){return t.size;});
   const sanitizeItem = function(i) {
-    return {id:String(i.id||''),size:String(i.size||''),qty:Math.max(0,Number(i.qty||0)),cost:Number(i.cost||0),notes:String(i.notes||'')};
+    return {
+      id:    String(i.id||uid()),
+      size:  String(i.size||''),
+      qty:   Math.max(0, Number(i.qty||0)),
+      cost:  Number(i.cost||0),
+      notes: String(i.notes||''),
+    };
   };
-  const saveInv = function(next) {
+  const saveInv = function(next, changedId, deleted) {
     persist(KEYS.inventory, next);
-    // Firebase sync handled by App useEffect
+    // Write only the changed document to Firebase (not the whole list)
+    if (!_db) return;
+    if (deleted) {
+      fbDel(invCol(), deleted);
+    } else if (changedId) {
+      const item = next.find(function(i){return i.id===changedId;});
+      if (item) fbSet(invCol(), item.id, item);
+    }
   };
   const update = function(id,patch){
     setInventory(function(prev){
       const next=prev.map(function(i){return i.id===id?sanitizeItem({...i,...patch}):i;});
-      saveInv(next); return next;
+      saveInv(next, id); return next;
     });
   };
-  const add    = function(){
+  const add = function(){
     const id=uid();
+    const newItem={id,size:'',qty:0,cost:0,notes:''};
     setInventory(function(prev){
-      const next=[{id,size:'',qty:0,cost:0,notes:''},...prev];
-      saveInv(next); return next;
+      const next=[newItem,...prev];
+      saveInv(next, id); return next;
     });
     setEditId(id);
   };
@@ -1498,14 +1517,14 @@ function Inventory(props) {
     if(!window.confirm('Remove?'))return;
     setInventory(function(prev){
       const next=prev.filter(function(i){return i.id!==id;});
-      saveInv(next); return next;
+      saveInv(next, null, id); return next;
     });
     setEditId(null);
   };
   const step = function(id,delta){
     setInventory(function(prev){
       const next=prev.map(function(i){return i.id===id?sanitizeItem({...i,qty:Math.max(0,(Number(i.qty)||0)+delta)}):i;});
-      saveInv(next); return next;
+      saveInv(next, id); return next;
     });
   };
   const totalQty  = inventory.reduce(function(s,i){return s+Number(i.qty||0);},0);
@@ -1535,23 +1554,33 @@ function Inventory(props) {
         <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder="🔍 Search tire size…" style={{flex:1,border:'1.5px solid #e3e3e3',borderRadius:12,padding:'11px 14px',fontSize:15,outline:'none',background:'#fff'}}/>
         <button className="btn primary" style={{flexShrink:0,padding:'11px 16px',fontSize:13}} onClick={add}>+ Add</button>
       </div>
-      {!search && bestSellers.length > 0 && (
-        <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:10,alignItems:'center'}}>
-          <span style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.7px',color:'#999'}}>🔥 Best Sellers</span>
-          {bestSellers.map(function(sz) {
-            const inStock = inventory.find(function(i){return i.size===sz;});
-            const qty     = inStock ? Number(inStock.qty||0) : 0;
-            return (
-              <span key={sz} style={{
-                background: qty===0?'#fee2e2':qty<=2?'#ffedd5':'#dcfce7',
-                color:      qty===0?'#b91c1c':qty<=2?'#c2410c':'#166534',
-                border:     '1.5px solid '+(qty===0?'#fca5a5':qty<=2?'#fed7aa':'#86efac'),
-                borderRadius:999,padding:'4px 12px',fontSize:12,fontWeight:700,
-              }}>
-                {sz} {qty===0?'— OUT':qty<=LOW_STOCK?'— '+qty+' left':'× '+qty}
-              </span>
-            );
-          })}
+      {!search && top5.length > 0 && (
+        <div>
+          <div className="section-label" style={{marginTop:0,marginBottom:8}}>🔥 Top 5 Best Sellers</div>
+          <div className="card" style={{marginBottom:12}}>
+            {top5.map(function(t, idx) {
+              const inStock = inventory.find(function(i){return i.size===t.size;});
+              const stockQty = inStock ? Number(inStock.qty||0) : 0;
+              const stockColor = stockQty===0?'#dc2626':stockQty<=2?'#ea580c':'#16a34a';
+              return (
+                <div key={t.size} className="card-row" style={{alignItems:'center'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,flex:1,minWidth:0}}>
+                    <div style={{width:22,height:22,borderRadius:6,background:'#111',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,flexShrink:0}}>{idx+1}</div>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:14}}>{t.size}</div>
+                      <div style={{fontSize:11,color:'#999',marginTop:1}}>{t.jobs+' job'+(t.jobs!==1?'s':'')+'  ·  '+t.qtySold+' tires sold'}</div>
+                    </div>
+                  </div>
+                  <div style={{textAlign:'right',flexShrink:0}}>
+                    <div style={{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:14,color:'#16a34a'}}>{money(t.profit)}</div>
+                    <div style={{fontSize:11,color:stockColor,marginTop:1,fontWeight:600}}>
+                      {stockQty===0?'OUT':stockQty<=2?stockQty+' left':stockQty+' in stock'}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
       {sorted.length===0 ? (
@@ -1740,32 +1769,66 @@ function App() {
         setSync('connected');
       });
       const u2 = fbListen(invCol(), function(docs) {
+        // ── Inventory source of truth: Firebase when signed in ──
         if (docs.length > 0) {
-          // Sanitize Firestore docs to plain objects
+          // 1. Sanitize each doc to plain primitives
           const clean = docs.map(function(d) {
             return {
               id:    String(d.id||''),
-              size:  String(d.size||''),
+              size:  (d.size||'').trim(),
               qty:   Math.max(0, Number(d.qty||0)),
               cost:  Number(d.cost||0),
               notes: String(d.notes||''),
             };
           });
-          // Deduplicate by ID (in case Firestore has stale duplicates)
-          const seen = new Set();
-          const deduped = clean.filter(function(d) {
-            if (seen.has(d.id)) return false;
-            seen.add(d.id); return true;
+          // 2. Deduplicate by normalized size (primary key for real inventory)
+          //    If multiple docs share a size, keep highest qty + merge cost
+          const bySize = {};
+          clean.forEach(function(d) {
+            const key = d.size.toLowerCase().replace(/\s/g,'');
+            if (!key) return; // skip blank-size junk rows
+            if (!bySize[key]) {
+              bySize[key] = {...d};
+            } else {
+              // Keep max qty, keep non-zero cost
+              bySize[key].qty  = Math.max(bySize[key].qty, d.qty);
+              if (!bySize[key].cost && d.cost) bySize[key].cost = d.cost;
+            }
           });
-          setInventory(deduped);
-          persist(KEYS.inventory, deduped);
+          const deduped = Object.values(bySize);
+          // 3. If the result matches DEFAULT_INVENTORY size list, trust it.
+          //    If wildly wrong (way too many or too few sizes), reset.
+          const totalQty = deduped.reduce(function(s,d){return s+d.qty;},0);
+          const needsReset = deduped.length > 60 || totalQty > 150;
+          if (needsReset) {
+            // Firebase has stale/doubled data — overwrite with correct list
+            // Delete all existing docs then write fresh
+            const fresh = DEFAULT_INVENTORY.map(function(i){
+              return {id:i.id,size:i.size,qty:i.qty,cost:i.cost,notes:i.notes};
+            });
+            // Batch delete old IDs then write fresh
+            if (_db) {
+              const batch = _db.batch();
+              docs.forEach(function(d){ batch.delete(invCol().doc(d.id)); });
+              fresh.forEach(function(i){ batch.set(invCol().doc(i.id), i); });
+              batch.commit().catch(function(e){ console.warn('inv reset:', e); });
+            }
+            setInventory(fresh);
+            persist(KEYS.inventory, fresh);
+          } else {
+            setInventory(deduped);
+            persist(KEYS.inventory, deduped);
+          }
         } else {
-          // Nothing in Firebase — load from localStorage or defaults
+          // Nothing in Firebase — push DEFAULT_INVENTORY once
           const local = load(KEYS.inventory, []);
-          const init  = local.length > 0 ? local : DEFAULT_INVENTORY;
-          setInventory(init);
-          persist(KEYS.inventory, init);
-          if (init.length > 0) fbSetAll(invCol(), init);
+          const init  = (local.length > 0 && local.length <= 60) ? local : DEFAULT_INVENTORY;
+          const fresh = init.map(function(i){
+            return {id:i.id||uid(),size:String(i.size||''),qty:Number(i.qty||0),cost:Number(i.cost||0),notes:String(i.notes||'')};
+          });
+          setInventory(fresh);
+          persist(KEYS.inventory, fresh);
+          fbSetAll(invCol(), fresh);
         }
       });
       const u3 = fbListen(expCol(), function(docs){setExpenses(docs);});
@@ -1805,7 +1868,6 @@ function App() {
     return function(){clearTimeout(t);};
   }, [settings,user]);
 
-  useEffect(function(){ if(user&&_db)fbSetAll(invCol(),inventory); }, [inventory,user]);
 
   const deleteJob = useCallback(function(id) {
     setJobs(function(prev){
