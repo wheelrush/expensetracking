@@ -338,10 +338,8 @@ function migrateOldJobs() {
 }
 
 function migrateOldInventory() {
-  // v3 key: fresh inventory list loaded — do not migrate old sizes
-  const cur = load(KEYS.inventory, []);
-  if (cur.length > 0) return cur; // already have v3 data
-  return []; // return empty so App uses DEFAULT_INVENTORY
+  // Firebase is source of truth when signed in — start empty
+  return [];
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -1489,13 +1487,18 @@ function Inventory(props) {
   };
   const saveInv = function(next, changedId, deleted) {
     persist(KEYS.inventory, next);
-    // Write only the changed document to Firebase (not the whole list)
     if (!_db) return;
     if (deleted) {
       fbDel(invCol(), deleted);
     } else if (changedId) {
-      const item = next.find(function(i){return i.id===changedId;});
-      if (item) fbSet(invCol(), item.id, item);
+      var item = next.find(function(i){return i.id===changedId;});
+      if (item) {
+        // Write explicit plain fields only — never spread Firestore objects
+        fbSet(invCol(), item.id, {
+          id:item.id, size:item.size, qty:item.qty,
+          cost:item.cost, notes:item.notes,
+        });
+      }
     }
   };
   const update = function(id,patch){
@@ -1741,7 +1744,7 @@ function App() {
   const [tab,setTab]             = useState('dashboard');
   const [jobs,setJobs]           = useState(function(){return migrateOldJobs();});
   const [settings,setSettings]   = useState(function(){return {...DEFAULT_SETTINGS,...load(KEYS.settings,{})};});
-  const [inventory,setInventory] = useState(function(){const m=migrateOldInventory();return (m&&m.length>0)?m:DEFAULT_INVENTORY;});
+  const [inventory,setInventory] = useState([]);  // Firebase listener populates this
   const [expenses,setExpenses]   = useState(function(){return load(KEYS.expenses,[]);});
   const [prefill,setPrefill]     = useState(null);
   const [editJob,setEditJob]     = useState(null);
@@ -1769,66 +1772,76 @@ function App() {
         setSync('connected');
       });
       const u2 = fbListen(invCol(), function(docs) {
-        // ── Inventory source of truth: Firebase when signed in ──
-        if (docs.length > 0) {
-          // 1. Sanitize each doc to plain primitives
-          const clean = docs.map(function(d) {
-            return {
-              id:    String(d.id||''),
-              size:  (d.size||'').trim(),
-              qty:   Math.max(0, Number(d.qty||0)),
-              cost:  Number(d.cost||0),
-              notes: String(d.notes||''),
-            };
+        // Sanitize: plain primitives only, skip blank-size junk
+        var clean = docs.map(function(d) {
+          return {
+            id:    String(d.id||''),
+            size:  (d.size||'').trim(),
+            qty:   Math.max(0, Number(d.qty||0)),
+            cost:  Number(d.cost||0),
+            notes: String(d.notes||''),
+          };
+        }).filter(function(d){ return d.size !== ''; });
+
+        if (clean.length === 0) {
+          // Nothing valid — seed Firebase with DEFAULT_INVENTORY
+          var fresh = DEFAULT_INVENTORY.map(function(i){
+            return {id:i.id,size:i.size,qty:i.qty,cost:i.cost,notes:i.notes};
           });
-          // 2. Deduplicate by normalized size (primary key for real inventory)
-          //    If multiple docs share a size, keep highest qty + merge cost
-          const bySize = {};
-          clean.forEach(function(d) {
-            const key = d.size.toLowerCase().replace(/\s/g,'');
-            if (!key) return; // skip blank-size junk rows
-            if (!bySize[key]) {
-              bySize[key] = {...d};
-            } else {
-              // Keep max qty, keep non-zero cost
-              bySize[key].qty  = Math.max(bySize[key].qty, d.qty);
-              if (!bySize[key].cost && d.cost) bySize[key].cost = d.cost;
-            }
-          });
-          const deduped = Object.values(bySize);
-          // 3. If the result matches DEFAULT_INVENTORY size list, trust it.
-          //    If wildly wrong (way too many or too few sizes), reset.
-          const totalQty = deduped.reduce(function(s,d){return s+d.qty;},0);
-          const needsReset = deduped.length > 60 || totalQty > 150;
-          if (needsReset) {
-            // Firebase has stale/doubled data — overwrite with correct list
-            // Delete all existing docs then write fresh
-            const fresh = DEFAULT_INVENTORY.map(function(i){
-              return {id:i.id,size:i.size,qty:i.qty,cost:i.cost,notes:i.notes};
-            });
-            // Batch delete old IDs then write fresh
-            if (_db) {
-              const batch = _db.batch();
-              docs.forEach(function(d){ batch.delete(invCol().doc(d.id)); });
-              fresh.forEach(function(i){ batch.set(invCol().doc(i.id), i); });
-              batch.commit().catch(function(e){ console.warn('inv reset:', e); });
-            }
-            setInventory(fresh);
-            persist(KEYS.inventory, fresh);
-          } else {
-            setInventory(deduped);
-            persist(KEYS.inventory, deduped);
+          if (_db) {
+            var b0 = _db.batch();
+            docs.forEach(function(d){ b0.delete(invCol().doc(d.id)); });
+            fresh.forEach(function(i){ b0.set(invCol().doc(i.id), i); });
+            b0.commit().catch(function(e){ console.warn('inv seed:', e); });
           }
-        } else {
-          // Nothing in Firebase — push DEFAULT_INVENTORY once
-          const local = load(KEYS.inventory, []);
-          const init  = (local.length > 0 && local.length <= 60) ? local : DEFAULT_INVENTORY;
-          const fresh = init.map(function(i){
-            return {id:i.id||uid(),size:String(i.size||''),qty:Number(i.qty||0),cost:Number(i.cost||0),notes:String(i.notes||'')};
-          });
           setInventory(fresh);
           persist(KEYS.inventory, fresh);
-          fbSetAll(invCol(), fresh);
+          return;
+        }
+
+        // Deduplicate by canonical size key
+        // Prefer docs with canonical IDs (inv001..inv052), keep highest qty
+        var canonical = {};
+        clean.forEach(function(d) {
+          var key = d.size.toLowerCase().replace(/\s+/g, '');
+          if (!canonical[key]) {
+            canonical[key] = {id:d.id, size:d.size, qty:d.qty, cost:d.cost, notes:d.notes};
+          } else {
+            var ex = canonical[key];
+            var dCan = /^inv\d+$/.test(d.id);
+            var eCan = /^inv\d+$/.test(ex.id);
+            if (dCan && !eCan) {
+              canonical[key] = {id:d.id, size:d.size, qty:Math.max(d.qty, ex.qty), cost:d.cost||ex.cost, notes:d.notes||ex.notes};
+            } else {
+              canonical[key].qty  = Math.max(ex.qty, d.qty);
+              if (!canonical[key].cost && d.cost) canonical[key].cost = d.cost;
+            }
+          }
+        });
+        var deduped = Object.values(canonical);
+
+        // Detect problems: raw doc count > unique sizes = duplicates in Firestore
+        var hasDuplicates = clean.length > deduped.length;
+        var totalQty = deduped.reduce(function(s,d){ return s+d.qty; }, 0);
+        var qtyInflated = totalQty > 150;
+
+        if (hasDuplicates || qtyInflated) {
+          // Clean Firestore: delete all, write only the correct set
+          var toWrite = qtyInflated
+            ? DEFAULT_INVENTORY.map(function(i){ return {id:i.id,size:i.size,qty:i.qty,cost:i.cost,notes:i.notes}; })
+            : deduped;
+          if (_db) {
+            var b1 = _db.batch();
+            docs.forEach(function(d){ b1.delete(invCol().doc(d.id)); });
+            toWrite.forEach(function(i){ b1.set(invCol().doc(i.id), i); });
+            b1.commit().catch(function(e){ console.warn('inv cleanup:', e); });
+          }
+          setInventory(toWrite);
+          persist(KEYS.inventory, toWrite);
+        } else {
+          // Data is clean
+          setInventory(deduped);
+          persist(KEYS.inventory, deduped);
         }
       });
       const u3 = fbListen(expCol(), function(docs){setExpenses(docs);});
@@ -1881,13 +1894,29 @@ function App() {
   }, [user]);
 
   const saveJob = useCallback(async function(job, andAdd) {
-    const isRepl = /replacement|installation/i.test(job.service||'');
+    var isRepl = /replacement|installation/i.test(job.service||'');
     if (isRepl && job.tireSize) {
-      setInventory(function(prev){return prev.map(function(item){
-        if (item.size.toLowerCase()===job.tireSize.toLowerCase()&&Number(item.qty||0)>0)
-          return {...item,qty:Math.max(0,Number(item.qty||0)-Number(job.qty||1))};
-        return item;
-      });});
+      setInventory(function(prev){
+        var next = prev.map(function(item){
+          if (item.size.toLowerCase()===job.tireSize.toLowerCase()&&Number(item.qty||0)>0)
+            return {...item, qty:Math.max(0,Number(item.qty||0)-Number(job.qty||1))};
+          return item;
+        });
+        persist(KEYS.inventory, next);
+        // Write the decremented item back to Firebase immediately
+        if (user && _db) {
+          var changed = next.find(function(i){
+            return i.size.toLowerCase()===job.tireSize.toLowerCase();
+          });
+          if (changed) {
+            fbSet(invCol(), changed.id, {
+              id:changed.id, size:changed.size, qty:changed.qty,
+              cost:changed.cost, notes:changed.notes,
+            });
+          }
+        }
+        return next;
+      });
     }
     // Sanitize: only write known primitive fields to Firestore
     const entry = {
@@ -1962,7 +1991,16 @@ function App() {
       {tab==='payouts'   && <Payouts jobs={jobs} settings={settings}/>}
       {tab==='expenses'  && <Expenses expenses={expenses} setExpenses={function(e){setExpenses(e);if(user)e.forEach(function(x){fbSet(expCol(),x.id,{id:String(x.id||''),date:String(x.date||''),category:String(x.category||''),amount:Number(x.amount||0),note:String(x.note||'')});});}}/>}
       {tab==='inventory' && <Inventory inventory={inventory} setInventory={setInventory} jobs={jobs}/>}
-      {tab==='settings'  && <Settings settings={settings} setSettings={setSettings} jobs={jobs} setJobs={setJobs} inventory={inventory} expenses={expenses} setInventory={setInventory} onResetInventory={function(fresh){if(user)fbSetAll(invCol(),fresh);}}/>}
+      {tab==='settings'  && <Settings settings={settings} setSettings={setSettings} jobs={jobs} setJobs={setJobs} inventory={inventory} expenses={expenses} setInventory={setInventory} onResetInventory={function(fresh){
+          if(user&&_db){
+            invCol().get().then(function(snap){
+              var b=_db.batch();
+              snap.docs.forEach(function(d){b.delete(d.ref);});
+              fresh.forEach(function(i){b.set(invCol().doc(i.id),i);});
+              return b.commit();
+            }).catch(function(e){console.warn('reset:',e);});
+          }
+        }}/>}
       <nav className="bottom-nav">
         {NAV.map(function(item){
           return <button key={item.id} className={'nav-btn'+(tab===item.id?' active':'')} onClick={function(){setTab(item.id);}}><span className="ico">{item.ico}</span>{item.label}</button>;
