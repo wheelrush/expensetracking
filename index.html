@@ -1504,15 +1504,24 @@ function Inventory(props) {
   const update = function(id,patch){
     setInventory(function(prev){
       const next=prev.map(function(i){return i.id===id?sanitizeItem({...i,...patch}):i;});
-      saveInv(next, id); return next;
+      // Only write to Firebase if item now has a non-blank size
+      const item = next.find(function(i){return i.id===id;});
+      if (item && item.size.trim() !== '') {
+        saveInv(next, id);
+      } else {
+        persist(KEYS.inventory, next); // save locally only
+      }
+      return next;
     });
   };
   const add = function(){
     const id=uid();
-    const newItem={id,size:'',qty:0,cost:0,notes:''};
+    const newItem={id:id,size:'',qty:0,cost:0,notes:''};
+    // Add to local state only — don't write to Firebase until user enters a size
     setInventory(function(prev){
       const next=[newItem,...prev];
-      saveInv(next, id); return next;
+      persist(KEYS.inventory, next); // persist locally but skip Firebase
+      return next;
     });
     setEditId(id);
   };
@@ -1836,12 +1845,29 @@ function App() {
             toWrite.forEach(function(i){ b1.set(invCol().doc(i.id), i); });
             b1.commit().catch(function(e){ console.warn('inv cleanup:', e); });
           }
-          setInventory(toWrite);
-          persist(KEYS.inventory, toWrite);
+          // Preserve pending local-only rows during cleanup
+          var pendingLocal = load(KEYS.inventory, []).filter(function(l){
+            return !l.size || l.size === '';
+          });
+          var cleanMerge = pendingLocal.length > 0
+            ? pendingLocal.concat(toWrite.filter(function(d){
+                return !pendingLocal.find(function(l){return l.id===d.id;});
+              }))
+            : toWrite;
+          setInventory(cleanMerge);
+          persist(KEYS.inventory, cleanMerge);
         } else {
-          // Data is clean
-          setInventory(deduped);
-          persist(KEYS.inventory, deduped);
+          // Data is clean — but merge any pending local-only rows (blank size, not in Firebase)
+          var localOnly = load(KEYS.inventory, []).filter(function(l){
+            return l.size === '' || l.size === null || l.size === undefined;
+          });
+          var merged = localOnly.length > 0
+            ? localOnly.concat(deduped.filter(function(d){
+                return !localOnly.find(function(l){return l.id===d.id;});
+              }))
+            : deduped;
+          setInventory(merged);
+          persist(KEYS.inventory, merged);
         }
       });
       const u3 = fbListen(expCol(), function(docs){setExpenses(docs);});
