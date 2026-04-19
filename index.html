@@ -1363,100 +1363,204 @@ function Payouts({jobs,settings}) {
 function Inventory({inventory,setInventory,jobs}) {
   const inv=Array.isArray(inventory)?inventory:[];
   const jobsArr=Array.isArray(jobs)?jobs:[];
-  const [search,setSearch]=useState("");
+  const [search,setSearch]=useState('');
   const [editId,setEditId]=useState(null);
+  // pendingRef holds new blank rows that haven't been saved to Firebase yet
+  // This prevents the Firebase listener from wiping them
+  const pendingRef=useRef([]);
 
   // Top 5 from job history
   const top5=useMemo(()=>{
     const stats={};
-    jobsArr.forEach(j=>{ const s=(j.tireSize||"").trim(); if(!s) return; if(!stats[s]) stats[s]={size:s,jobs:0,qtySold:0,profit:0}; stats[s].jobs+=1; stats[s].qtySold+=Number(j.qty||1); stats[s].profit+=jobGrossProfit(j,{costPerMile:0.65}); });
+    jobsArr.forEach(j=>{ const s=(j.tireSize||'').trim(); if(!s) return; if(!stats[s]) stats[s]={size:s,jobs:0,qtySold:0,profit:0}; stats[s].jobs+=1; stats[s].qtySold+=Number(j.qty||1); stats[s].profit+=jobGrossProfit(j,{costPerMile:0.65}); });
     return Object.values(stats).sort((a,b)=>b.jobs!==a.jobs?b.jobs-a.jobs:b.profit-a.profit).slice(0,5);
   },[jobsArr]);
   const bestSellers=top5.map(t=>t.size);
 
-  const sanitize=i=>sanitizeInvItem(i);
-  const saveInv=(next,changedId,deleted)=>{
-    persist(KEYS.inventory,next);
-    if(!_db) return;
-    if(deleted) fbDel(invCol(),deleted);
-    else if(changedId){ const item=next.find(i=>i.id===changedId); if(item) fbSet(invCol(),item.id,{id:item.id,size:item.size,qty:item.qty,cost:item.cost,notes:item.notes}); }
-  };
-  const update=(id,patch)=>setInventory(prev=>{ const next=prev.map(i=>i.id===id?sanitize({...i,...patch}):i); const item=next.find(i=>i.id===id); if(item&&item.size.trim()) saveInv(next,id); else persist(KEYS.inventory,next); return next; });
-  const add=()=>{ const id=uid(); setInventory(prev=>{ const next=[{id,size:"",qty:0,cost:0,notes:""},...prev]; persist(KEYS.inventory,next); return next; }); setEditId(id); };
-  const remove=id=>{ if(!window.confirm("Remove?"))return; setInventory(prev=>{ const next=prev.filter(i=>i.id!==id); saveInv(next,null,id); return next; }); setEditId(null); };
-  const step=(id,delta)=>setInventory(prev=>{ const next=prev.map(i=>i.id===id?sanitize({...i,qty:Math.max(0,(Number(i.qty)||0)+delta)}):i); saveInv(next,id); return next; });
+  const sanitize=i=>({
+    id:     String(i.id||uid()),
+    size:   String(i.size||''),
+    qty:    Math.max(0,Number(i.qty||0)),
+    cost:   Number(i.cost||0),
+    notes:  String(i.notes||''),
+  });
 
-  // Use deduped for display totals but show all for editing
-  const deduped=useMemo(()=>dedupeInventory(inv),[inv]);
+  // Write one doc to Firebase (only when size is non-blank)
+  const fbWrite=(item)=>{
+    if(!_db||!item.size.trim()) return;
+    fbSet(invCol(),item.id,{id:item.id,size:item.size,qty:item.qty,cost:item.cost,notes:item.notes});
+  };
+
+  const saveLocal=(next)=>{ persist(KEYS.inventory,next); };
+
+  const saveInv=(next,changedId,deleted)=>{
+    saveLocal(next);
+    if(!_db) return;
+    if(deleted){
+      fbDel(invCol(),deleted);
+      // Also remove from pendingRef if it was there
+      pendingRef.current=pendingRef.current.filter(r=>r.id!==deleted);
+    } else if(changedId){
+      const item=next.find(i=>i.id===changedId);
+      if(item&&item.size.trim()){
+        fbWrite(item);
+        // Move out of pendingRef once it has a size
+        pendingRef.current=pendingRef.current.filter(r=>r.id!==changedId);
+      }
+    }
+  };
+
+  const update=(id,patch)=>{
+    setInventory(prev=>{
+      const next=prev.map(i=>i.id===id?sanitize({...i,...patch}):i);
+      const item=next.find(i=>i.id===id);
+      saveInv(next,id);
+      // If item now has a size, remove from pendingRef
+      if(item&&item.size.trim()){
+        pendingRef.current=pendingRef.current.filter(r=>r.id!==id);
+      } else {
+        // Update pendingRef copy too
+        pendingRef.current=pendingRef.current.map(r=>r.id===id?{...r,...patch}:r);
+      }
+      return next;
+    });
+  };
+
+  const add=()=>{
+    const id=uid();
+    const newItem={id,size:'',qty:0,cost:0,notes:''};
+    // Track in pendingRef so Firebase listener can't wipe it
+    pendingRef.current=[newItem,...pendingRef.current];
+    setInventory(prev=>{
+      const next=[newItem,...prev];
+      saveLocal(next);
+      return next;
+    });
+    setEditId(id);
+  };
+
+  const remove=id=>{
+    if(!window.confirm('Remove?'))return;
+    pendingRef.current=pendingRef.current.filter(r=>r.id!==id);
+    setInventory(prev=>{
+      const next=prev.filter(i=>i.id!==id);
+      saveInv(next,null,id);
+      return next;
+    });
+    setEditId(null);
+  };
+
+  const step=(id,delta)=>{
+    setInventory(prev=>{
+      const next=prev.map(i=>i.id===id?sanitize({...i,qty:Math.max(0,(Number(i.qty)||0)+delta)}):i);
+      saveInv(next,id);
+      return next;
+    });
+  };
+
+  // Deduped stats (for KPIs only — list shows all including pending blanks)
+  const deduped=useMemo(()=>dedupeInventory(inv.filter(i=>i.size.trim())),[inv]);
   const totalQty=deduped.reduce((s,i)=>s+Number(i.qty||0),0);
   const totalValue=deduped.reduce((s,i)=>s+Number(i.qty||0)*Number(i.cost||0),0);
   const lowStock=deduped.filter(i=>Number(i.qty||0)>0&&Number(i.qty||0)<=LOW_STOCK);
   const outOfStock=deduped.filter(i=>Number(i.qty||0)===0);
 
-  const filtered=search.trim()?inv.filter(i=>(i.size||"").toLowerCase().includes(search.toLowerCase())):inv;
+  const filtered=search.trim()?inv.filter(i=>(i.size||'').toLowerCase().includes(search.toLowerCase())):inv;
   const sorted=[...filtered].sort((a,b)=>{
-    const aBlank=!(a.size||"").trim(), bBlank=!(b.size||"").trim();
+    // Blank (new/pending) rows always float to top
+    const aBlank=!(a.size||'').trim(), bBlank=!(b.size||'').trim();
     if(aBlank&&!bBlank) return -1; if(!aBlank&&bBlank) return 1;
-    const aBest=bestSellers.indexOf(a.size||""), bBest=bestSellers.indexOf(b.size||"");
+    const aBest=bestSellers.indexOf(a.size||''), bBest=bestSellers.indexOf(b.size||'');
     if(aBest!==-1&&bBest===-1) return -1; if(aBest===-1&&bBest!==-1) return 1;
     if(aBest!==-1&&bBest!==-1) return aBest-bBest;
-    return (a.size||"").localeCompare(b.size||"");
+    return (a.size||'').localeCompare(b.size||'');
   });
 
   return html`<div class="screen"><div class="page">
     <div class="kpi-grid three" style=${{marginBottom:10}}>
       <div class="kpi"><div class="kpi-label">Total Tires</div><div class="kpi-value">${totalQty}</div><div class="kpi-sub">${deduped.length} sizes</div></div>
       <div class="kpi"><div class="kpi-label">Stock Value</div><div class="kpi-value">${money(totalValue)}</div><div class="kpi-sub">at cost</div></div>
-      <div class="kpi"><div class="kpi-label">Low Stock</div><div class=${"kpi-value "+(lowStock.length+outOfStock.length>0?"red":"green")}>${lowStock.length+outOfStock.length}</div><div class="kpi-sub">need reorder</div></div>
+      <div class="kpi"><div class="kpi-label">Low Stock</div><div class=${'kpi-value '+(lowStock.length+outOfStock.length>0?'red':'green')}>${lowStock.length+outOfStock.length}</div><div class="kpi-sub">need reorder</div></div>
     </div>
-    ${outOfStock.length>0&&html`<div style=${{background:"#fee2e2",border:"1px solid #fca5a5",borderRadius:10,padding:"10px 14px",marginBottom:8}}><div style=${{fontWeight:700,fontSize:12,color:"#b91c1c",marginBottom:4}}>🚫 Out of Stock (${outOfStock.length})</div><div style=${{fontSize:12,color:"#b91c1c",lineHeight:1.8}}>${outOfStock.map(i=>i.size||"Unnamed").join(" · ")}</div></div>`}
-    ${lowStock.length>0&&html`<div style=${{background:"#fff8f8",border:"1px solid #fca5a5",borderRadius:10,padding:"10px 14px",marginBottom:8}}><div style=${{fontWeight:700,fontSize:12,color:"#b91c1c",marginBottom:4}}>⚠️ Low Stock (${lowStock.length})</div><div style=${{fontSize:12,color:"#b91c1c",lineHeight:1.8}}>${lowStock.map(i=>i.size+" — "+i.qty).join(" · ")}</div></div>`}
+    ${outOfStock.length>0&&html`<div style=${{background:'#fee2e2',border:'1px solid #fca5a5',borderRadius:14,padding:'10px 14px',marginBottom:8}}><div style=${{fontWeight:700,fontSize:12,color:'#b91c1c',marginBottom:4}}>🚫 Out of Stock (${outOfStock.length})</div><div style=${{fontSize:12,color:'#b91c1c',lineHeight:1.8}}>${outOfStock.map(i=>i.size||'Unnamed').join(' · ')}</div></div>`}
+    ${lowStock.length>0&&html`<div style=${{background:'#fff8f8',border:'1px solid #fca5a5',borderRadius:14,padding:'10px 14px',marginBottom:8}}><div style=${{fontWeight:700,fontSize:12,color:'#b91c1c',marginBottom:4}}>⚠️ Low Stock (${lowStock.length})</div><div style=${{fontSize:12,color:'#b91c1c',lineHeight:1.8}}>${lowStock.map(i=>i.size+' — '+i.qty).join(' · ')}</div></div>`}
     ${!search&&top5.length>0&&html`<div>
-      <div class="section-label" style=${{marginTop:0,marginBottom:8}}>🔥 Top 5 Best Sellers</div>
+      <div class="section-label">🔥 Top 5 Best Sellers</div>
       <div class="card" style=${{marginBottom:12}}>
-        ${top5.map((t,idx)=>{ const inStock=inv.find(i=>i.size===t.size); const sq=inStock?Number(inStock.qty||0):0; const sc=sq===0?"#dc2626":sq<=2?"#ea580c":"#16a34a"; return html`<div key=${t.size} class="card-row" style=${{alignItems:"center"}}>
-          <div style=${{display:"flex",alignItems:"center",gap:8,flex:1,minWidth:0}}>
-            <div style=${{width:22,height:22,borderRadius:6,background:"#111",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}}>${idx+1}</div>
-            <div style=${{minWidth:0}}><div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:14}}>${t.size}</div><div style=${{fontSize:11,color:"#999",marginTop:1}}>${t.jobs} job${t.jobs!==1?"s":""} · ${t.qtySold} sold</div></div>
+        ${top5.map((t,idx)=>{ const inStock=inv.find(i=>i.size===t.size); const sq=inStock?Number(inStock.qty||0):0; const sc=sq===0?'#dc2626':sq<=2?'#ea580c':'#15803d'; return html`<div key=${t.size} class="card-row" style=${{padding:'12px 18px',alignItems:'center'}}>
+          <div style=${{display:'flex',alignItems:'center',gap:10,flex:1,minWidth:0}}>
+            <div style=${{width:24,height:24,borderRadius:7,background:'#111',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,flexShrink:0}}>${idx+1}</div>
+            <div style=${{minWidth:0}}>
+              <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:14,color:'#111'}}>${t.size}</div>
+              <div style=${{fontSize:11,color:'#bbb',marginTop:1}}>${t.jobs} job${t.jobs!==1?'s':''} · ${t.qtySold} sold</div>
+            </div>
           </div>
-          <div style=${{textAlign:"right",flexShrink:0}}><div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:14,color:"#16a34a"}}>${money(t.profit)}</div><div style=${{fontSize:11,color:sc,marginTop:1,fontWeight:600}}>${sq===0?"OUT":sq<=2?sq+" left":sq+" in stock"}</div></div>
+          <div style=${{textAlign:'right',flexShrink:0}}>
+            <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:14,color:'#15803d'}}>${money(t.profit)}</div>
+            <div style=${{fontSize:11,color:sc,marginTop:1,fontWeight:700}}>${sq===0?'OUT':sq<=LOW_STOCK?sq+' left':sq+' in stock'}</div>
+          </div>
         </div>`; })}
       </div>
     </div>`}
-    <div style=${{display:"flex",gap:8,marginBottom:12}}>
-      <input value=${search} onChange=${e=>setSearch(e.target.value)} placeholder="🔍 Search tire size…" style=${{flex:1,border:"1.5px solid #e3e3e3",borderRadius:12,padding:"11px 14px",fontSize:15,outline:"none",background:"#fff"}}/>
-      <button class="btn primary" style=${{flexShrink:0,padding:"11px 16px",fontSize:13}} onClick=${add}>+ Add</button>
+    <div style=${{display:'flex',gap:8,marginBottom:12}}>
+      <input value=${search} onChange=${e=>setSearch(e.target.value)} placeholder="🔍 Search tire size…" style=${{flex:1,border:'1.5px solid #e3e3e3',borderRadius:12,padding:'11px 14px',fontSize:15,outline:'none',background:'#fff'}}/>
+      <button class="btn primary" style=${{flexShrink:0,padding:'11px 18px',fontSize:14,borderRadius:12}} onClick=${add}>+ Add</button>
     </div>
-    ${sorted.length===0?html`<${EmptyState} icon="🛞" title="No inventory" sub="Tap + Add to add a tire size."/>`:html`<div class="card">
-      ${sorted.map((item,idx)=>{ const isEditing=editId===item.id, qty=Number(item.qty||0), isLow=qty>0&&qty<=LOW_STOCK, isOut=qty===0; return html`<div key=${item.id} style=${{borderBottom:idx<sorted.length-1?"1px solid #f2f2f2":"none",background:isEditing&&!item.size?"#fffbeb":""}}>
-        <div style=${{display:"flex",alignItems:"center",padding:"11px 14px",gap:10,cursor:"pointer"}} onClick=${()=>setEditId(isEditing?null:item.id)}>
-          <div style=${{flex:1,minWidth:0}}>
-            <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:15,color:item.size?"#111":"#f07800"}}>${item.size||html`<span style=${{fontSize:13}}>↑ Tap to enter size</span>`}</div>
-            ${item.cost>0&&html`<div style=${{fontSize:11,color:"#aaa",marginTop:1}}>Cost: ${money(item.cost)} · Value: ${money(qty*item.cost)}</div>`}
-          </div>
-          ${bestSellers.includes(item.size||"")&&html`<span style=${{fontSize:10,fontWeight:700,background:"#fef9c3",color:"#854d0e",borderRadius:6,padding:"2px 7px",flexShrink:0}}>🔥 Best</span>`}
-          ${isOut&&html`<span style=${{fontSize:10,fontWeight:700,background:"#fee2e2",color:"#b91c1c",borderRadius:6,padding:"2px 7px"}}>OUT</span>`}
-          ${isLow&&!isOut&&html`<span style=${{fontSize:10,fontWeight:700,background:"#ffedd5",color:"#c2410c",borderRadius:6,padding:"2px 7px"}}>LOW</span>`}
-          <div style=${{display:"flex",alignItems:"center",border:"1.5px solid #e3e3e3",borderRadius:10,overflow:"hidden",flexShrink:0}} onClick=${e=>e.stopPropagation()}>
-            <button onClick=${()=>step(item.id,-1)} style=${{background:"#f4f4f4",border:"none",width:34,height:34,fontSize:18,fontWeight:700,color:"#555"}}>−</button>
-            <div style=${{width:42,textAlign:"center",fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:15,color:isOut?"#dc2626":isLow?"#ea580c":"#111"}}>${qty}</div>
-            <button onClick=${()=>step(item.id,1)} style=${{background:"#f4f4f4",border:"none",width:34,height:34,fontSize:18,fontWeight:700,color:"#555"}}>+</button>
-          </div>
-          <div style=${{color:"#ccc",fontSize:12}}>${isEditing?"▲":"▼"}</div>
-        </div>
-        ${isEditing&&html`<div style=${{padding:"0 14px 14px",display:"grid",gridTemplateColumns:"1fr 1fr auto",gap:8,alignItems:"center",background:"#fafafa"}}>
-          <input autoFocus=${!item.size} value=${item.size} onChange=${e=>update(item.id,{size:e.target.value})} placeholder="e.g. 225/55R17" style=${{border:"1.5px solid "+(item.size?"#ddd":"#f07800"),borderRadius:9,padding:"9px 12px",fontSize:15,fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,outline:"none",width:"100%"}}/>
-          <input value=${item.cost||""} type="number" min="0" onChange=${e=>update(item.id,{cost:Number(e.target.value||0)})} placeholder="Cost $" style=${{border:"1.5px solid #ddd",borderRadius:9,padding:"9px 12px",fontSize:14,outline:"none",width:"100%"}}/>
-          <button class="btn danger sm" onClick=${()=>remove(item.id)}>Remove</button>
-          <input value=${item.notes} onChange=${e=>update(item.id,{notes:e.target.value})} placeholder="Notes" style=${{border:"1.5px solid #ddd",borderRadius:9,padding:"9px 12px",fontSize:14,outline:"none",width:"100%",gridColumn:"1/3"}}/>
-          <button class="btn secondary sm" onClick=${()=>setEditId(null)}>Done</button>
-        </div>`}
-      </div>`; })}
-    </div>`}
+    ${sorted.length===0
+      ? html`<${EmptyState} icon="🛞" title="No inventory" sub="Tap + Add to add a tire size."/>`
+      : html`<div class="card">
+        ${sorted.map((item,idx)=>{
+          const isEditing=editId===item.id;
+          const qty=Number(item.qty||0);
+          const isLow=qty>0&&qty<=LOW_STOCK, isOut=qty===0;
+          const isPending=!(item.size||'').trim();
+          return html`<div key=${item.id} style=${{borderBottom:idx<sorted.length-1?'1px solid #f2f2f2':'none',background:isPending?'#fffbf0':''}}>
+            <div style=${{display:'flex',alignItems:'center',padding:'12px 16px',gap:10,cursor:'pointer'}} onClick=${()=>setEditId(isEditing?null:item.id)}>
+              <div style=${{flex:1,minWidth:0}}>
+                <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15,color:isPending?'#b45309':'#111'}}>
+                  ${isPending?html`<span style=${{fontSize:13,fontWeight:600}}>↑ Enter tire size below</span>`:item.size}
+                </div>
+                ${item.cost>0&&html`<div style=${{fontSize:11,color:'#bbb',marginTop:1}}>Cost: ${money(item.cost)} · Value: ${money(qty*item.cost)}</div>`}
+              </div>
+              ${bestSellers.includes(item.size||'')&&html`<span style=${{fontSize:10,fontWeight:700,background:'#fef9c3',color:'#854d0e',borderRadius:6,padding:'2px 7px',flexShrink:0}}>🔥</span>`}
+              ${isOut&&!isPending&&html`<span style=${{fontSize:10,fontWeight:700,background:'#fee2e2',color:'#b91c1c',borderRadius:6,padding:'2px 7px'}}>OUT</span>`}
+              ${isLow&&!isOut&&html`<span style=${{fontSize:10,fontWeight:700,background:'#ffedd5',color:'#c2410c',borderRadius:6,padding:'2px 7px'}}>LOW</span>`}
+              <div style=${{display:'flex',alignItems:'center',border:'1.5px solid #e3e3e3',borderRadius:10,overflow:'hidden',flexShrink:0}} onClick=${e=>e.stopPropagation()}>
+                <button onClick=${()=>step(item.id,-1)} style=${{background:'#f5f5f7',border:'none',width:34,height:34,fontSize:20,fontWeight:700,color:'#555',lineHeight:1}}>−</button>
+                <div style=${{width:40,textAlign:'center',fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15,color:isOut?'#dc2626':isLow?'#ea580c':'#111'}}>${qty}</div>
+                <button onClick=${()=>step(item.id,1)} style=${{background:'#f5f5f7',border:'none',width:34,height:34,fontSize:20,fontWeight:700,color:'#555',lineHeight:1}}>+</button>
+              </div>
+              <div style=${{color:'#ccc',fontSize:12,width:14,textAlign:'center'}}>${isEditing?'▲':'▼'}</div>
+            </div>
+            ${isEditing&&html`<div style=${{padding:'0 16px 14px',display:'grid',gridTemplateColumns:'1fr 1fr auto',gap:8,alignItems:'end',background:'#fafafa',borderTop:'1px solid #f2f2f2'}}>
+              <div>
+                <div style=${{fontSize:9,fontWeight:800,textTransform:'uppercase',letterSpacing:'.8px',color:'#bbb',marginBottom:6}}>Tire Size</div>
+                <input
+                  autoFocus=${isPending}
+                  value=${item.size}
+                  onChange=${e=>update(item.id,{size:e.target.value})}
+                  placeholder="e.g. 225/55R17"
+                  style=${{border:'1.5px solid '+(isPending?'#f0b429':'#e3e3e3'),borderRadius:10,padding:'10px 12px',fontSize:15,fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,outline:'none',width:'100%',background:isPending?'#fffbf0':'#fff'}}
+                />
+              </div>
+              <div>
+                <div style=${{fontSize:9,fontWeight:800,textTransform:'uppercase',letterSpacing:'.8px',color:'#bbb',marginBottom:6}}>Cost ($)</div>
+                <input value=${item.cost||''} type="number" min="0" onChange=${e=>update(item.id,{cost:Number(e.target.value||0)})} placeholder="0.00" style=${{border:'1.5px solid #e3e3e3',borderRadius:10,padding:'10px 12px',fontSize:14,outline:'none',width:'100%',background:'#fff'}}/>
+              </div>
+              <button class="btn danger sm" style=${{alignSelf:'end',height:42}} onClick=${()=>remove(item.id)}>Remove</button>
+              <div style=${{gridColumn:'1/3'}}>
+                <div style=${{fontSize:9,fontWeight:800,textTransform:'uppercase',letterSpacing:'.8px',color:'#bbb',marginBottom:6}}>Notes</div>
+                <input value=${item.notes} onChange=${e=>update(item.id,{notes:e.target.value})} placeholder="Optional notes…" style=${{border:'1.5px solid #e3e3e3',borderRadius:10,padding:'10px 12px',fontSize:14,outline:'none',width:'100%',background:'#fff'}}/>
+              </div>
+              <button class="btn secondary sm" style=${{height:42}} onClick=${()=>setEditId(null)}>Done ✓</button>
+            </div>`}
+          </div>`;
+        })}
+      </div>`}
   </div></div>`;
 }
 
-// ── Settings ──────────────────────────────────────────────────────────────────
+
 function Settings({settings,setSettings,jobs,setJobs,inventory,setInventory,expenses,onResetInventory}) {
   const upd=(k,v)=>setSettings(p=>({...p,[k]:v}));
   const updExp=(id,patch)=>setSettings(p=>({...p,expenses:p.expenses.map(e=>e.id===id?{...e,...patch}:e)}));
