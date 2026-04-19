@@ -12,480 +12,445 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F6DE;</text></svg>">
 <style>
-    /* ═══════════════════════════════════════════════════════════
-       WHEEL RUSH — PREMIUM AUTOMOTIVE CONCIERGE
-       Design System v7
-       Palette: Obsidian / Chalk / Warm Ash / Champagne / Forest
-       ═══════════════════════════════════════════════════════════ */
+  /* ═══════════════════════════════════════════════════════════════════
+     WHEEL RUSH — PREMIUM OPERATOR DARK SYSTEM  v8
+     Palette: Obsidian  Slate  Ash  Chalk  Forest  Champagne
+     Feel: serious money tool, not dashboard software
+     ═══════════════════════════════════════════════════════════════════ */
 
-    /* ── Tokens ── */
-    :root {
-      --c-obsidian:   #0d0d0f;
-      --c-ink:        #1a1a1e;
-      --c-charcoal:   #2a2a30;
-      --c-smoke:      #4a4a52;
-      --c-ash:        #8c8c98;
-      --c-silver:     #c4c4cc;
-      --c-mist:       #e8e8ee;
-      --c-chalk:      #f4f4f8;
-      --c-white:      #ffffff;
-      --c-champagne:  #c8a96e;
-      --c-cream:      #f5f0e8;
-      --c-forest:     #15803d;
-      --c-leaf:       #dcfce7;
-      --c-ember:      #dc2626;
-      --c-amber:      #ea580c;
+  :root {
+    /* Surface hierarchy — dark layered system */
+    --bg:      #111113;   /* canvas                     */
+    --s1:      #18181c;   /* card level 1               */
+    --s2:      #1f1f24;   /* card level 2               */
+    --s3:      #28282f;   /* elevated / interactive     */
+    --border:  rgba(255,255,255,.07);
+    --border2: rgba(255,255,255,.04);
 
-      --r-card:       20px;
-      --r-btn:        12px;
-      --r-chip:       999px;
-      --r-input:      13px;
+    /* Text hierarchy */
+    --t1: #f4f4f6;        /* primary                    */
+    --t2: #9090a0;        /* secondary / labels         */
+    --t3: #50505c;        /* muted / disabled           */
 
-      --shadow-card:  0 1px 3px rgba(0,0,0,.05), 0 6px 24px rgba(0,0,0,.07);
-      --shadow-float: 0 8px 32px rgba(0,0,0,.14);
-      --shadow-nav:   0 -1px 0 rgba(0,0,0,.06), 0 -8px 32px rgba(0,0,0,.06);
-    }
+    /* Accent — used sparingly */
+    --gold:    #c0954a;   /* champagne — highlights only */
+    --gold-bg: rgba(192,149,74,.1);
 
-    /* ── Reset & base ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body, #root { height: 100%; font-family: "IBM Plex Sans", sans-serif; background: var(--c-chalk); overflow: hidden; color: var(--c-obsidian); }
-    input, select, textarea, button { font-family: "IBM Plex Sans", sans-serif; }
-    input, select, textarea { font-size: 16px !important; }
-    button { cursor: pointer; }
+    /* Semantic — profit only */
+    --green:   #22c55e;   /* positive money             */
+    --green-bg:rgba(34,197,94,.1);
+    --green-txt:#16a34a;
 
-    /* ── App shell ── */
-    .app { height: 100%; display: flex; flex-direction: column; }
-    .screen { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; background: var(--c-chalk); }
-    .page { padding: 22px 18px calc(120px + env(safe-area-inset-bottom)); }
+    /* Danger — critical only, not decorative */
+    --red:     #ef4444;
+    --red-bg:  rgba(239,68,68,.08);
 
-    /* ── Header ── */
-    .header-compact {
-      background: var(--c-obsidian);
-      color: var(--c-white);
-      padding: 13px 20px;
-      padding-top: calc(13px + env(safe-area-inset-top));
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; flex-shrink: 0;
-      border-bottom: 1px solid rgba(255,255,255,.04);
-    }
-    .header-compact h1 {
-      font-size: 16px; font-weight: 700; line-height: 1; letter-spacing: -.4px; color: var(--c-white);
-    }
-    .header-compact p { font-size: 10px; color: #48484f; margin-top: 2px; letter-spacing: .1px; }
+    /* Amber — secondary warning, low-key */
+    --amber:   #f59e0b;
+    --amber-bg:rgba(245,158,11,.08);
 
-    /* ── Section labels ── */
-    .section-label {
-      font-size: 9px; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 1.8px; color: var(--c-ash);
-      margin: 28px 0 10px;
-    }
-    .section-label:first-child { margin-top: 0; }
+    /* Radius */
+    --r-card:  18px;
+    --r-sm:    11px;
+    --r-xs:    8px;
+    --r-pill:  999px;
 
-    /* ── Cards ── */
-    .card {
-      background: var(--c-white);
-      border-radius: var(--r-card);
-      overflow: hidden;
-      box-shadow: var(--shadow-card);
-      margin-bottom: 12px;
-      border: 1px solid rgba(0,0,0,.045);
-    }
-    .card-pad { padding: 18px 20px; }
-    .card-row {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; padding: 15px 20px;
-      border-bottom: 1px solid var(--c-mist);
-    }
-    .card-row:last-child { border-bottom: none; }
+    /* Shadows */
+    --sh-card: 0 1px 0 rgba(255,255,255,.04) inset, 0 2px 16px rgba(0,0,0,.4);
+    --sh-float:0 8px 40px rgba(0,0,0,.6);
+    --sh-nav:  0 -1px 0 rgba(255,255,255,.05);
+  }
 
-    /* ── Dark card ── */
-    .dark-card {
-      background: var(--c-ink); color: var(--c-white);
-      border-radius: var(--r-card); padding: 20px;
-      box-shadow: var(--shadow-float); margin-bottom: 12px;
-    }
-    .dark-card .muted { color: #3a3a44; }
+  *, *::before, *::after {
+    box-sizing: border-box; margin: 0; padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body, #root {
+    height: 100%;
+    font-family: "IBM Plex Sans", sans-serif;
+    background: var(--bg);
+    overflow: hidden;
+    color: var(--t1);
+  }
+  input, select, textarea, button { font-family: "IBM Plex Sans", sans-serif; }
+  input, select, textarea { font-size: 16px !important; color: var(--t1); }
+  button { cursor: pointer; }
 
-    /* ── KPI grids ── */
-    .kpi-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 2px; background: var(--c-mist);
-      border-radius: var(--r-card); overflow: hidden;
-      margin-bottom: 12px; box-shadow: var(--shadow-card);
-    }
-    .kpi-grid.three { grid-template-columns: 1fr 1fr 1fr; }
-    .kpi { background: var(--c-white); padding: 17px 16px 15px; }
-    .kpi-label {
-      font-size: 9px; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 1px; color: var(--c-ash); margin-bottom: 7px;
-    }
-    .kpi-value {
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 20px; font-weight: 700; line-height: 1;
-      letter-spacing: -.5px; color: var(--c-obsidian);
-    }
-    .kpi-value.green { color: var(--c-forest); }
-    .kpi-value.red   { color: var(--c-ember); }
-    .kpi-sub { font-size: 10px; color: var(--c-silver); margin-top: 6px; font-weight: 500; }
+  /* ── Shell ── */
+  .app    { height: 100%; display: flex; flex-direction: column; }
+  .screen { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; background: var(--bg); }
+  .page   { padding: 20px 16px calc(120px + env(safe-area-inset-bottom)); }
 
-    /* ── Mini-grid (Today) ── */
-    .mini-grid {
-      display: grid; grid-template-columns: repeat(4,1fr);
-      gap: 2px; background: var(--c-mist);
-      border-radius: var(--r-card); overflow: hidden;
-      margin-bottom: 12px; box-shadow: var(--shadow-card);
-    }
-    .mini-box { background: var(--c-white); padding: 15px 8px; text-align: center; }
-    .mini-box strong {
-      display: block; font-family: "IBM Plex Mono", monospace;
-      font-size: 15px; font-weight: 700; line-height: 1.2;
-      color: var(--c-obsidian); letter-spacing: -.3px;
-    }
-    .mini-box span {
-      display: block; font-size: 8px; color: var(--c-silver);
-      text-transform: uppercase; letter-acing: 1px; margin-top: 5px; font-weight: 700;
-    }
+  /* ── Header ── */
+  .header-compact {
+    background: var(--s1);
+    padding: 12px 18px;
+    padding-top: calc(12px + env(safe-area-inset-top));
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-shrink: 0;
+    border-bottom: 1px solid var(--border2);
+  }
+  .header-compact h1 { font-size: 16px; font-weight: 700; letter-spacing: -.4px; color: var(--t1); }
+  .header-compact p  { font-size: 10px; color: var(--t3); margin-top: 2px; }
 
-    /* ── Goal track ── */
-    .goal-track {
-      height: 4px; background: var(--c-mist); border-radius: 999px;
-      overflow: hidden; margin: 14px 0 8px;
-    }
-    .goal-fill { height: 100%; border-radius: 999px; transition: width .7s cubic-bezier(.4,0,.2,1); }
-    .goal-fill.full  { background: var(--c-forest); }
-    .goal-fill.mid   { background: var(--c-obsidian); }
-    .goal-fill.low   { background: var(--c-amber); }
+  /* ── Section labels ── */
+  .section-label {
+    font-size: 9px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1.8px; color: var(--t3);
+    margin: 28px 0 10px;
+  }
+  .section-label:first-child { margin-top: 0; }
 
-    /* ── Stack ── */
-    .stack { display: grid; gap: 10px; }
+  /* ── Card system ── */
+  .card {
+    background: var(--s1);
+    border-radius: var(--r-card);
+    overflow: hidden;
+    box-shadow: var(--sh-card);
+    border: 1px solid var(--border2);
+    margin-bottom: 12px;
+  }
+  .card-pad  { padding: 18px 20px; }
+  .card-row  {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 15px 20px;
+    border-bottom: 1px solid var(--border2);
+  }
+  .card-row:last-child { border-bottom: none; }
+  .dark-card {
+    background: var(--s2); border-radius: var(--r-card); padding: 20px;
+    box-shadow: var(--sh-card); border: 1px solid var(--border2); margin-bottom: 12px;
+  }
 
-    /* ── Job rows ── */
-    .job-row {
-      background: var(--c-white); border-radius: 16px;
-      padding: 15px 17px; display: flex; align-items: flex-start; gap: 13px;
-      box-shadow: var(--shadow-card); border: 1px solid rgba(0,0,0,.04);
-    }
-    .job-icon {
-      width: 42px; height: 42px; border-radius: 12px;
-      background: var(--c-chalk); display: flex; align-items: center;
-      justify-content: center; flex-shrink: 0; font-size: 20px;
-    }
-    .job-main { flex: 1; min-width: 0; }
-    .job-title {
-      font-size: 14px; font-weight: 700; color: var(--c-obsidian);
-      letter-spacing: -.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .job-meta { font-size: 11px; color: var(--c-ash); margin-top: 3px; line-height: 1.6; }
-    .job-right { text-align: right; flex-shrink: 0; }
+  /* ── KPI grids ── */
+  .kpi-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1px; background: var(--border);
+    border-radius: var(--r-card); overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .kpi-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .kpi            { background: var(--s1); padding: 18px 16px 16px; }
+  .kpi-label      {
+    font-size: 9px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1.1px; color: var(--t3); margin-bottom: 8px;
+  }
+  .kpi-value      {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 22px; font-weight: 700; line-height: 1;
+    letter-spacing: -.8px; color: var(--t1);
+  }
+  .kpi-value.green  { color: var(--green); }
+  .kpi-value.red    { color: var(--red); }
+  .kpi-sub          { font-size: 10px; color: var(--t3); margin-top: 6px; font-weight: 500; }
 
-    /* ── Typography helpers ── */
-    .label  { font-size: 11px; color: var(--c-smoke); font-weight: 500; }
-    .sub    { font-size: 11px; color: var(--c-silver); font-weight: 500; }
-    .mono   { font-family: "IBM Plex Mono", monospace; }
-    .value  { font-family: "IBM Plex Mono", monospace; font-size: 14px; font-weight: 700; color: var(--c-obsidian); }
-    .value.big    { font-size: 22px; }
-    .value.green  { color: var(--c-forest); }
-    .value.red    { color: var(--c-ember); }
-    .value.orange { color: var(--c-amber); }
-    .sub.green    { color: var(--c-forest); font-weight: 700; }
-    .sub.red      { color: var(--c-ember);  font-weight: 700; }
-    .sub.orange   { color: var(--c-amber);  font-weight: 700; }
+  /* ── Mini-grid (Today strip) ── */
+  .mini-grid {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 1px; background: var(--border);
+    border-radius: var(--r-card); overflow: hidden; margin-bottom: 12px;
+  }
+  .mini-box         { background: var(--s1); padding: 16px 8px; text-align: center; }
+  .mini-box strong  {
+    display: block; font-family: "IBM Plex Mono", monospace;
+    font-size: 16px; font-weight: 700; color: var(--t1); letter-spacing: -.3px;
+  }
+  .mini-box span    {
+    display: block; font-size: 8px; color: var(--t3);
+    text-transform: uppercase; letter-spacing: .8px; margin-top: 5px; font-weight: 700;
+  }
 
-    /* ── Pills / badges ── */
-    .pill {
-      display: inline-block; padding: 3px 10px; border-radius: 999px;
-      font-size: 10px; font-weight: 800; line-height: 1.5; letter-spacing: .2px;
-    }
-    .pill.green  { background: var(--c-leaf); color: var(--c-forest); }
-    .pill.red    { background: #fef2f2; color: var(--c-ember); }
-    .pill.orange { background: #fff7ed; color: var(--c-amber); }
-    .pill.gray   { background: var(--c-chalk); color: var(--c-smoke); }
-    .pill.blue   { background: #eff6ff; color: #1d4ed8; }
-    .pill.gold   { background: var(--c-cream); color: #92762a; }
+  /* ── Goal track ── */
+  .goal-track     { height: 3px; background: var(--s3); border-radius: 999px; overflow: hidden; margin: 14px 0 8px; }
+  .goal-fill      { height: 100%; border-radius: 999px; transition: width .7s cubic-bezier(.4,0,.2,1); }
+  .goal-fill.full { background: var(--green); }
+  .goal-fill.mid  { background: var(--t2); }
+  .goal-fill.low  { background: var(--amber); }
 
-    /* ── Pending payment banner ── */
-    .pending-banner {
-      background: #fdfaf3; border: 1.5px solid #d4aa50;
-      border-radius: 16px; padding: 15px 18px; margin-bottom: 12px;
-      display: flex; justify-content: space-between; align-items: center;
-      box-shadow: 0 2px 12px rgba(212,170,80,.1);
-    }
-    .pending-banner-title { font-size: 13px; font-weight: 700; color: #7a5c10; letter-spacing: -.1px; }
-    .pending-banner-sub   { font-size: 11px; color: #9a7428; margin-top: 3px; font-weight: 600; }
+  /* ── Stack ── */
+  .stack { display: grid; gap: 10px; }
 
-    /* ── Source bars ── */
-    .source-bar { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--c-mist); }
-    .source-bar:last-child { border-bottom: none; }
-    .source-bar-track { flex: 1; height: 3px; background: var(--c-mist); border-radius: 999px; overflow: hidden; }
-    .source-bar-fill  { height: 100%; background: var(--c-obsidian); border-radius: 999px; }
+  /* ── Job rows ── */
+  .job-row {
+    background: var(--s1); border-radius: 16px;
+    padding: 15px 17px; display: flex; align-items: flex-start; gap: 13px;
+    box-shadow: var(--sh-card); border: 1px solid var(--border2);
+  }
+  .job-icon   {
+    width: 42px; height: 42px; border-radius: 12px; background: var(--s3);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 20px;
+  }
+  .job-main   { flex: 1; min-width: 0; }
+  .job-title  { font-size: 14px; font-weight: 700; color: var(--t1); letter-spacing: -.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .job-meta   { font-size: 11px; color: var(--t3); margin-top: 3px; line-height: 1.6; }
+  .job-right  { text-align: right; flex-shrink: 0; }
 
-    /* ── Fields ── */
-    .field { margin-bottom: 14px; }
-    .field label {
-      display: block; font-size: 9px; font-weight: 800;
-      text-transform: uppercase; letter-spacing: 1.2px;
-      color: var(--c-ash); margin-bottom: 8px;
-    }
-    .field input, .field select, .field textarea {
-      width: 100%; border: 1.5px solid var(--c-mist);
-      background: var(--c-white); border-radius: var(--r-input);
-      padding: 13px 15px; outline: none; transition: border-color .15s;
-      min-width: 0; box-sizing: border-box; color: var(--c-obsidian);
-    }
-    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--c-obsidian); }
-    .field textarea { min-height: 72px; resize: vertical; }
-    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 0; }
+  /* ── Typography ── */
+  .label         { font-size: 11px; color: var(--t2); font-weight: 500; }
+  .sub           { font-size: 11px; color: var(--t3); font-weight: 500; }
+  .mono          { font-family: "IBM Plex Mono", monospace; }
+  .value         { font-family: "IBM Plex Mono", monospace; font-size: 14px; font-weight: 700; color: var(--t1); }
+  .value.big     { font-size: 22px; }
+  .value.green   { color: var(--green); }
+  .value.red     { color: var(--red); }
+  .value.orange  { color: var(--amber); }
+  .sub.green     { color: var(--green);  font-weight: 700; }
+  .sub.red       { color: var(--red);    font-weight: 700; }
+  .sub.orange    { color: var(--amber);  font-weight: 700; }
 
-    /* ── Chips ── */
-    .chip-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 2px; }
-    .chip {
-      border: 1.5px solid var(--c-mist); background: var(--c-white);
-      border-radius: var(--r-chip); padding: 8px 14px;
-      font-size: 12px; font-weight: 700; color: var(--c-smoke);
-      transition: all .12s; letter-spacing: -.1px;
-    }
-    .chip.active { background: var(--c-obsidian); color: var(--c-white); border-color: var(--c-obsidian); }
-    .chip.sm { padding: 6px 12px; font-size: 11px; }
-    .chip.city { background: #f0f9ff; border-color: #bae6fd; color: #0369a1; }
-    .chip.city.active { background: var(--c-obsidian); color: var(--c-white); border-color: var(--c-obsidian); }
+  /* ── Pills / badges ── */
+  .pill          { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 800; line-height: 1.5; letter-spacing: .2px; }
+  .pill.green    { background: var(--green-bg); color: var(--green); }
+  .pill.red      { background: var(--red-bg);   color: var(--red); }
+  .pill.orange   { background: var(--amber-bg); color: var(--amber); }
+  .pill.gray     { background: var(--s3);       color: var(--t2); }
+  .pill.blue     { background: rgba(59,130,246,.12); color: #60a5fa; }
+  .pill.gold     { background: var(--gold-bg);  color: var(--gold); }
 
-    /* ── City search ── */
-    .city-input-wrap { position: relative; }
-    .city-dropdown {
-      position: absolute; top: calc(100% + 6px); left: 0; right: 0;
-      background: var(--c-white); border: 1.5px solid var(--c-mist);
-      border-radius: 16px; box-shadow: var(--shadow-float);
-      z-index: 200; max-height: 240px; overflow-y: auto;
-    }
-    .city-option {
-      padding: 13px 16px; font-size: 14px; border-bottom: 1px solid var(--c-mist);
-      cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--c-obsidian);
-    }
-    .city-option:last-child { border-bottom: none; }
-    .city-option:active { background: var(--c-chalk); }
-    .city-section-head { padding: 8px 16px 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--c-silver); background: #fafafa; }
+  /* ── Pending payment ── */
+  .pending-banner {
+    background: var(--gold-bg); border: 1px solid rgba(192,149,74,.25);
+    border-radius: var(--r-card); padding: 15px 18px; margin-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .pending-banner-title { font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: -.1px; }
+  .pending-banner-sub   { font-size: 11px; color: rgba(192,149,74,.7); margin-top: 3px; font-weight: 600; }
 
-    /* ── Quick quote ── */
-    .quote-box {
-      background: var(--c-ink); border-radius: var(--r-card);
-      padding: 18px; margin-bottom: 14px; color: var(--c-white);
-      box-shadow: var(--shadow-float);
-    }
-    .qq-suggested { text-align: center; padding: 14px 10px 12px; border-bottom: 1px solid rgba(255,255,255,.07); }
-    .qq-suggested-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.4px; color: #48484f; margin-bottom: 6px; }
-    .qq-suggested-price { font-family: "IBM Plex Mono", monospace; font-size: 38px; font-weight: 700; color: var(--c-white); line-height: 1; letter-spacing: -1px; }
-    .qq-dec-badge {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 5px 14px; border-radius: 999px;
-      font-size: 11px; font-weight: 800; margin-top: 10px; letter-spacing: .2px;
-    }
-    .qq-dec-badge.take { background: var(--c-leaf); color: var(--c-forest); }
-    .qq-dec-badge.raise { background: #fef9c3; color: #854d0e; }
-    .qq-dec-badge.low  { background: #fee2e2; color: var(--c-ember); }
-    .qq-apply-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 12px; }
-    .qq-apply-btn {
-      border: none; border-radius: 10px; padding: 10px 4px;
-      font-size: 11px; font-weight: 800; font-family: "IBM Plex Sans", sans-serif;
-      cursor: pointer; line-height: 1.3; letter-spacing: .1px;
-    }
-    .qq-apply-btn:active { opacity: .8; }
-    .qq-apply-btn.suggested { background: #15803d; color: #fff; }
-    .qq-apply-btn.premium   { background: #92762a; color: #fff; }
-    .qq-apply-btn.custom    { background: rgba(255,255,255,.1); color: var(--c-white); }
-    .qq-apply-btn.active-sel { outline: 2px solid rgba(255,255,255,.4); outline-offset: 1px; }
-    .qq-apply-btn.suggested.active-sel { background: #15803d; }
-    .qq-apply-btn.premium.active-sel   { background: #92762a; }
-    .qq-apply-btn.custom.active-sel    { background: rgba(255,255,255,.22); }
+  /* ── Source bars ── */
+  .source-bar         { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border2); }
+  .source-bar:last-child { border-bottom: none; }
+  .source-bar-track   { flex: 1; height: 2px; background: var(--s3); border-radius: 999px; overflow: hidden; }
+  .source-bar-fill    { height: 100%; background: var(--t2); border-radius: 999px; }
 
-    /* ── Source / service selectors ── */
-    .src-grid { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
-    .src-btn {
-      border: 1.5px solid var(--c-mist); background: var(--c-white);
-      border-radius: 10px; padding: 9px 12px;
-      font-size: 12px; font-weight: 700; color: var(--c-smoke);
-      transition: all .12s; display: flex; align-items: center; gap: 5px;
-    }
-    .src-btn.active { background: var(--c-obsidian); color: var(--c-white); border-color: var(--c-obsidian); }
+  /* ── Fields ── */
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-size: 9px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1.2px; color: var(--t3); margin-bottom: 8px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%; border: 1px solid var(--border);
+    background: var(--s2); border-radius: var(--r-sm);
+    padding: 13px 15px; outline: none; transition: border-color .15s;
+    color: var(--t1);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--t2); }
+  .field textarea { min-height: 72px; resize: vertical; }
+  .field-row      { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-    /* ── Payment grid ── */
-    .pay-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 4px; }
-    .pay-btn {
-      border: 1.5px solid var(--c-mist); border-radius: 13px;
-      padding: 11px 4px; background: var(--c-white);
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      font-size: 11px; font-weight: 700; color: var(--c-smoke); transition: all .12s;
-    }
-    .pay-btn.active { border-color: var(--c-obsidian); background: var(--c-obsidian); color: var(--c-white); }
-    .pay-btn .pay-icon { font-size: 18px; }
+  /* ── Chips ── */
+  .chip-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 2px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--s2);
+    border-radius: 999px; padding: 8px 14px;
+    font-size: 12px; font-weight: 700; color: var(--t2);
+    transition: all .12s;
+  }
+  .chip.active { background: var(--t1); color: var(--bg); border-color: var(--t1); }
+  .chip.sm     { padding: 6px 12px; font-size: 11px; }
+  .chip.city   { background: var(--s2); border-color: var(--border); color: var(--t2); }
+  .chip.city.active { background: var(--t1); color: var(--bg); }
 
-    /* ── Sticky save ── */
-    .sticky-save {
-      position: sticky; bottom: 0; left: 0; right: 0;
-      background: var(--c-white); border-top: 1px solid var(--c-mist);
-      padding: 13px 18px; padding-bottom: calc(13px + env(safe-area-inset-bottom));
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-      z-index: 50; box-shadow: 0 -6px 24px rgba(0,0,0,.07);
-    }
+  /* ── City dropdown ── */
+  .city-input-wrap   { position: relative; }
+  .city-dropdown     {
+    position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+    background: var(--s2); border: 1px solid var(--border);
+    border-radius: 16px; box-shadow: var(--sh-float);
+    z-index: 200; max-height: 240px; overflow-y: auto;
+  }
+  .city-option       { padding: 13px 16px; font-size: 14px; border-bottom: 1px solid var(--border2); cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--t1); }
+  .city-option:last-child  { border-bottom: none; }
+  .city-option:active      { background: var(--s3); }
+  .city-section-head { padding: 8px 16px 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--t3); background: var(--s3); }
 
-    /* ── Buttons ── */
-    .btn {
-      border: none; border-radius: var(--r-btn); padding: 15px 18px;
-      font-weight: 700; font-size: 14px; transition: opacity .1s; letter-spacing: -.1px;
-    }
-    .btn:active { opacity: .8; }
-    .btn.primary   { background: var(--c-obsidian); color: var(--c-white); }
-    .btn.secondary { background: var(--c-white); color: var(--c-obsidian); border: 1.5px solid var(--c-mist); }
-    .btn.sm  { padding: 9px 14px; font-size: 12px; border-radius: 10px; }
-    .btn.xs  { padding: 6px 10px; font-size: 11px; border-radius: 8px; font-weight: 700; }
-    .btn.danger  { background: #fef2f2; color: var(--c-ember); }
-    .btn.success { background: var(--c-leaf); color: var(--c-forest); }
-    .btn.blue    { background: #eff6ff; color: #1d4ed8; }
-    .btn.orange  { background: #fff7ed; color: var(--c-amber); }
-    .btn.gold    { background: var(--c-cream); color: #7a5c10; }
+  /* ── Quick quote ── */
+  .quote-box         {
+    background: var(--s2); border-radius: var(--r-card); padding: 18px;
+    margin-bottom: 14px; border: 1px solid var(--border); box-shadow: var(--sh-card);
+  }
+  .qq-suggested      { text-align: center; padding: 14px 10px 12px; border-bottom: 1px solid var(--border2); }
+  .qq-suggested-label{ font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.4px; color: var(--t3); margin-bottom: 6px; }
+  .qq-suggested-price{ font-family: "IBM Plex Mono", monospace; font-size: 40px; font-weight: 700; color: var(--t1); line-height: 1; letter-spacing: -2px; }
+  .qq-dec-badge      { display: inline-flex; align-items: center; gap: 5px; padding: 5px 14px; border-radius: 999px; font-size: 11px; font-weight: 800; margin-top: 10px; }
+  .qq-dec-badge.take { background: var(--green-bg); color: var(--green); }
+  .qq-dec-badge.raise{ background: var(--amber-bg); color: var(--amber); }
+  .qq-dec-badge.low  { background: var(--red-bg);   color: var(--red); }
+  .qq-apply-row      { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 12px; }
+  .qq-apply-btn      {
+    border: none; border-radius: var(--r-sm); padding: 10px 4px;
+    font-size: 11px; font-weight: 800; font-family: "IBM Plex Sans", sans-serif;
+    cursor: pointer; line-height: 1.3;
+  }
+  .qq-apply-btn:active { opacity: .8; }
+  .qq-apply-btn.suggested { background: var(--green-bg); color: var(--green); border: 1px solid rgba(34,197,94,.2); }
+  .qq-apply-btn.premium   { background: var(--gold-bg);  color: var(--gold);  border: 1px solid rgba(192,149,74,.2); }
+  .qq-apply-btn.custom    { background: var(--s3); color: var(--t2); border: 1px solid var(--border); }
+  .qq-apply-btn.active-sel{ outline: 1px solid currentColor; outline-offset: 2px; }
 
-    /* ── Form groups ── */
-    .form-group {
-      background: var(--c-white); border-radius: var(--r-card);
-      padding: 16px 18px; margin-bottom: 10px;
-      box-shadow: var(--shadow-card); border: 1px solid rgba(0,0,0,.04);
-    }
-    .form-group-title {
-      font-size: 9px; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 1.4px; color: var(--c-silver); margin-bottom: 14px;
-    }
+  /* ── Source buttons ── */
+  .src-grid { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+  .src-btn  {
+    border: 1px solid var(--border); background: var(--s2);
+    border-radius: var(--r-sm); padding: 9px 12px;
+    font-size: 12px; font-weight: 700; color: var(--t2); transition: all .12s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .src-btn.active { background: var(--t1); color: var(--bg); border-color: var(--t1); }
 
-    /* ── Success strip ── */
-    .success-strip {
-      background: #f0fdf4; border: 1px solid #86efac;
-      border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;
-      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
-    }
-    .success-strip-title { font-size: 12px; font-weight: 700; color: var(--c-forest); width: 100%; margin-bottom: 4px; }
+  /* ── Payment grid ── */
+  .pay-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 4px; }
+  .pay-btn  {
+    border: 1px solid var(--border); border-radius: 13px; padding: 11px 4px;
+    background: var(--s2); display: flex; flex-direction: column;
+    align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--t2);
+    transition: all .12s;
+  }
+  .pay-btn.active  { background: var(--t1); color: var(--bg); border-color: var(--t1); }
+  .pay-btn .pay-icon { font-size: 18px; }
 
-    /* ── Bottom nav ── */
-    .bottom-nav {
-      display: flex; background: var(--c-white);
-      border-top: 1px solid rgba(0,0,0,.06);
-      padding-bottom: env(safe-area-inset-bottom); flex-shrink: 0;
-      box-shadow: var(--shadow-nav);
-    }
-    .nav-btn {
-      flex: 1; border: none; background: none;
-      padding: 10px 2px 9px;
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 3px;
-      color: var(--c-silver); font-size: 7.5px; font-weight: 800;
-      text-transform: uppercase; letter-spacing: .6px;
-      position: relative; transition: color .1s;
-    }
-    .nav-btn.active { color: var(--c-obsidian); }
-    .nav-btn.active .ico { transform: scale(1.08); }
-    .nav-btn.active::after {
-      content: ''; position: absolute;
-      top: 0; left: 50%; transform: translateX(-50%);
-      width: 20px; height: 2px;
-      background: var(--c-obsidian);
-      border-radius: 0 0 3px 3px;
-    }
-    .nav-btn .ico { font-size: 19px; line-height: 1; transition: transform .12s; }
+  /* ── Sticky save ── */
+  .sticky-save {
+    position: sticky; bottom: 0; left: 0; right: 0;
+    background: var(--s1); border-top: 1px solid var(--border2);
+    padding: 13px 18px; padding-bottom: calc(13px + env(safe-area-inset-bottom));
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    z-index: 50; box-shadow: 0 -8px 32px rgba(0,0,0,.5);
+  }
 
-    /* ── Settings ── */
-    .settings-row {
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--c-mist);
-    }
-    .settings-row:last-child { border-bottom: none; }
-    .settings-inp {
-      border: 1.5px solid var(--c-mist); border-radius: 10px;
-      padding: 10px 13px; font-family: "IBM Plex Sans", sans-serif;
-      font-size: 15px; outline: none; color: var(--c-obsidian); background: var(--c-white);
-    }
-    .settings-inp:focus { border-color: var(--c-obsidian); }
+  /* ── Buttons ── */
+  .btn { border: none; border-radius: var(--r-sm); padding: 15px 18px; font-weight: 700; font-size: 14px; transition: opacity .1s; letter-spacing: -.1px; }
+  .btn:active     { opacity: .75; }
+  .btn.primary    { background: var(--t1); color: var(--bg); }
+  .btn.secondary  { background: var(--s3); color: var(--t2); border: 1px solid var(--border); }
+  .btn.sm  { padding: 9px 14px; font-size: 12px; border-radius: var(--r-xs); }
+  .btn.xs  { padding: 6px 10px; font-size: 11px; border-radius: 7px; font-weight: 700; }
+  .btn.danger  { background: var(--red-bg);   color: var(--red); }
+  .btn.success { background: var(--green-bg); color: var(--green); }
+  .btn.blue    { background: rgba(59,130,246,.12); color: #60a5fa; }
+  .btn.orange  { background: var(--amber-bg); color: var(--amber); }
+  .btn.gold    { background: var(--gold-bg);  color: var(--gold); }
 
-    /* ── Expenses ── */
-    .expense-row {
-      display: grid; grid-template-columns: 1fr 90px auto auto;
-      gap: 8px; align-items: center;
-      padding: 11px 20px; border-bottom: 1px solid var(--c-mist);
-    }
-    .expense-row:last-child { border-bottom: none; }
-    .expense-row input {
-      border: 1.5px solid var(--c-mist); border-radius: 10px;
-      padding: 9px 12px; width: 100%;
-      font-family: "IBM Plex Sans", sans-serif; font-size: 15px;
-      outline: none; color: var(--c-obsidian);
-    }
+  /* ── Form groups ── */
+  .form-group {
+    background: var(--s1); border-radius: var(--r-card); padding: 16px 18px;
+    margin-bottom: 10px; box-shadow: var(--sh-card); border: 1px solid var(--border2);
+  }
+  .form-group-title {
+    font-size: 9px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1.4px; color: var(--t3); margin-bottom: 14px;
+  }
 
-    /* ── Empty state ── */
-    .empty { padding: 60px 20px; text-align: center; }
-    .empty-icon { font-size: 40px; margin-bottom: 14px; }
-    .empty-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--c-obsidian); }
-    .empty-sub   { font-size: 13px; color: var(--c-ash); line-height: 1.6; }
+  /* ── Success strip ── */
+  .success-strip {
+    background: var(--green-bg); border: 1px solid rgba(34,197,94,.2);
+    border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .success-strip-title { font-size: 12px; font-weight: 700; color: var(--green); width: 100%; margin-bottom: 4px; }
 
-    /* ── Tax box ── */
-    .tax-box {
-      background: #fdfaf3; border: 1px solid #ddc87a;
-      border-radius: 12px; padding: 13px 16px; margin-top: 12px;
-    }
-    .tax-box .tax-lbl { color: #7a5c10; font-weight: 800; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-    .tax-box .tax-amt { font-family: "IBM Plex Mono", monospace; font-size: 18px; font-weight: 700; color: #92762a; }
-    .tax-box .tax-hint { font-size: 11px; color: #9a7428; margin-top: 4px; }
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    display: flex; background: var(--s1);
+    border-top: 1px solid var(--border2);
+    padding-bottom: env(safe-area-inset-bottom); flex-shrink: 0;
+    box-shadow: var(--sh-nav);
+  }
+  .nav-btn {
+    flex: 1; border: none; background: none; padding: 10px 2px 9px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; color: var(--t3); font-size: 7.5px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .6px; position: relative;
+    transition: color .1s;
+  }
+  .nav-btn.active { color: var(--t1); }
+  .nav-btn.active::after {
+    content: ''; position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%); width: 20px; height: 2px;
+    background: var(--t1); border-radius: 0 0 3px 3px;
+  }
+  .nav-btn .ico { font-size: 19px; line-height: 1; }
 
-    /* ── Inline note ── */
-    .inline-note { font-size: 11px; color: var(--c-silver); line-height: 1.6; margin-bottom: 14px; }
+  /* ── Settings ── */
+  .settings-row {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border2);
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-inp {
+    border: 1px solid var(--border); border-radius: var(--r-xs); padding: 10px 13px;
+    font-size: 15px; outline: none; background: var(--s2); color: var(--t1);
+  }
+  .settings-inp:focus { border-color: var(--t2); }
 
-    /* ── Auth screen ── */
-    .auth-field { margin-bottom: 14px; }
-    .auth-label {
-      display: block; font-size: 9px; font-weight: 800;
-      text-transform: uppercase; letter-spacing: 1.2px; color: #48484f; margin-bottom: 8px;
-    }
-    .auth-inp2 {
-      width: 100%; background: rgba(255,255,255,.07);
-      border: 1.5px solid rgba(255,255,255,.1); border-radius: 14px;
-      padding: 16px 18px; color: var(--c-white); font-size: 17px;
-      outline: none; font-family: "IBM Plex Sans", sans-serif; transition: border-color .15s;
-    }
-    .auth-inp2::placeholder { color: #333338; }
-    .auth-inp2:focus { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.09); }
-    .auth-btn-main {
-      width: 100%; background: var(--c-white); color: var(--c-obsidian);
-      border: none; border-radius: 14px; padding: 17px; font-size: 16px;
-      font-weight: 700; font-family: "IBM Plex Sans", sans-serif; margin-bottom: 10px;
-      letter-spacing: -.2px;
-    }
-    .auth-btn-main:active { opacity: .85; }
-    .auth-btn-google {
-      width: 100%; background: rgba(255,255,255,.07); color: var(--c-white);
-      border: 1.5px solid rgba(255,255,255,.1); border-radius: 14px;
-      padding: 15px; font-size: 15px; font-weight: 600;
-      font-family: "IBM Plex Sans", sans-serif;
-      display: flex; align-items: center; justify-content: center;
-      gap: 10px; margin-bottom: 18px;
-    }
-    .auth-btn-google:active { opacity: .8; }
+  /* ── Expenses ── */
+  .expense-row {
+    display: grid; grid-template-columns: 1fr 90px auto auto;
+    gap: 8px; align-items: center; padding: 11px 20px; border-bottom: 1px solid var(--border2);
+  }
+  .expense-row:last-child { border-bottom: none; }
+  .expense-row input {
+    border: 1px solid var(--border); border-radius: var(--r-xs);
+    padding: 9px 12px; font-size: 15px; outline: none; background: var(--s2); color: var(--t1);
+  }
 
-    /* ── Syncing pulse ── */
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
-    .syncing { animation: pulse 1.4s infinite; }
+  /* ── Empty state ── */
+  .empty        { padding: 60px 20px; text-align: center; }
+  .empty-icon   { font-size: 40px; margin-bottom: 14px; }
+  .empty-title  { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--t1); }
+  .empty-sub    { font-size: 13px; color: var(--t3); line-height: 1.6; }
 
-    /* ── Responsive ── */
-    @media(min-width:600px){
-      .app{max-width:480px;margin:0 auto}
-      html,body,#root{background:#dcdce0}
-      .app{box-shadow:0 0 80px rgba(0,0,0,.16)}
-    }
-    @media(max-width:360px){
-      .pay-grid{grid-template-columns:repeat(2,1fr)!important}
-      .field-row{grid-template-columns:1fr!important}
-      .kpi-grid{grid-template-columns:1fr 1fr!important}
-      .mini-grid{grid-template-columns:1fr 1fr!important}
-      .page{padding:16px 14px calc(110px + env(safe-area-inset-bottom))}
-    }
-    @media(min-height:812px){
-      .page{padding:24px 18px calc(130px + env(safe-area-inset-bottom))}
-    }
-  </style>
+  /* ── Tax box ── */
+  .tax-box      { background: var(--gold-bg); border: 1px solid rgba(192,149,74,.2); border-radius: 12px; padding: 13px 16px; margin-top: 12px; }
+  .tax-box .tax-lbl  { color: var(--gold); font-weight: 800; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .tax-box .tax-amt  { font-family: "IBM Plex Mono", monospace; font-size: 18px; font-weight: 700; color: var(--gold); }
+  .tax-box .tax-hint { font-size: 11px; color: rgba(192,149,74,.7); margin-top: 4px; }
+
+  /* ── Inline note ── */
+  .inline-note { font-size: 11px; color: var(--t3); line-height: 1.6; margin-bottom: 14px; }
+
+  /* ── Auth screen ── */
+  .auth-field { margin-bottom: 14px; }
+  .auth-label { display: block; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--t3); margin-bottom: 8px; }
+  .auth-inp2 {
+    width: 100%; background: var(--s2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 18px; color: var(--t1); font-size: 17px;
+    outline: none; transition: border-color .15s;
+  }
+  .auth-inp2::placeholder { color: var(--t3); }
+  .auth-inp2:focus { border-color: var(--t2); }
+  .auth-btn-main {
+    width: 100%; background: var(--t1); color: var(--bg); border: none;
+    border-radius: 14px; padding: 17px; font-size: 16px; font-weight: 700; margin-bottom: 10px;
+  }
+  .auth-btn-main:active { opacity: .85; }
+  .auth-btn-google {
+    width: 100%; background: var(--s2); color: var(--t1); border: 1px solid var(--border);
+    border-radius: 14px; padding: 15px; font-size: 15px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 18px;
+  }
+
+  /* ── Animations ── */
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .syncing { animation: pulse 1.4s infinite; }
+
+  /* ── Responsive ── */
+  @media(min-width:600px){
+    .app{max-width:480px;margin:0 auto;box-shadow:0 0 80px rgba(0,0,0,.8)}
+    html,body,#root{background:#08080a}
+  }
+  @media(max-width:360px){
+    .pay-grid{grid-template-columns:repeat(2,1fr)!important}
+    .field-row{grid-template-columns:1fr!important}
+    .kpi-grid{grid-template-columns:1fr 1fr!important}
+    .mini-grid{grid-template-columns:1fr 1fr!important}
+    .page{padding:16px 14px calc(110px + env(safe-area-inset-bottom))}
+  }
+  @media(min-height:812px){
+    .page{padding:24px 18px calc(130px + env(safe-area-inset-bottom))}
+  }
+</style>
 
 </head>
 <body>
@@ -1015,28 +980,20 @@ function AuthScreen({onAuth}) {
 
 // ── Header ────────────────────────────────────────────────────────────────────
 function Header({syncStatus,onSignOut}) {
-  const isLive = syncStatus==="connected";
-  const isSyncing = syncStatus==="syncing";
+  const isLive=syncStatus==="connected", isSyncing=syncStatus==="syncing";
   return html`<div class="header-compact">
     <div style=${{display:"flex",alignItems:"center",gap:10}}>
       <img src=${LOGO_SRC} alt="WR" style=${{width:34,height:34,objectFit:"contain",borderRadius:8,flexShrink:0}} onError=${e=>e.target.style.display="none"}/>
       <div>
         <h1>Wheel Rush</h1>
-        <p>Mobile Tire Repair · Miami</p>
+        <p>Mobile Tire Repair · Miami · 305-897-7030</p>
       </div>
     </div>
     <div style=${{display:"flex",alignItems:"center",gap:10}}>
-      <span class=${isSyncing?"syncing":""} style=${{
-        fontSize:9,fontWeight:800,letterSpacing:".8px",textTransform:"uppercase",
-        color:isLive?"#2a6640":isSyncing?"#48484f":"#48484f"
-      }}>
+      <span class=${isSyncing?"syncing":""} style=${{fontSize:9,fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:isLive?"var(--green)":isSyncing?"var(--t3)":"var(--t3)"}}>
         ${isLive?"● Live":isSyncing?"○ Sync":"○ Local"}
       </span>
-      ${onSignOut&&html`<button onClick=${()=>onSignOut()} style=${{
-        background:"none",border:"1px solid #2a2a30",color:"#666",
-        fontSize:10,cursor:"pointer",padding:"5px 10px",borderRadius:8,fontWeight:700,
-        letterSpacing:".3px"
-      }}>Sign Out</button>`}
+      ${onSignOut&&html`<button onClick=${()=>onSignOut()} style=${{background:"var(--s3)",border:"1px solid var(--border)",color:"var(--t3)",fontSize:10,cursor:"pointer",padding:"5px 10px",borderRadius:7,fontWeight:700}}>Out</button>`}
     </div>
   </div>`;
 }
@@ -1074,75 +1031,76 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory}) {
       <div class="mini-grid">
         <div class="mini-box"><strong>${todayJobs.length}</strong><span>Jobs</span></div>
         <div class="mini-box"><strong>${money(todayJobs.reduce((s,j)=>s+Number(j.revenue||0),0))}</strong><span>Revenue</span></div>
-        <div class="mini-box"><strong>${money(todayJobs.reduce((s,j)=>s+jobGrossProfit(j,settings),0))}</strong><span>Profit</span></div>
-        <div class="mini-box"><strong style=${{color:totals.net>=0?"var(--c-forest)":"var(--c-ember)"}}>${todayJobs.filter(j=>j.status==="Completed").length}</strong><span>Done</span></div>
+        <div class="mini-box"><strong style=${{color:"var(--green)"}}>${money(todayJobs.reduce((s,j)=>s+jobGrossProfit(j,settings),0))}</strong><span>Profit</span></div>
+        <div class="mini-box"><strong>${todayJobs.filter(j=>j.status==="Completed").length}</strong><span>Done</span></div>
       </div>
     </div>`}
 
     ${pendingJobs.length>0&&html`<div class="pending-banner">
       <div>
-        <div class="pending-banner-title">⏳ ${pendingJobs.length} Pending Payment${pendingJobs.length!==1?"s":""}</div>
+        <div class="pending-banner-title">${pendingJobs.length} Pending Payment${pendingJobs.length!==1?"s":""}</div>
         <div class="pending-banner-sub">${money(pendingTotal)} outstanding</div>
       </div>
-      <button class="btn gold sm" onClick=${()=>setTab("history")}>View →</button>
+      <button class="btn gold sm" onClick=${()=>setTab("history")}>Collect →</button>
     </div>`}
 
     <div class="section-label" style=${{marginTop:todayJobs.length?undefined:0}}>
-      This Week
-      <span style=${{fontWeight:500,textTransform:"none",letterSpacing:0,color:"var(--c-silver)",fontSize:9,marginLeft:6}}>${weekLabel(thisWeek)}</span>
+      This Week <span style=${{fontWeight:500,textTransform:"none",letterSpacing:0,color:"var(--t3)",fontSize:9,marginLeft:6}}>${weekLabel(thisWeek)}</span>
     </div>
     <div class="kpi-grid">
       <div class="kpi"><div class="kpi-label">Revenue</div><div class="kpi-value">${money(totals.revenue)}</div><div class="kpi-sub">${weekJobs.length} job${weekJobs.length!==1?"s":""}</div></div>
       <div class="kpi"><div class="kpi-label">Gross Profit</div><div class="kpi-value">${money(totals.grossProfit)}</div><div class="kpi-sub">before fixed</div></div>
-      <div class="kpi"><div class="kpi-label">Fixed Exp.</div><div class="kpi-value">${money(fixed)}</div><div class="kpi-sub">weekly</div></div>
-      <div class="kpi"><div class="kpi-label">Net Profit</div><div class=${"kpi-value "+(totals.net>=0?"green":"red")}>${money(totals.net)}</div><div class="kpi-sub">after all costs</div></div>
+      <div class="kpi"><div class="kpi-label">Fixed Costs</div><div class="kpi-value">${money(fixed)}</div><div class="kpi-sub">weekly</div></div>
+      <div class="kpi"><div class="kpi-label">Net Profit</div><div class=${"kpi-value "+(totals.net>=0?"green":"red")}>${money(totals.net)}</div><div class="kpi-sub">take-home</div></div>
     </div>
     <div class="kpi-grid three">
-      <div class="kpi"><div class="kpi-label">Direct</div><div class="kpi-value">${money(totals.directCosts)}</div><div class="kpi-sub">travel+parts</div></div>
-      <div class="kpi"><div class="kpi-label">Avg/Job</div><div class="kpi-value">${money(avgProfit)}</div><div class="kpi-sub">gross</div></div>
-      <div class="kpi"><div class="kpi-label">To Goal</div><div class="kpi-value">${typeof jobsNeeded==="number"?jobsNeeded+"j":"—"}</div><div class="kpi-sub">jobs needed</div></div>
+      <div class="kpi"><div class="kpi-label">Direct</div><div class="kpi-value" style=${{fontSize:16}}>${money(totals.directCosts)}</div><div class="kpi-sub">parts+travel</div></div>
+      <div class="kpi"><div class="kpi-label">Avg/Job</div><div class="kpi-value" style=${{fontSize:16}}>${money(avgProfit)}</div><div class="kpi-sub">gross profit</div></div>
+      <div class="kpi"><div class="kpi-label">To Goal</div><div class="kpi-value" style=${{fontSize:16}}>${typeof jobsNeeded==="number"?jobsNeeded:"—"}</div><div class="kpi-sub">more jobs</div></div>
     </div>
 
     <div class="card">
       <div class="card-pad">
         <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
           <div>
-            <div class="kpi-label" style=${{marginBottom:5}}>Weekly Goal</div>
-            <div style=${{display:"flex",alignItems:"baseline",gap:7}}>
-              <span style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:22,fontWeight:700,letterSpacing:"-1px",color:"var(--c-obsidian)"}}>${money(totals.grossProfit)}</span>
-              <span style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:13,color:"var(--c-silver)",fontWeight:500}}>/ ${money(settings.weeklyGoal)}</span>
+            <div class="kpi-label">Weekly Goal</div>
+            <div style=${{display:"flex",alignItems:"baseline",gap:8,marginTop:6}}>
+              <span style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:24,fontWeight:700,letterSpacing:"-1px",color:"var(--t1)"}}>${money(totals.grossProfit)}</span>
+              <span style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:13,color:"var(--t3)",fontWeight:500}}>/ ${money(settings.weeklyGoal)}</span>
             </div>
           </div>
           ${goalPct>=100
-            ? html`<span class="pill green" style=${{fontSize:11,padding:"5px 12px",fontWeight:800}}>GOAL HIT ✓</span>`
-            : html`<span style=${{background:"var(--c-chalk)",color:"var(--c-smoke)",padding:"5px 12px",borderRadius:999,fontSize:11,fontWeight:800}}>${goalPct.toFixed(0)}%</span>`}
+            ? html`<span class="pill green" style=${{padding:"5px 13px",fontSize:11}}>Goal Hit ✓</span>`
+            : html`<span style=${{background:"var(--s3)",color:"var(--t2)",padding:"5px 13px",borderRadius:999,fontSize:11,fontWeight:800}}>${goalPct.toFixed(0)}%</span>`}
         </div>
         <div class="goal-track"><div class=${"goal-fill "+barColor} style=${{width:goalPct+"%"}}/></div>
-        <div style=${{display:"flex",justifyContent:"space-between",fontSize:11,color:"var(--c-silver)",marginTop:6}}>
+        <div style=${{display:"flex",justifyContent:"space-between",fontSize:11,color:"var(--t3)",marginTop:6}}>
           <span>Next payout ${nextFriday()}</span>
-          ${typeof jobsNeeded==="number"&&jobsNeeded>0&&html`<span style=${{fontWeight:700,color:"var(--c-smoke)"}}>${jobsNeeded} more job${jobsNeeded!==1?"s":""}</span>`}
+          ${typeof jobsNeeded==="number"&&jobsNeeded>0&&html`<span style=${{color:"var(--t2)",fontWeight:700}}>${jobsNeeded} job${jobsNeeded!==1?"s":""} to go</span>`}
         </div>
       </div>
     </div>
 
     ${top5Tires.length>0&&html`<div>
-      <div class="section-label">In Stock — Top 5</div>
+      <div class="section-label">Top 5 in Stock</div>
       <div class="card">
         ${top5Tires.map((t,i)=>html`<div key=${t.id} class="card-row">
           <div style=${{display:"flex",alignItems:"center",gap:12}}>
             <div style=${{
-              width:26,height:26,borderRadius:8,
-              background:i===0?"var(--c-obsidian)":"var(--c-chalk)",
-              color:i===0?"var(--c-white)":"var(--c-smoke)",
+              width:26,height:26,borderRadius:8,flexShrink:0,
+              background:i===0?"var(--t1)":"var(--s3)",
+              color:i===0?"var(--bg)":"var(--t2)",
               display:"flex",alignItems:"center",justifyContent:"center",
-              fontSize:10,fontWeight:800,flexShrink:0
+              fontSize:10,fontWeight:800
             }}>${i+1}</div>
-            <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:14,color:"var(--c-obsidian)",letterSpacing:"-.3px"}}>${t.size}</div>
+            <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:14,color:"var(--t1)",letterSpacing:"-.3px"}}>${t.size}</div>
           </div>
           <div>
-            ${t.qty<=LOW_STOCK
-              ? html`<span style=${{background:"#fef2f2",color:"var(--c-ember)",padding:"4px 12px",borderRadius:999,fontSize:10,fontWeight:800}}>${t.qty===0?"OUT":"LOW "+t.qty}</span>`
-              : html`<span style=${{background:"var(--c-leaf)",color:"var(--c-forest)",padding:"4px 12px",borderRadius:999,fontSize:10,fontWeight:700}}>${t.qty} in stock</span>`}
+            ${t.qty===0
+              ? html`<span style=${{fontSize:10,fontWeight:800,color:"var(--t3)",background:"var(--s3)",padding:"3px 12px",borderRadius:999}}>OUT</span>`
+              : t.qty<=LOW_STOCK
+                ? html`<span style=${{fontSize:10,fontWeight:800,color:"var(--amber)",background:"var(--amber-bg)",padding:"3px 12px",borderRadius:999}}>LOW · ${t.qty}</span>`
+                : html`<span style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:12,color:"var(--t2)",fontWeight:700}}>${t.qty}</span>`}
           </div>
         </div>`)}
       </div>
@@ -1152,14 +1110,14 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory}) {
       <div class="section-label">Lead Sources</div>
       <div class="card"><div class="card-pad">
         ${sources.slice(0,6).map(([srcName,count])=>html`<div class="source-bar" key=${srcName}>
-          <div style=${{fontSize:12,fontWeight:600,color:"var(--c-smoke)",width:130,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>${srcName}</div>
+          <div style=${{fontSize:12,fontWeight:600,color:"var(--t2)",width:130,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>${srcName}</div>
           <div class="source-bar-track"><div class="source-bar-fill" style=${{width:((count/maxSrc)*100)+"%"}}/></div>
-          <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:11,color:"var(--c-ash)",width:20,textAlign:"right",flexShrink:0,fontWeight:700}}>${count}</div>
+          <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:11,color:"var(--t3)",width:20,textAlign:"right",flexShrink:0,fontWeight:700}}>${count}</div>
         </div>`)}
       </div></div>
     </div>`}
 
-    <div class="section-label">Recent</div>
+    <div class="section-label">Recent Jobs</div>
     ${recent.length>0?html`<div class="stack">${recent.map(job=>{
       const profit=jobGrossProfit(job,settings);
       const pg=profit>=70,po=profit>=40&&profit<70;
@@ -1168,14 +1126,14 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory}) {
         <div class="job-main">
           <div class="job-title">${job.service}</div>
           <div class="job-meta">${job.area} · ${job.date}${job.tireSize?" · "+job.tireSize:""}</div>
-          <div style=${{marginTop:6,display:"flex",gap:6,alignItems:"center"}}>
+          <div style=${{marginTop:7,display:"flex",gap:6}}>
             <span class=${"pill "+(pg?"green":po?"orange":"red")}>${money(profit)}</span>
             ${job.status==="Pending"&&html`<span class="pill gold">Pending</span>`}
           </div>
         </div>
         <div class="job-right">
-          <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:17,color:"var(--c-obsidian)",letterSpacing:"-.5px"}}>${money(job.revenue)}</div>
-          <div style=${{fontSize:10,color:"var(--c-ash)",marginTop:3}}>${job.payment}</div>
+          <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:18,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(job.revenue)}</div>
+          <div style=${{fontSize:10,color:"var(--t3)",marginTop:3}}>${job.payment}</div>
         </div>
       </div>`;
     })}</div>`:html`<${EmptyState} icon="🛞" title="No jobs yet" sub="Add your first job." action=${html`<button class="btn primary" onClick=${()=>setTab("add")}>Add First Job</button>`}/>`}
@@ -1328,35 +1286,35 @@ function History({jobs,settings,onRepeat,onDelete,onEdit}) {
   const handleDelete=id=>{if(!window.confirm("Delete this job?"))return; onDelete(id);};
   const markPaid=job=>{if(onEdit) onEdit({...job,status:"Completed",_markPaidOnly:true});};
 
-  const JobRow=({job})=>{
+    const JobRow=({job})=>{
     const profit=jobGrossProfit(job,settings);
     const pg=profit>=70,po=profit>=40&&profit<70;
     const profitCls=pg?"green":po?"orange":"red";
     const sendReview=()=>openReviewSMS(job.customerPhone,(settings.googleReviewUrl||"").trim(),job.customerName,job.service,job.area);
-    return html`<div style=${{background:"var(--c-white)",borderRadius:16,overflow:"hidden",boxShadow:"var(--shadow-card)",border:"1px solid rgba(0,0,0,.04)",marginBottom:0}}>
+    return html`<div style=${{background:"var(--s1)",borderRadius:16,overflow:"hidden",border:"1px solid var(--border2)",boxShadow:"var(--sh-card)"}}>
       <div style=${{padding:"15px 17px",display:"flex",alignItems:"flex-start",gap:12}}>
-        <div style=${{width:42,height:42,borderRadius:12,background:"var(--c-chalk)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:19}}>🛞</div>
+        <div style=${{width:42,height:42,borderRadius:12,background:"var(--s3)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:19}}>🛞</div>
         <div style=${{flex:1,minWidth:0}}>
-          <div style=${{fontSize:14,fontWeight:700,color:"var(--c-obsidian)",letterSpacing:"-.2px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>${job.service}</div>
-          <div style=${{fontSize:11,color:"var(--c-ash)",marginTop:2,lineHeight:1.6}}>${job.area} · ${job.date}${job.tireSize?" · "+job.tireSize:""}</div>
-          ${(job.customerName||job.customerPhone)&&html`<div style=${{fontSize:11,color:"var(--c-ash)",marginTop:1}}>👤 ${job.customerName||""}${job.customerPhone?" · "+job.customerPhone:""}</div>`}
-          <div style=${{marginTop:7,display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
+          <div style=${{fontSize:14,fontWeight:700,color:"var(--t1)",letterSpacing:"-.2px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>${job.service}</div>
+          <div style=${{fontSize:11,color:"var(--t3)",marginTop:2,lineHeight:1.6}}>${job.area} · ${job.date}${job.tireSize?" · "+job.tireSize:""}</div>
+          ${(job.customerName||job.customerPhone)&&html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:1}}>👤 ${job.customerName||""}${job.customerPhone?" · "+job.customerPhone:""}</div>`}
+          <div style=${{marginTop:7,display:"flex",gap:6,flexWrap:"wrap"}}>
             <span class=${"pill "+profitCls}>${money(profit)}</span>
-            ${job.emergency&&html`<span class="pill orange">🚨 Emergency</span>`}
-            ${job.lateNight&&html`<span class="pill gray">🌙 Late</span>`}
-            ${job.status==="Pending"&&html`<span class="pill gold">⏳ Pending</span>`}
+            ${job.emergency&&html`<span class="pill orange">🚨</span>`}
+            ${job.lateNight&&html`<span class="pill gray">🌙</span>`}
+            ${job.status==="Pending"&&html`<span class="pill gold">Pending</span>`}
           </div>
         </div>
         <div style=${{textAlign:"right",flexShrink:0}}>
-          <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:17,fontWeight:700,color:"var(--c-obsidian)",letterSpacing:"-.5px"}}>${money(job.revenue)}</div>
-          <div style=${{fontSize:10,color:"var(--c-ash)",marginTop:2}}>${job.payment}</div>
+          <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:18,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(job.revenue)}</div>
+          <div style=${{fontSize:10,color:"var(--t3)",marginTop:2}}>${job.payment}</div>
         </div>
       </div>
-      <div style=${{padding:"10px 17px 12px",borderTop:"1px solid var(--c-mist)",display:"flex",gap:6,flexWrap:"wrap",justifyContent:"flex-end"}}>
-        ${onEdit&&html`<button class="btn secondary xs" onClick=${()=>onEdit(job)} style=${{letterSpacing:".2px"}}>✏️ Edit</button>`}
-        <button class="btn secondary xs" onClick=${()=>onRepeat(job)}>🔁 Repeat</button>
-        <button class="btn primary xs" onClick=${()=>sendInvoice(job,settings)}>🧾 Invoice</button>
-        <button class="btn secondary xs" onClick=${sendReview}>⭐ Review</button>
+      <div style=${{padding:"10px 17px 12px",borderTop:"1px solid var(--border2)",display:"flex",gap:6,flexWrap:"wrap",justifyContent:"flex-end"}}>
+        ${onEdit&&html`<button class="btn secondary xs" onClick=${()=>onEdit(job)}>✏️ Edit</button>`}
+        <button class="btn secondary xs" onClick=${()=>onRepeat(job)}>🔁</button>
+        <button class="btn secondary xs" onClick=${()=>sendInvoice(job,settings)}>🧾</button>
+        <button class="btn secondary xs" onClick=${sendReview}>⭐</button>
         ${job.status==="Pending"&&html`<button class="btn success xs" onClick=${()=>markPaid(job)}>✓ Paid</button>`}
         ${job.customerPhone&&html`<button class="btn secondary xs" onClick=${()=>window.open("tel:"+job.customerPhone)}>📞</button>`}
         <button class="btn danger xs" onClick=${()=>handleDelete(job.id)}>×</button>
@@ -1365,17 +1323,12 @@ function History({jobs,settings,onRepeat,onDelete,onEdit}) {
   };
 
   return html`<div class="screen"><div class="page">
-    <div style=${{marginBottom:12}}>
+        <div style=${{marginBottom:12}}>
       <input value=${search} onChange=${e=>setSearch(e.target.value)}
-        placeholder="Search jobs, customers, sizes…"
-        style=${{
-          width:"100%",background:"var(--c-white)",
-          border:"1.5px solid var(--c-mist)",borderRadius:14,
-          padding:"14px 18px",outline:"none",fontSize:15,
-          color:"var(--c-obsidian)",boxShadow:"var(--shadow-card)"
-        }}
+        placeholder="Search jobs, tires, customers…"
+        style=${{width:"100%",background:"var(--s2)",border:"1px solid var(--border)",borderRadius:14,padding:"14px 18px",outline:"none",fontSize:15,color:"var(--t1)"}}
       />
-    </div>
+    </div></div>
     <div class="chip-row" style=${{marginBottom:10}}>
       ${["All","Repair","Replacement","Pending"].concat(cities).slice(0,9).map(c=>html`<button key=${c} class=${"chip"+(filter===c?" active":"")} onClick=${()=>setFilter(c)}>${c}</button>`)}
     </div>
@@ -1587,35 +1540,90 @@ function Inventory({inventory,setInventory,jobs}) {
   });
 
   return html`<div class="screen"><div class="page">
-    <div class="kpi-grid three" style=${{marginBottom:10}}>
-      <div class="kpi"><div class="kpi-label">Total Tires</div><div class="kpi-value">${totalQty}</div><div class="kpi-sub">${deduped.length} sizes</div></div>
-      <div class="kpi"><div class="kpi-label">Stock Value</div><div class="kpi-value">${money(totalValue)}</div><div class="kpi-sub">at cost</div></div>
-      <div class="kpi"><div class="kpi-label">Low Stock</div><div class=${'kpi-value '+(lowStock.length+outOfStock.length>0?'red':'green')}>${lowStock.length+outOfStock.length}</div><div class="kpi-sub">need reorder</div></div>
+
+    <!-- Summary strip -->
+    <div class="kpi-grid three">
+      <div class="kpi">
+        <div class="kpi-label">Total Tires</div>
+        <div class="kpi-value">${totalQty}</div>
+        <div class="kpi-sub">${deduped.length} sizes</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Stock Value</div>
+        <div class="kpi-value" style=${{fontSize:16}}>${money(totalValue)}</div>
+        <div class="kpi-sub">at cost</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Attention</div>
+        <div class="kpi-value" style=${{fontSize:20,color:outOfStock.length>0?"var(--amber)":"var(--t3)"}}>${outOfStock.length+lowStock.length}</div>
+        <div class="kpi-sub">need reorder</div>
+      </div>
     </div>
-    ${outOfStock.length>0&&html`<div style=${{background:'#fee2e2',border:'1px solid #fca5a5',borderRadius:14,padding:'10px 14px',marginBottom:8}}><div style=${{fontWeight:700,fontSize:12,color:'#b91c1c',marginBottom:4}}>🚫 Out of Stock (${outOfStock.length})</div><div style=${{fontSize:12,color:'#b91c1c',lineHeight:1.8}}>${outOfStock.map(i=>i.size||'Unnamed').join(' · ')}</div></div>`}
-    ${lowStock.length>0&&html`<div style=${{background:'#fff8f8',border:'1px solid #fca5a5',borderRadius:14,padding:'10px 14px',marginBottom:8}}><div style=${{fontWeight:700,fontSize:12,color:'#b91c1c',marginBottom:4}}>⚠️ Low Stock (${lowStock.length})</div><div style=${{fontSize:12,color:'#b91c1c',lineHeight:1.8}}>${lowStock.map(i=>i.size+' — '+i.qty).join(' · ')}</div></div>`}
+
+    <!-- Alerts — quiet, not red-dominated -->
+    ${(outOfStock.length>0||lowStock.length>0)&&html`<div style=${{background:"var(--s2)",border:"1px solid var(--border)",borderRadius:14,padding:"14px 18px",marginBottom:12}}>
+      ${outOfStock.length>0&&html`<div style=${{marginBottom:lowStock.length>0?10:0}}>
+        <div style=${{fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Out of Stock</div>
+        <div style=${{display:"flex",flexWrap:"wrap",gap:6}}>
+          ${outOfStock.map(i=>html`<span key=${i.id} style=${{background:"var(--s3)",color:"var(--t2)",padding:"4px 12px",borderRadius:999,fontSize:11,fontWeight:700}}>${i.size||"—"}</span>`)}
+        </div>
+      </div>`}
+      ${lowStock.length>0&&html`<div>
+        <div style=${{fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Low Stock</div>
+        <div style=${{display:"flex",flexWrap:"wrap",gap:6}}>
+          ${lowStock.map(i=>html`<span key=${i.id} style=${{background:"var(--amber-bg)",color:"var(--amber)",padding:"4px 12px",borderRadius:999,fontSize:11,fontWeight:700}}>${i.size} · ${i.qty}</span>`)}
+        </div>
+      </div>`}
+    </div>`}
+
+    <!-- Top 5 Best Sellers — premium insight section -->
     ${!search&&top5.length>0&&html`<div>
-      <div class="section-label">🔥 Top 5 Best Sellers</div>
-      <div class="card" style=${{marginBottom:12}}>
-        ${top5.map((t,idx)=>{ const inStock=inv.find(i=>i.size===t.size); const sq=inStock?Number(inStock.qty||0):0; const sc=sq===0?'#dc2626':sq<=2?'#ea580c':'#15803d'; return html`<div key=${t.size} class="card-row" style=${{padding:'12px 18px',alignItems:'center'}}>
-          <div style=${{display:'flex',alignItems:'center',gap:10,flex:1,minWidth:0}}>
-            <div style=${{width:24,height:24,borderRadius:7,background:'#111',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,flexShrink:0}}>${idx+1}</div>
-            <div style=${{minWidth:0}}>
-              <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:14,color:'#111'}}>${t.size}</div>
-              <div style=${{fontSize:11,color:'#bbb',marginTop:1}}>${t.jobs} job${t.jobs!==1?'s':''} · ${t.qtySold} sold</div>
+      <div class="section-label">Best Sellers — Insights</div>
+      <div class="card">
+        ${top5.map((t,i)=>{
+          const inStock=inv.find(x=>x.size===t.size);
+          const sq=inStock?Number(inStock.qty||0):0;
+          const isFirst=i===0;
+          return html`<div key=${t.size} style=${{
+            display:"flex",alignItems:"center",padding:"15px 20px",
+            borderBottom:i<top5.length-1?"1px solid var(--border2)":"none",
+            background:isFirst?"rgba(192,149,74,.04)":"transparent"
+          }}>
+            <div style=${{
+              width:28,height:28,borderRadius:9,flexShrink:0,marginRight:14,
+              background:isFirst?"var(--gold)":"var(--s3)",
+              color:isFirst?"var(--bg)":"var(--t3)",
+              display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:11,fontWeight:800
+            }}>${i+1}</div>
+            <div style=${{flex:1,minWidth:0}}>
+              <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15,color:"var(--t1)",letterSpacing:"-.3px"}}>${t.size}</div>
+              <div style=${{fontSize:11,color:"var(--t3)",marginTop:2}}>${t.jobs} job${t.jobs!==1?"s":""} · ${t.qtySold} sold</div>
             </div>
-          </div>
-          <div style=${{textAlign:'right',flexShrink:0}}>
-            <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:14,color:'#15803d'}}>${money(t.profit)}</div>
-            <div style=${{fontSize:11,color:sc,marginTop:1,fontWeight:700}}>${sq===0?'OUT':sq<=LOW_STOCK?sq+' left':sq+' in stock'}</div>
-          </div>
-        </div>`; })}
+            <div style=${{textAlign:"right"}}>
+              <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15,color:"var(--green)"}}>${money(t.profit)}</div>
+              <div style=${{fontSize:10,marginTop:2,fontWeight:700,color:sq===0?"var(--t3)":sq<=LOW_STOCK?"var(--amber)":"var(--t3)"}}>
+                ${sq===0?"out":sq<=LOW_STOCK?sq+" left":sq+" in stock"}
+              </div>
+            </div>
+          </div>`;
+        })}
       </div>
     </div>`}
-    <div style=${{display:'flex',gap:8,marginBottom:12}}>
-      <input value=${search} onChange=${e=>setSearch(e.target.value)} placeholder="🔍 Search tire size…" style=${{flex:1,border:'1.5px solid #e3e3e3',borderRadius:12,padding:'11px 14px',fontSize:15,outline:'none',background:'#fff'}}/>
-      <button class="btn primary" style=${{flexShrink:0,padding:'11px 18px',fontSize:14,borderRadius:12}} onClick=${add}>+ Add</button>
+
+    <!-- Search + Add row -->
+    <div style=${{display:"flex",gap:8,marginBottom:12}}>
+      <input value=${search} onChange=${e=>setSearch(e.target.value)}
+        placeholder="Search by tire size…"
+        style=${{
+          flex:1,background:"var(--s2)",border:"1px solid var(--border)",
+          borderRadius:12,padding:"13px 16px",fontSize:15,outline:"none",color:"var(--t1)"
+        }}
+      />
+      <button class="btn primary" style=${{flexShrink:0,padding:"13px 20px",fontSize:14,borderRadius:12}} onClick=${add}>+ Add</button>
     </div>
+
+    <!-- Inventory list -->
     ${sorted.length===0
       ? html`<${EmptyState} icon="🛞" title="No inventory" sub="Tap + Add to add a tire size."/>`
       : html`<div class="card">
@@ -1624,49 +1632,53 @@ function Inventory({inventory,setInventory,jobs}) {
           const qty=Number(item.qty||0);
           const isLow=qty>0&&qty<=LOW_STOCK, isOut=qty===0;
           const isPending=!(item.size||'').trim();
-          return html`<div key=${item.id} style=${{borderBottom:idx<sorted.length-1?'1px solid #f2f2f2':'none',background:isPending?'#fffbf0':''}}>
-            <div style=${{display:'flex',alignItems:'center',padding:'12px 16px',gap:10,cursor:'pointer'}} onClick=${()=>setEditId(isEditing?null:item.id)}>
+          return html`<div key=${item.id} style=${{borderBottom:idx<sorted.length-1?"1px solid var(--border2)":"none",background:isPending?"rgba(192,149,74,.04)":"transparent"}}>
+            <div style=${{display:"flex",alignItems:"center",padding:"14px 18px",gap:12,cursor:"pointer"}} onClick=${()=>setEditId(isEditing?null:item.id)}>
               <div style=${{flex:1,minWidth:0}}>
-                <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15,color:isPending?'#b45309':'#111'}}>
-                  ${isPending?html`<span style=${{fontSize:13,fontWeight:600}}>↑ Enter tire size below</span>`:item.size}
+                <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15,
+                  color:isPending?"var(--gold)":"var(--t1)",letterSpacing:"-.3px"
+                }}>
+                  ${isPending?html`<span style=${{fontSize:13,fontWeight:600}}>Enter tire size →</span>`:item.size}
                 </div>
-                ${item.cost>0&&html`<div style=${{fontSize:11,color:'#bbb',marginTop:1}}>Cost: ${money(item.cost)} · Value: ${money(qty*item.cost)}</div>`}
+                ${item.cost>0&&html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:2}}>Cost ${money(item.cost)} · Value ${money(qty*item.cost)}</div>`}
               </div>
-              ${bestSellers.includes(item.size||'')&&html`<span style=${{fontSize:10,fontWeight:700,background:'#fef9c3',color:'#854d0e',borderRadius:6,padding:'2px 7px',flexShrink:0}}>🔥</span>`}
-              ${isOut&&!isPending&&html`<span style=${{fontSize:10,fontWeight:800,background:'#fef2f2',color:'var(--c-ember)',borderRadius:999,padding:'3px 10px',letterSpacing:'.2px'}}>OUT</span>`}
-              ${isLow&&!isOut&&html`<span style=${{fontSize:10,fontWeight:800,background:'#fff7ed',color:'var(--c-amber)',borderRadius:999,padding:'3px 10px',letterSpacing:'.2px'}}>LOW</span>`}
-              <div style=${{display:'flex',alignItems:'center',background:'var(--c-chalk)',borderRadius:12,overflow:'hidden',flexShrink:0}} onClick=${e=>e.stopPropagation()}>
-                <button onClick=${()=>step(item.id,-1)} style=${{background:'none',border:'none',width:38,height:38,fontSize:22,fontWeight:700,color:'var(--c-smoke)',lineHeight:1}}>−</button>
-                <div style=${{width:36,textAlign:'center',fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:16,color:isOut?'var(--c-ember)':isLow?'var(--c-amber)':'var(--c-obsidian)'}}>${qty}</div>
-                <button onClick=${()=>step(item.id,1)} style=${{background:'none',border:'none',width:38,height:38,fontSize:22,fontWeight:700,color:'var(--c-smoke)',lineHeight:1}}>+</button>
+              ${bestSellers.includes(item.size||'')&&!isPending&&html`<span style=${{fontSize:9,fontWeight:800,background:"var(--gold-bg)",color:"var(--gold)",borderRadius:999,padding:"3px 10px",letterSpacing:".3px",flexShrink:0}}>BEST</span>`}
+              ${isOut&&!isPending&&html`<span style=${{fontSize:9,fontWeight:800,color:"var(--t3)",background:"var(--s3)",borderRadius:999,padding:"3px 10px",flexShrink:0}}>OUT</span>`}
+              ${isLow&&!isOut&&html`<span style=${{fontSize:9,fontWeight:800,color:"var(--amber)",background:"var(--amber-bg)",borderRadius:999,padding:"3px 10px",flexShrink:0}}>LOW</span>`}
+              <!-- Stepper -->
+              <div style=${{display:"flex",alignItems:"center",gap:0,background:"var(--s3)",borderRadius:10,overflow:"hidden",flexShrink:0}} onClick=${e=>e.stopPropagation()}>
+                <button onClick=${()=>step(item.id,-1)} style=${{background:"none",border:"none",width:36,height:36,fontSize:18,fontWeight:700,color:"var(--t2)",lineHeight:1}}>−</button>
+                <div style=${{width:32,textAlign:"center",fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15,color:isOut?"var(--t3)":isLow?"var(--amber)":"var(--t1)"}}>${qty}</div>
+                <button onClick=${()=>step(item.id,1)} style=${{background:"none",border:"none",width:36,height:36,fontSize:18,fontWeight:700,color:"var(--t2)",lineHeight:1}}>+</button>
               </div>
-              <div style=${{color:'#ccc',fontSize:12,width:14,textAlign:'center'}}>${isEditing?'▲':'▼'}</div>
+              <div style=${{color:"var(--t3)",fontSize:11,width:14,textAlign:"center"}}>${isEditing?"▲":"▼"}</div>
             </div>
-            ${isEditing&&html`<div style=${{padding:'0 18px 16px',display:'grid',gridTemplateColumns:'1fr 1fr auto',gap:10,alignItems:'end',background:'var(--c-chalk)',borderTop:'1px solid var(--c-mist)'}}>
+            ${isEditing&&html`<div style=${{padding:"0 18px 16px",display:"grid",gridTemplateColumns:"1fr 1fr auto",gap:10,alignItems:"end",background:"var(--s2)",borderTop:"1px solid var(--border2)"}}>
               <div>
-                <div style=${{fontSize:9,fontWeight:800,textTransform:'uppercase',letterSpacing:'.8px',color:'#bbb',marginBottom:6}}>Tire Size</div>
+                <div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Tire Size</div>
                 <input
                   autoFocus=${isPending}
                   value=${item.size}
                   onChange=${e=>update(item.id,{size:e.target.value})}
                   placeholder="e.g. 225/55R17"
-                  style=${{border:'1.5px solid '+(isPending?'#f0b429':'#e3e3e3'),borderRadius:10,padding:'10px 12px',fontSize:15,fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,outline:'none',width:'100%',background:isPending?'#fffbf0':'#fff'}}
+                  style=${{border:"1px solid "+(isPending?"var(--gold)":"var(--border)"),borderRadius:10,padding:"11px 13px",fontSize:15,fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,outline:"none",width:"100%",background:"var(--s1)",color:"var(--t1)"}}
                 />
               </div>
               <div>
-                <div style=${{fontSize:9,fontWeight:800,textTransform:'uppercase',letterSpacing:'.8px',color:'#bbb',marginBottom:6}}>Cost ($)</div>
-                <input value=${item.cost||''} type="number" min="0" onChange=${e=>update(item.id,{cost:Number(e.target.value||0)})} placeholder="0.00" style=${{border:'1.5px solid #e3e3e3',borderRadius:10,padding:'10px 12px',fontSize:14,outline:'none',width:'100%',background:'#fff'}}/>
+                <div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Cost ($)</div>
+                <input value=${item.cost||""} type="number" min="0" onChange=${e=>update(item.id,{cost:Number(e.target.value||0)})} placeholder="0.00" style=${{border:"1px solid var(--border)",borderRadius:10,padding:"11px 13px",fontSize:14,outline:"none",width:"100%",background:"var(--s1)",color:"var(--t1)"}}/>
               </div>
-              <button class="btn danger sm" style=${{alignSelf:'end',height:42}} onClick=${()=>remove(item.id)}>Remove</button>
-              <div style=${{gridColumn:'1/3'}}>
-                <div style=${{fontSize:9,fontWeight:800,textTransform:'uppercase',letterSpacing:'.8px',color:'#bbb',marginBottom:6}}>Notes</div>
-                <input value=${item.notes} onChange=${e=>update(item.id,{notes:e.target.value})} placeholder="Optional notes…" style=${{border:'1.5px solid #e3e3e3',borderRadius:10,padding:'10px 12px',fontSize:14,outline:'none',width:'100%',background:'#fff'}}/>
+              <button class="btn danger sm" style=${{alignSelf:"end",height:44}} onClick=${()=>remove(item.id)}>Remove</button>
+              <div style=${{gridColumn:"1/3"}}>
+                <div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Notes</div>
+                <input value=${item.notes} onChange=${e=>update(item.id,{notes:e.target.value})} placeholder="Optional" style=${{border:"1px solid var(--border)",borderRadius:10,padding:"11px 13px",fontSize:14,outline:"none",width:"100%",background:"var(--s1)",color:"var(--t1)"}}/>
               </div>
-              <button class="btn secondary sm" style=${{height:42}} onClick=${()=>setEditId(null)}>Done ✓</button>
+              <button class="btn secondary sm" style=${{height:44}} onClick=${()=>setEditId(null)}>Done ✓</button>
             </div>`}
           </div>`;
         })}
       </div>`}
+
   </div></div>`;
 }
 
