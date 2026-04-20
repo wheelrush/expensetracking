@@ -2049,7 +2049,7 @@ function App() {
   const [user,setUser]       = useState(null);
   const [authReady,setAuthReady] = useState(false);
   const [syncStatus,setSyncStatus] = useState("local");
-  const [jobs,setJobs]       = useState(()=>load(KEYS.jobs,[]));
+  const [jobs,setJobs]       = useState(()=>{const r=load(KEYS.jobs,[]);return Array.isArray(r)?r:[];});
   const [settings,setSettings] = useState(()=>{
     const raw = load(KEYS.settings, {});
     const merged = {...DEFAULT_SETTINGS, ...raw};
@@ -2091,13 +2091,14 @@ function App() {
   useEffect(()=>{
     if(!user){setSyncStatus("local");return;}
     setSyncStatus("syncing");
-    const u1=fbListen(jobCol(),docs=>{setJobs(docs);persist(KEYS.jobs,docs);setSyncStatus("connected");});
+    const u1=fbListen(jobCol(),docs=>{const arr=Array.isArray(docs)?docs:[];setJobs(arr);persist(KEYS.jobs,arr);setSyncStatus("connected");});
     const u2=fbListen(invCol(),docs=>{
-      if(docs.length>0){
+      const docArr=Array.isArray(docs)?docs:[];
+      if(docArr.length>0){
         setInventory(prev=>{
           // Keep any blank/pending rows that exist in current local state
-          const blankRows=(prev||[]).filter(i=>!(i.size||"").trim());
-          const fbItems=docs.filter(d=>(d.size||"").trim()).map(sanitizeInvItem);
+          const blankRows=(Array.isArray(prev)?prev:[]).filter(i=>!(i.size||"").trim());
+          const fbItems=docArr.filter(d=>(d.size||"").trim()).map(sanitizeInvItem);
           const deduped=dedupeInventory(fbItems);
           const merged=[...blankRows,...deduped];
           persist(KEYS.inventory,merged);
@@ -2106,7 +2107,7 @@ function App() {
         setSyncStatus("connected");
       }
     });
-    const u3=fbListen(expCol(),docs=>{setExpenses(Array.isArray(docs)?docs:[]);persist(KEYS.expenses,docs);});
+    const u3=fbListen(expCol(),docs=>{const arr=Array.isArray(docs)?docs:[];setExpenses(arr);persist(KEYS.expenses,arr);});
     let u4=()=>{};
     if(settingDoc()){
       u4=settingDoc().onSnapshot(snap=>{
