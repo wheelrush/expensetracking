@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Wheel Rush" />
-  <meta name="theme-color" content="#111111" />
+  <meta name="theme-color" content="#0a0a0f" />
   <title>Wheel Rush — Business Tracker</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="./icon.png">
@@ -15,39 +15,40 @@
   <link rel="apple-touch-icon" sizes="180x180" href="./icon.png">
   <link rel="manifest" href="./manifest.json">
 <style>
-  /* ═══════════════════════════════════════════════════════════════
-     WHEEL RUSH — PREMIUM OPERATOR OS  v10 (Pro Edition)
-     Premium dark · Blue accent · Orange CTA · Animated · Pro Dashboard
-     ═══════════════════════════════════════════════════════════════ */
   :root {
-    --bg:       #0a0a0f;
-    --s1:       #13131a;
-    --s2:       #1c1c26;
-    --s3:       #242432;
-    --s4:       #2e2e40;
-    --border:   rgba(255,255,255,.06);
-    --border2:  rgba(255,255,255,.03);
+    --bg:          #0a0a0f;
+    --s1:          #13131a;
+    --s2:          #1c1c26;
+    --s3:          #242432;
+    --s4:          #2e2e40;
+    --border:      rgba(255,255,255,.06);
+    --border2:     rgba(255,255,255,.03);
     --t1: #f0f0fa;
     --t2: #8888a8;
     --t3: #44445a;
-    --blue:     #4f8ef7;
-    --blue-dim: rgba(79,142,247,.12);
-    --blue-glow:rgba(79,142,247,.25);
-    --orange:   #ff7d3b;
-    --orange-dim:rgba(255,125,59,.12);
-    --orange-glow:rgba(255,125,59,.3);
-    --green:    #22c55e;
-    --green-dim:rgba(34,197,94,.12);
-    --red:      #ef4444;
-    --red-dim:  rgba(239,68,68,.10);
-    --amber:    #f59e0b;
-    --amber-dim:rgba(245,158,11,.10);
-    --gold:     #c8a44a;
-    --gold-dim: rgba(200,164,74,.12);
-    --r1: 22px;
-    --r2: 16px;
-    --r3: 12px;
-    --r4: 8px;
+    --blue:        #4f8ef7;
+    --blue-dim:    rgba(79,142,247,.12);
+    --blue-glow:   rgba(79,142,247,.25);
+    --orange:      #ff7d3b;
+    --orange-dim:  rgba(255,125,59,.12);
+    --orange-glow: rgba(255,125,59,.3);
+    --green:       #22c55e;
+    --green-dim:   rgba(34,197,94,.12);
+    --red:         #ef4444;
+    --red-dim:     rgba(239,68,68,.10);
+    --red-bg:      rgba(239,68,68,.10);
+    --amber:       #f59e0b;
+    --amber-dim:   rgba(245,158,11,.10);
+    --amber-bg:    rgba(245,158,11,.10);
+    --gold:        #c8a44a;
+    --gold-dim:    rgba(200,164,74,.12);
+    --gold-bg:     rgba(200,164,74,.12);
+    --r1:   22px;
+    --r2:   16px;
+    --r3:   12px;
+    --r4:   8px;
+    --r-sm: 12px;
+    --r-xs: 8px;
     --sh-card:  0 1px 0 rgba(255,255,255,.04) inset, 0 4px 24px rgba(0,0,0,.5);
     --sh-hero:  0 0 0 1px rgba(79,142,247,.2), 0 8px 40px rgba(79,142,247,.15);
     --sh-cta:   0 0 0 1px rgba(255,125,59,.25), 0 8px 32px rgba(255,125,59,.2);
@@ -58,78 +59,32 @@
   input,select,textarea,button { font-family:"IBM Plex Sans",sans-serif; }
   input,select,textarea { font-size:16px !important; color:var(--t1); }
   button { cursor:pointer; }
-  .app    { height:100%; display:flex; flex-direction:column; }
+  .app { height:100%; display:flex; flex-direction:column; }
   .screen { flex:1; overflow:auto; -webkit-overflow-scrolling:touch; background:var(--bg); }
-  .page   { padding:20px 16px calc(120px + env(safe-area-inset-bottom)); }
+  .page { padding:20px 16px calc(120px + env(safe-area-inset-bottom)); }
 
-  /* ══ PREMIUM ANIMATIONS ══════════════════════════════════════════ */
-  @keyframes fadeSlideUp {
-    from { opacity:0; transform:translateY(16px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-  @keyframes fadeSlideIn {
-    from { opacity:0; transform:translateX(-12px); }
-    to   { opacity:1; transform:translateX(0); }
-  }
-  @keyframes scaleIn {
-    from { opacity:0; transform:scale(.92); }
-    to   { opacity:1; transform:scale(1); }
-  }
-  @keyframes shimmer {
-    0%   { background-position:-200% center; }
-    100% { background-position:200% center; }
-  }
-  @keyframes ringPulse {
-    0%,100% { filter:drop-shadow(0 0 3px currentColor); }
-    50%     { filter:drop-shadow(0 0 10px currentColor); }
-  }
-  @keyframes countUp {
-    from { opacity:0; transform:translateY(8px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-  @keyframes heroGlow {
-    0%,100% { opacity:.6; }
-    50%     { opacity:1; }
-  }
-  @keyframes confettiDrop {
-    0%   { transform:translateY(-20px) rotate(0deg); opacity:1; }
-    100% { transform:translateY(100px) rotate(360deg); opacity:0; }
-  }
-  @keyframes tickerScroll {
-    0%   { transform:translateY(100%); opacity:0; }
-    15%  { transform:translateY(0); opacity:1; }
-    85%  { transform:translateY(0); opacity:1; }
-    100% { transform:translateY(-100%); opacity:0; }
-  }
-  @keyframes gradientShift {
-    0%   { background-position:0% 50%; }
-    50%  { background-position:100% 50%; }
-    100% { background-position:0% 50%; }
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-  @keyframes logoPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.55;transform:scale(.94)} }
+  @keyframes fadeSlideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeSlideIn { from{opacity:0;transform:translateX(-12px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes scaleIn    { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
+  @keyframes shimmer    { 0%{background-position:-200% center} 100%{background-position:200% center} }
+  @keyframes heroGlow   { 0%,100%{opacity:.6} 50%{opacity:1} }
+  @keyframes countUp    { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pulse      { 0%,100%{opacity:1} 50%{opacity:.3} }
+  @keyframes logoPulse  { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.55;transform:scale(.94)} }
   .syncing    { animation:pulse 1.4s infinite; }
   .logo-pulse { animation:logoPulse 2s ease-in-out infinite; }
-
-  /* Page transition wrapper */
-  .page-enter { animation: fadeSlideUp .35s cubic-bezier(.4,0,.2,1) both; }
-
-  /* Card entrance stagger */
-  .card-anim { animation: fadeSlideUp .4s cubic-bezier(.4,0,.2,1) both; }
-  .card-anim:nth-child(1) { animation-delay:.05s; }
-  .card-anim:nth-child(2) { animation-delay:.1s; }
-  .card-anim:nth-child(3) { animation-delay:.15s; }
-  .card-anim:nth-child(4) { animation-delay:.2s; }
-  .card-anim:nth-child(5) { animation-delay:.25s; }
-  .card-anim:nth-child(6) { animation-delay:.3s; }
-
-  /* Micro-interactions */
-  .press-scale { transition:transform .1s, opacity .1s; }
+  .page-enter { animation:fadeSlideUp .35s cubic-bezier(.4,0,.2,1) both; }
+  .card-anim  { animation:fadeSlideUp .4s cubic-bezier(.4,0,.2,1) both; }
+  .card-anim:nth-child(1){animation-delay:.05s}
+  .card-anim:nth-child(2){animation-delay:.1s}
+  .card-anim:nth-child(3){animation-delay:.15s}
+  .card-anim:nth-child(4){animation-delay:.2s}
+  .card-anim:nth-child(5){animation-delay:.25s}
+  .card-anim:nth-child(6){animation-delay:.3s}
+  .press-scale { transition:transform .1s,opacity .1s; }
   .press-scale:active { transform:scale(.96); opacity:.85; }
-
-  /* Shimmer loader */
   .shimmer-text {
-    background:linear-gradient(90deg, var(--t1) 25%, var(--orange) 50%, var(--t1) 75%);
+    background:linear-gradient(90deg,var(--t1) 25%,var(--orange) 50%,var(--t1) 75%);
     background-size:200% auto;
     -webkit-background-clip:text; background-clip:text;
     -webkit-text-fill-color:transparent;
@@ -138,62 +93,44 @@
 
   /* ── Header ── */
   .header-compact {
-    background: linear-gradient(180deg, #16161f 0%, #0f0f17 100%);
-    padding: 12px 18px;
-    padding-top: calc(12px + env(safe-area-inset-top));
+    background:linear-gradient(180deg,#16161f 0%,#0f0f17 100%);
+    padding:12px 18px; padding-top:calc(12px + env(safe-area-inset-top));
     display:flex; align-items:center; justify-content:space-between; gap:12px;
-    flex-shrink:0;
-    border-bottom: 1px solid var(--border);
-    box-shadow: 0 1px 0 rgba(79,142,247,.1);
+    flex-shrink:0; border-bottom:1px solid var(--border);
+    box-shadow:0 1px 0 rgba(79,142,247,.1);
   }
   .header-compact h1 { font-size:16px; font-weight:700; letter-spacing:-.4px; color:var(--t1); }
   .header-compact p  { font-size:10px; color:var(--t3); margin-top:2px; }
 
-  /* ══ PRO DASHBOARD HERO ══════════════════════════════════════════ */
+  /* ── Pro Hero ── */
   .pro-hero {
-    background: linear-gradient(145deg, #12121e 0%, #0d1020 40%, #101828 100%);
-    border:1px solid rgba(79,142,247,.15);
-    border-radius:var(--r1); padding:24px 22px;
+    background:linear-gradient(145deg,#12121e 0%,#0d1020 40%,#101828 100%);
+    border:1px solid rgba(79,142,247,.15); border-radius:var(--r1); padding:24px 22px;
     position:relative; overflow:hidden;
-    box-shadow: 0 0 0 1px rgba(79,142,247,.08), 0 12px 48px rgba(0,0,0,.6), 0 0 80px rgba(79,142,247,.06);
+    box-shadow:0 0 0 1px rgba(79,142,247,.08),0 12px 48px rgba(0,0,0,.6),0 0 80px rgba(79,142,247,.06);
     margin-bottom:16px;
   }
   .pro-hero::before {
-    content:''; position:absolute;
-    top:-60px; right:-40px; width:220px; height:220px;
-    background:radial-gradient(circle, rgba(79,142,247,.1) 0%, transparent 65%);
+    content:''; position:absolute; top:-60px; right:-40px; width:220px; height:220px;
+    background:radial-gradient(circle,rgba(79,142,247,.1) 0%,transparent 65%);
     pointer-events:none; animation:heroGlow 4s ease-in-out infinite;
   }
   .pro-hero::after {
-    content:''; position:absolute;
-    bottom:-40px; left:-30px; width:160px; height:160px;
-    background:radial-gradient(circle, rgba(34,197,94,.06) 0%, transparent 65%);
+    content:''; position:absolute; bottom:-40px; left:-30px; width:160px; height:160px;
+    background:radial-gradient(circle,rgba(34,197,94,.06) 0%,transparent 65%);
     pointer-events:none;
   }
-
-  /* Revenue ticker */
   .revenue-ticker {
-    font-family:"IBM Plex Mono",monospace;
-    font-size:38px; font-weight:700; letter-spacing:-2px;
-    line-height:1; color:var(--t1);
-    text-shadow:0 0 30px rgba(255,255,255,.1);
+    font-family:"IBM Plex Mono",monospace; font-size:38px; font-weight:700;
+    letter-spacing:-2px; line-height:1; color:var(--t1);
     animation:countUp .6s cubic-bezier(.4,0,.2,1) both;
   }
   .revenue-ticker .currency { font-size:22px; color:var(--t2); font-weight:600; }
-
-  /* Progress Ring */
   .progress-ring { position:relative; display:inline-flex; align-items:center; justify-content:center; }
   .progress-ring svg { transform:rotate(-90deg); }
-  .progress-ring-bg { fill:none; stroke:var(--s4); }
-  .progress-ring-fill {
-    fill:none; stroke-linecap:round;
-    transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);
-    filter:drop-shadow(0 0 6px currentColor);
-  }
-  .progress-ring-label {
-    position:absolute; inset:0;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-  }
+  .progress-ring-bg   { fill:none; stroke:var(--s4); }
+  .progress-ring-fill { fill:none; stroke-linecap:round; transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1); filter:drop-shadow(0 0 6px currentColor); }
+  .progress-ring-label { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 
   /* ── Section labels ── */
   .section-label {
@@ -202,87 +139,45 @@
   }
   .section-label:first-child { margin-top:0; }
 
-  /* ── Card system ── */
-  .card {
-    background:var(--s1); border-radius:var(--r1); overflow:hidden;
-    box-shadow:var(--sh-card); border:1px solid var(--border); margin-bottom:12px;
-    transition:transform .2s, box-shadow .2s;
-  }
-  .card:hover { box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 8px 32px rgba(0,0,0,.6); }
-  .card-pad  { padding:18px 20px; }
-  .card-row  { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:15px 20px; border-bottom:1px solid var(--border2); }
+  /* ── Cards ── */
+  .card { background:var(--s1); border-radius:var(--r1); overflow:hidden; box-shadow:var(--sh-card); border:1px solid var(--border); margin-bottom:12px; }
+  .card-pad { padding:18px 20px; }
+  .card-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:15px 20px; border-bottom:1px solid var(--border2); }
   .card-row:last-child { border-bottom:none; }
 
-  /* ── Hero CTA ── */
-  .hero-cta {
-    background: linear-gradient(135deg, #1a1a28 0%, #14141e 100%);
-    border:1px solid rgba(79,142,247,.2);
-    border-radius:var(--r1); padding:20px;
-    box-shadow:var(--sh-hero);
-    margin-bottom:14px;
-    position:relative; overflow:hidden;
-  }
-  .hero-cta::before {
-    content:''; position:absolute;
-    top:-40px; right:-40px; width:180px; height:180px;
-    background:radial-gradient(circle, rgba(79,142,247,.12) 0%, transparent 70%);
-    pointer-events:none;
-  }
-
-  /* ── Orange action button / CTA ── */
-  .cta-btn {
-    background: linear-gradient(135deg, #ff8c4b 0%, #ff6420 100%);
-    color:#fff; border:none; border-radius:var(--r3);
-    padding:15px 22px; font-size:15px; font-weight:800;
-    letter-spacing:-.2px; box-shadow:var(--sh-cta);
-    transition:opacity .15s, transform .15s, box-shadow .15s;
-    display:flex; align-items:center; gap:8px; justify-content:center;
-    width:100%;
-  }
-  .cta-btn:active { opacity:.85; transform:scale(.97); box-shadow:0 0 0 1px rgba(255,125,59,.4), 0 4px 16px rgba(255,125,59,.3); }
+  /* ── CTA ── */
+  .hero-cta { background:linear-gradient(135deg,#1a1a28 0%,#14141e 100%); border:1px solid rgba(79,142,247,.2); border-radius:var(--r1); padding:20px; box-shadow:var(--sh-hero); margin-bottom:14px; position:relative; overflow:hidden; }
+  .hero-cta::before { content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px; background:radial-gradient(circle,rgba(79,142,247,.12) 0%,transparent 70%); pointer-events:none; }
+  .cta-btn { background:linear-gradient(135deg,#ff8c4b 0%,#ff6420 100%); color:#fff; border:none; border-radius:var(--r3); padding:15px 22px; font-size:15px; font-weight:800; letter-spacing:-.2px; box-shadow:var(--sh-cta); transition:opacity .15s,transform .15s; display:flex; align-items:center; gap:8px; justify-content:center; width:100%; }
+  .cta-btn:active { opacity:.85; transform:scale(.97); }
 
   /* ── KPI grids ── */
-  .kpi-grid {
-    display:grid; grid-template-columns:1fr 1fr;
-    gap:1px; background:var(--border);
-    border-radius:var(--r1); overflow:hidden; margin-bottom:12px;
-    box-shadow:var(--sh-card);
-  }
+  .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border-radius:var(--r1); overflow:hidden; margin-bottom:12px; box-shadow:var(--sh-card); }
   .kpi-grid.three { grid-template-columns:1fr 1fr 1fr; }
   .kpi { background:var(--s1); padding:17px 16px 15px; }
   .kpi-label { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--t3); margin-bottom:8px; }
   .kpi-value { font-family:"IBM Plex Mono",monospace; font-size:20px; font-weight:700; line-height:1; letter-spacing:-.8px; color:var(--t1); }
-  .kpi-value.green  { color:var(--green); }
-  .kpi-value.red    { color:var(--red); }
-  .kpi-value.blue   { color:var(--blue); }
-  .kpi-sub  { font-size:10px; color:var(--t3); margin-top:6px; font-weight:500; }
+  .kpi-value.green { color:var(--green); }
+  .kpi-value.red   { color:var(--red); }
+  .kpi-value.blue  { color:var(--blue); }
+  .kpi-sub { font-size:10px; color:var(--t3); margin-top:6px; font-weight:500; }
 
-  /* ── Mini stat strip ── */
-  .mini-grid {
-    display:grid; grid-template-columns:repeat(4,1fr);
-    gap:1px; background:var(--border);
-    border-radius:var(--r1); overflow:hidden; margin-bottom:12px;
-    box-shadow:var(--sh-card);
-  }
+  /* ── Mini stat ── */
+  .mini-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border-radius:var(--r1); overflow:hidden; margin-bottom:12px; box-shadow:var(--sh-card); }
   .mini-box { background:var(--s1); padding:15px 8px; text-align:center; }
   .mini-box strong { display:block; font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:700; color:var(--t1); letter-spacing:-.3px; }
   .mini-box span   { display:block; font-size:8px; color:var(--t3); text-transform:uppercase; letter-spacing:.8px; margin-top:5px; font-weight:700; }
 
-  /* ── Goal track ── */
+  /* ── Goal ── */
   .goal-track { height:3px; background:var(--s4); border-radius:999px; overflow:hidden; margin:14px 0 8px; }
   .goal-fill  { height:100%; border-radius:999px; transition:width .7s cubic-bezier(.4,0,.2,1); }
-  .goal-fill.full  { background:var(--green); box-shadow:0 0 8px var(--green); }
-  .goal-fill.mid   { background:var(--blue);  box-shadow:0 0 8px var(--blue-glow); }
-  .goal-fill.low   { background:var(--amber); }
+  .goal-fill.full { background:var(--green); box-shadow:0 0 8px var(--green); }
+  .goal-fill.mid  { background:var(--blue);  box-shadow:0 0 8px var(--blue-glow); }
+  .goal-fill.low  { background:var(--amber); }
 
-  /* ── Stack / job rows ── */
+  /* ── Job rows ── */
   .stack { display:grid; gap:10px; }
-  .job-row {
-    background:var(--s1); border-radius:var(--r2); padding:15px 17px;
-    display:flex; align-items:flex-start; gap:13px;
-    box-shadow:var(--sh-card); border:1px solid var(--border);
-    transition:transform .15s, box-shadow .15s;
-  }
+  .job-row { background:var(--s1); border-radius:var(--r2); padding:15px 17px; display:flex; align-items:flex-start; gap:13px; box-shadow:var(--sh-card); border:1px solid var(--border); transition:transform .15s; }
   .job-row:active { transform:scale(.985); }
   .job-icon  { width:42px; height:42px; border-radius:12px; background:var(--s3); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px; }
   .job-main  { flex:1; min-width:0; }
@@ -291,22 +186,17 @@
   .job-right { text-align:right; flex-shrink:0; }
 
   /* ── Pending banner ── */
-  .pending-banner {
-    background:var(--gold-dim); border:1px solid rgba(200,164,74,.2);
-    border-radius:var(--r2); padding:15px 18px; margin-bottom:12px;
-    display:flex; justify-content:space-between; align-items:center;
-    box-shadow:0 0 20px rgba(200,164,74,.08);
-  }
+  .pending-banner { background:var(--gold-dim); border:1px solid rgba(200,164,74,.2); border-radius:var(--r2); padding:15px 18px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
   .pending-banner-title { font-size:13px; font-weight:700; color:var(--gold); }
   .pending-banner-sub   { font-size:11px; color:rgba(200,164,74,.6); margin-top:3px; font-weight:600; }
 
   /* ── Source bars ── */
-  .source-bar         { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border2); }
+  .source-bar           { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border2); }
   .source-bar:last-child { border-bottom:none; }
-  .source-bar-track   { flex:1; height:2px; background:var(--s4); border-radius:999px; overflow:hidden; }
-  .source-bar-fill    { height:100%; background:var(--blue); border-radius:999px; box-shadow:0 0 6px var(--blue-glow); transition:width .8s cubic-bezier(.4,0,.2,1); }
+  .source-bar-track     { flex:1; height:2px; background:var(--s4); border-radius:999px; overflow:hidden; }
+  .source-bar-fill      { height:100%; background:var(--blue); border-radius:999px; box-shadow:0 0 6px var(--blue-glow); transition:width .8s cubic-bezier(.4,0,.2,1); }
 
-  /* ── Typography helpers ── */
+  /* ── Typography ── */
   .label { font-size:11px; color:var(--t2); font-weight:500; }
   .sub   { font-size:11px; color:var(--t3); font-weight:500; }
   .mono  { font-family:"IBM Plex Mono",monospace; }
@@ -315,8 +205,8 @@
   .value.green  { color:var(--green); }
   .value.red    { color:var(--red); }
   .value.orange { color:var(--orange); }
-  .sub.green    { color:var(--green); font-weight:700; }
-  .sub.red      { color:var(--red);   font-weight:700; }
+  .sub.green    { color:var(--green);  font-weight:700; }
+  .sub.red      { color:var(--red);    font-weight:700; }
   .sub.orange   { color:var(--orange); font-weight:700; }
 
   /* ── Pills ── */
@@ -331,12 +221,8 @@
   /* ── Fields ── */
   .field { margin-bottom:14px; }
   .field label { display:block; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:var(--t2); margin-bottom:8px; }
-  .field input, .field select, .field textarea {
-    width:100%; border:1px solid var(--border); background:var(--s3);
-    border-radius:var(--r3); padding:13px 15px; outline:none;
-    transition:border-color .15s, box-shadow .15s; color:var(--t1);
-  }
-  .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim); }
+  .field input,.field select,.field textarea { width:100%; border:1px solid var(--border); background:var(--s3); border-radius:var(--r3); padding:13px 15px; outline:none; transition:border-color .15s,box-shadow .15s; color:var(--t1); }
+  .field input:focus,.field select:focus,.field textarea:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim); }
   .field select option { background:var(--s2); color:var(--t1); }
   .field textarea { min-height:72px; resize:vertical; }
   .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
@@ -344,24 +230,19 @@
   /* ── Chips ── */
   .chip-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:2px; }
   .chip { border:1px solid var(--border); background:var(--s3); border-radius:999px; padding:8px 14px; font-size:12px; font-weight:700; color:var(--t2); transition:all .15s; }
-  .chip.active { background:var(--blue-dim); color:var(--blue); border-color:rgba(79,142,247,.3); transform:scale(1.03); }
+  .chip.active { background:var(--blue-dim); color:var(--blue); border-color:rgba(79,142,247,.3); }
   .chip.sm { padding:6px 12px; font-size:11px; }
 
   /* ── City ── */
-  .city-input-wrap  { position:relative; }
-  .city-dropdown    { position:absolute; top:calc(100%+6px); left:0; right:0; background:var(--s2); border:1px solid var(--border); border-radius:var(--r2); box-shadow:var(--sh-float); z-index:200; max-height:240px; overflow-y:auto; animation:fadeSlideUp .2s ease; }
-  .city-option      { padding:13px 16px; font-size:14px; border-bottom:1px solid var(--border2); cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--t1); transition:background .1s; }
+  .city-input-wrap { position:relative; }
+  .city-dropdown   { position:absolute; top:calc(100% + 6px); left:0; right:0; background:var(--s2); border:1px solid var(--border); border-radius:var(--r2); box-shadow:var(--sh-float); z-index:200; max-height:240px; overflow-y:auto; animation:fadeSlideUp .2s ease; }
+  .city-option     { padding:13px 16px; font-size:14px; border-bottom:1px solid var(--border2); cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--t1); }
   .city-option:last-child { border-bottom:none; }
   .city-option:active { background:var(--s3); }
-  .city-section-head{ padding:8px 16px 4px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--t3); background:var(--s3); }
+  .city-section-head { padding:8px 16px 4px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--t3); background:var(--s3); }
 
   /* ── Quick quote ── */
-  .quote-box {
-    background: linear-gradient(135deg, var(--s2) 0%, #181824 100%);
-    border-radius:var(--r1); padding:18px; margin-bottom:14px;
-    border:1px solid rgba(79,142,247,.15);
-    box-shadow: 0 0 0 1px rgba(79,142,247,.06), var(--sh-card);
-  }
+  .quote-box { background:linear-gradient(135deg,var(--s2) 0%,#181824 100%); border-radius:var(--r1); padding:18px; margin-bottom:14px; border:1px solid rgba(79,142,247,.15); box-shadow:0 0 0 1px rgba(79,142,247,.06),var(--sh-card); }
   .qq-suggested       { text-align:center; padding:14px 10px 12px; border-bottom:1px solid var(--border2); }
   .qq-suggested-label { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1.4px; color:var(--t3); margin-bottom:6px; }
   .qq-suggested-price { font-family:"IBM Plex Mono",monospace; font-size:42px; font-weight:700; color:var(--t1); line-height:1; letter-spacing:-2px; animation:countUp .4s ease both; }
@@ -369,34 +250,30 @@
   .qq-dec-badge.take  { background:var(--green-dim); color:var(--green); }
   .qq-dec-badge.raise { background:var(--amber-dim); color:var(--amber); }
   .qq-dec-badge.low   { background:var(--red-dim);   color:var(--red); }
-  .qq-apply-row       { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:12px; }
-  .qq-apply-btn       { border:none; border-radius:var(--r3); padding:10px 4px; font-size:11px; font-weight:800; cursor:pointer; line-height:1.3; transition:all .15s; }
-  .qq-apply-btn:active{ opacity:.75; transform:scale(.95); }
+  .qq-apply-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:12px; }
+  .qq-apply-btn { border:none; border-radius:var(--r3); padding:10px 4px; font-size:11px; font-weight:800; cursor:pointer; line-height:1.3; transition:all .15s; }
+  .qq-apply-btn:active { opacity:.75; transform:scale(.95); }
   .qq-apply-btn.suggested { background:var(--green-dim); color:var(--green); border:1px solid rgba(34,197,94,.2); }
   .qq-apply-btn.premium   { background:var(--orange-dim);color:var(--orange);border:1px solid rgba(255,125,59,.2); }
   .qq-apply-btn.custom    { background:var(--s3); color:var(--t2); border:1px solid var(--border); }
   .qq-apply-btn.active-sel{ outline:1.5px solid currentColor; outline-offset:2px; }
 
-  /* ── Src / pay grids ── */
+  /* ── Src / Pay ── */
   .src-grid { display:flex; flex-wrap:wrap; gap:7px; margin-top:4px; }
   .src-btn  { border:1px solid var(--border); background:var(--s3); border-radius:var(--r3); padding:9px 12px; font-size:12px; font-weight:700; color:var(--t2); transition:all .15s; display:flex; align-items:center; gap:5px; }
-  .src-btn.active { background:var(--blue-dim); color:var(--blue); border-color:rgba(79,142,247,.3); transform:scale(1.03); }
+  .src-btn.active { background:var(--blue-dim); color:var(--blue); border-color:rgba(79,142,247,.3); }
   .pay-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:4px; }
   .pay-btn  { border:1px solid var(--border); border-radius:var(--r2); padding:11px 4px; background:var(--s3); display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; font-weight:700; color:var(--t2); transition:all .15s; }
-  .pay-btn.active { background:var(--blue-dim); color:var(--blue); border-color:rgba(79,142,247,.3); transform:scale(1.03); }
+  .pay-btn.active { background:var(--blue-dim); color:var(--blue); border-color:rgba(79,142,247,.3); }
   .pay-btn .pay-icon { font-size:18px; }
 
   /* ── Sticky save ── */
   .sticky-save {
     position:sticky; bottom:0; left:0; right:0;
-    background:linear-gradient(180deg, rgba(10,10,15,.0) 0%, #0a0a0f 12px);
-    padding:0 16px 0; padding-bottom:calc(0px + env(safe-area-inset-bottom));
+    background:var(--bg); border-top:1px solid var(--border);
+    padding:13px 16px; padding-bottom:calc(13px + env(safe-area-inset-bottom));
     display:grid; grid-template-columns:1fr 1fr; gap:10px;
-    z-index:50; padding-top:0;
-  }
-  .sticky-save::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:1px;
-    background:var(--border);
+    z-index:50; box-shadow:0 -8px 32px rgba(0,0,0,.6);
   }
 
   /* ── Buttons ── */
@@ -406,11 +283,11 @@
   .btn.secondary { background:var(--s3); color:var(--t2); border:1px solid var(--border); }
   .btn.sm  { padding:9px 14px; font-size:12px; border-radius:var(--r4); }
   .btn.xs  { padding:6px 10px; font-size:11px; border-radius:7px; font-weight:700; }
-  .btn.danger  { background:var(--red-dim);   color:var(--red); }
-  .btn.success { background:var(--green-dim); color:var(--green); }
-  .btn.blue    { background:var(--blue-dim);  color:var(--blue); }
-  .btn.orange  { background:var(--orange-dim);color:var(--orange); }
-  .btn.gold    { background:var(--gold-dim);  color:var(--gold); }
+  .btn.danger  { background:var(--red-dim);    color:var(--red); }
+  .btn.success { background:var(--green-dim);  color:var(--green); }
+  .btn.blue    { background:var(--blue-dim);   color:var(--blue); }
+  .btn.orange  { background:var(--orange-dim); color:var(--orange); }
+  .btn.gold    { background:var(--gold-dim);   color:var(--gold); }
 
   /* ── Form groups ── */
   .form-group { background:var(--s1); border-radius:var(--r1); padding:16px 18px; margin-bottom:10px; box-shadow:var(--sh-card); border:1px solid var(--border); }
@@ -421,26 +298,10 @@
   .success-strip-title { font-size:12px; font-weight:700; color:var(--green); width:100%; margin-bottom:4px; }
 
   /* ── Bottom nav ── */
-  .bottom-nav {
-    display:flex; background:linear-gradient(180deg,#0f0f17 0%,#0a0a0f 100%);
-    border-top:1px solid var(--border);
-    padding-bottom:env(safe-area-inset-bottom); flex-shrink:0;
-    box-shadow:0 -8px 40px rgba(0,0,0,.6), 0 -1px 0 rgba(79,142,247,.08);
-  }
-  .nav-btn {
-    flex:1; border:none; background:none; padding:10px 2px 9px;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:3px; color:var(--t3); font-size:7.5px; font-weight:800;
-    text-transform:uppercase; letter-spacing:.6px; position:relative; transition:color .15s;
-  }
+  .bottom-nav { display:flex; background:linear-gradient(180deg,#0f0f17 0%,#0a0a0f 100%); border-top:1px solid var(--border); padding-bottom:env(safe-area-inset-bottom); flex-shrink:0; box-shadow:0 -8px 40px rgba(0,0,0,.6),0 -1px 0 rgba(79,142,247,.08); }
+  .nav-btn { flex:1; border:none; background:none; padding:10px 2px 9px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:var(--t3); font-size:7.5px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; position:relative; transition:color .15s; }
   .nav-btn.active { color:var(--blue); }
-  .nav-btn.active::after {
-    content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
-    width:24px; height:2px;
-    background:linear-gradient(90deg,var(--blue),#7ab4ff);
-    border-radius:0 0 4px 4px;
-    box-shadow:0 0 8px var(--blue-glow);
-  }
+  .nav-btn.active::after { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:24px; height:2px; background:linear-gradient(90deg,var(--blue),#7ab4ff); border-radius:0 0 4px 4px; box-shadow:0 0 8px var(--blue-glow); }
   .nav-btn .ico { font-size:19px; line-height:1; transition:transform .15s; }
   .nav-btn.active .ico { transform:scale(1.1); filter:drop-shadow(0 0 4px var(--blue-glow)); }
   .nav-btn[data-id="add"] { color:var(--t2); }
@@ -448,7 +309,7 @@
   .nav-btn[data-id="add"].active::after { background:linear-gradient(90deg,var(--orange),#ffa060); box-shadow:0 0 8px var(--orange-glow); }
   .nav-btn[data-id="add"].active .ico { filter:drop-shadow(0 0 4px var(--orange-glow)); }
 
-  /* ── Settings / expenses ── */
+  /* ── Settings/expenses ── */
   .settings-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 20px; border-bottom:1px solid var(--border2); }
   .settings-row:last-child { border-bottom:none; }
   .settings-inp { border:1px solid var(--border); border-radius:var(--r4); padding:10px 13px; font-size:15px; outline:none; background:var(--s3); color:var(--t1); transition:border-color .15s; }
@@ -463,7 +324,7 @@
   .empty-title { font-size:15px; font-weight:700; margin-bottom:6px; color:var(--t1); }
   .empty-sub   { font-size:13px; color:var(--t3); line-height:1.6; }
 
-  /* ── Tax box ── */
+  /* ── Tax/misc ── */
   .tax-box { background:var(--gold-dim); border:1px solid rgba(200,164,74,.2); border-radius:var(--r3); padding:13px 16px; margin-top:12px; }
   .tax-box .tax-lbl  { color:var(--gold); font-weight:800; font-size:9px; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
   .tax-box .tax-amt  { font-family:"IBM Plex Mono",monospace; font-size:18px; font-weight:700; color:var(--gold); }
@@ -473,33 +334,20 @@
   /* ── Auth ── */
   .auth-field { margin-bottom:14px; }
   .auth-label { display:block; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:var(--t3); margin-bottom:8px; }
-  .auth-inp2 { width:100%; background:var(--s2); border:1px solid var(--border); border-radius:var(--r2); padding:16px 18px; color:var(--t1); font-size:17px; outline:none; transition:border-color .15s, box-shadow .15s; }
+  .auth-inp2 { width:100%; background:var(--s2); border:1px solid var(--border); border-radius:var(--r2); padding:16px 18px; color:var(--t1); font-size:17px; outline:none; transition:border-color .15s,box-shadow .15s; }
   .auth-inp2::placeholder { color:var(--t3); }
   .auth-inp2:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim); }
-  .auth-btn-main  { width:100%; background:linear-gradient(135deg,#5a97ff,#3d7ef5); color:#fff; border:none; border-radius:var(--r2); padding:17px; font-size:16px; font-weight:700; margin-bottom:10px; box-shadow:0 4px 20px rgba(79,142,247,.3); transition:all .15s; }
+  .auth-btn-main   { width:100%; background:linear-gradient(135deg,#5a97ff,#3d7ef5); color:#fff; border:none; border-radius:var(--r2); padding:17px; font-size:16px; font-weight:700; margin-bottom:10px; box-shadow:0 4px 20px rgba(79,142,247,.3); transition:all .15s; }
   .auth-btn-main:active { opacity:.85; transform:scale(.98); }
   .auth-btn-google { width:100%; background:var(--s2); color:var(--t1); border:1px solid var(--border); border-radius:var(--r2); padding:15px; font-size:15px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:18px; transition:all .15s; }
-  .auth-btn-google:active { transform:scale(.98); }
 
   /* ── Nav logo ── */
   .nav-logo-ico { display:block; border-radius:5px; }
-  .nav-btn.active .nav-logo-ico { box-shadow:0 0 0 1.5px rgba(255,125,59,.4); border-radius:6px; filter:brightness(1.1); }
+  .nav-btn.active .nav-logo-ico { box-shadow:0 0 0 1.5px rgba(79,142,247,.4); border-radius:6px; filter:brightness(1.1); }
 
-  /* ── Responsive ── */
-  @media(min-width:600px){
-    .app{max-width:480px;margin:0 auto;box-shadow:0 0 80px rgba(0,0,0,.9)}
-    html,body,#root{background:#05050a}
-  }
-  @media(max-width:360px){
-    .pay-grid{grid-template-columns:repeat(2,1fr)!important}
-    .field-row{grid-template-columns:1fr!important}
-    .kpi-grid{grid-template-columns:1fr 1fr!important}
-    .mini-grid{grid-template-columns:1fr 1fr!important}
-    .page{padding:16px 14px calc(110px + env(safe-area-inset-bottom))}
-  }
-  @media(min-height:812px){
-    .page{padding:24px 18px calc(130px + env(safe-area-inset-bottom))}
-  }
+  @media(min-width:600px){.app{max-width:480px;margin:0 auto;box-shadow:0 0 80px rgba(0,0,0,.9)}html,body,#root{background:#05050a}}
+  @media(max-width:360px){.pay-grid{grid-template-columns:repeat(2,1fr)!important}.field-row{grid-template-columns:1fr!important}.kpi-grid{grid-template-columns:1fr 1fr!important}.mini-grid{grid-template-columns:1fr 1fr!important}.page{padding:16px 14px calc(110px + env(safe-area-inset-bottom))}}
+  @media(min-height:812px){.page{padding:24px 18px calc(130px + env(safe-area-inset-bottom))}}
 </style>
 </head>
 <body>
@@ -507,19 +355,15 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 'use strict';
-window.onerror = function(msg, url, line, col, err) {
-  document.getElementById("root").innerHTML = '<pre style="color:red;padding:20px;font-size:14px;white-space:pre-wrap;">ERROR at line '+line+':\n'+msg+'\n\n'+(err&&err.stack||'')+'</pre>';
-};
 const html = htm.bind(React.createElement);
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
-// ── Firebase config ─────────────────────────────────────────────────────────
 const FB_CFG = {
   apiKey:            atob("QUl6YVN5QTdxOHpyOUlJeWd1LTJXZWRzOFZPMlo5eHk5ZEs1MUhF"),
   authDomain:        "wheel-rush-expense.firebaseapp.com",
@@ -564,14 +408,13 @@ async function fbBatch(ops) {
   try {
     const b = _db.batch();
     ops.forEach(op => {
-      if (op.type === "set") b.set(op.ref, op.data);
+      if (op.type === "set")    b.set(op.ref, op.data);
       else if (op.type === "delete") b.delete(op.ref);
     });
     await b.commit();
   } catch(e) { console.warn("fbBatch:", e); }
 }
 
-// ── Storage helpers ─────────────────────────────────────────────────────────
 const KEYS = {
   jobs: "wr2-jobs-v2", settings: "wr2-settings-v2",
   inventory: "wr2-inventory-v2", expenses: "wr2-expenses-v1",
@@ -580,8 +423,8 @@ const KEYS = {
 const load    = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch { return fb; } };
 const persist = (k, v)  => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
-// ── Constants ────────────────────────────────────────────────────────────────
-const LOGO_SRC = "data:image/png;base64,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";
+
+const LOGO_SRC = "data:image/png;base64,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";
 const TODAY    = () => new Date().toLocaleDateString("en-CA", {timeZone:"America/New_York"});
 const uid      = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 const r2       = n  => Math.round((Number(n||0) + Number.EPSILON) * 100) / 100;
@@ -595,7 +438,7 @@ const TOP_CITIES      = ["Miami","Fort Lauderdale","Hollywood","Miramar","Hialea
 const DEFAULT_TIRE_SIZES = ["245/40R18","225/65R17","225/60R18","215/55R16","255/50R17","225/55R18","235/40R19","245/50R20","275/35R21","275/40R22","275/50R22","195/60R16"];
 const LOW_STOCK       = 2;
 const DEFAULT_INVENTORY = [
-  {id:'inv001',size:'195/55R15',qty:1,cost:0,notes:''},{id:'inv002',size:'185/55R16',qty:1,cost:0,notes:''},{id:'inv003',size:'195/60R16',qty:3,cost:0,notes:''},{id:'inv004',size:'205/55R16',qty:1,cost:0,notes:''},{id:'inv005',size:'205/60R16',qty:1,cost:0,notes:''},{id:'inv006',size:'215/55R16',qty:4,cost:0,notes:''},{id:'inv007',size:'215/65R16',qty:1,cost:0,notes:''},{id:'inv008',size:'225/50R16',qty:1,cost:0,notes:''},{id:'inv009',size:'235/65R16',qty:1,cost:0,notes:''},{id:'inv010',size:'205/40R17',qty:1,cost:0,notes:''},{id:'inv011',size:'215/45R17',qty:1,cost:0,notes:''},{id:'inv012',size:'225/60R17',qty:1,cost:0,notes:''},{id:'inv013',size:'225/65R17',qty:5,cost:0,notes:''},{id:'inv014',size:'235/55R17',qty:1,cost:0,notes:''},{id:'inv015',size:'245/55R17',qty:1,cost:0,notes:''},{id:'inv016',size:'245/65R17',qty:1,cost:0,notes:''},{id:'inv017',size:'255/50R17',qty:3,cost:0,notes:''},{id:'inv018',size:'255/65R17',qty:1,cost:0,notes:''},{id:'inv019',size:'265/70R17',qty:1,cost:0,notes:''},{id:'inv020',size:'215/40R18',qty:1,cost:0,notes:''},{id:'inv021',size:'225/50R18',qty:2,cost:0,notes:''},{id:'inv022',size:'225/55R18',qty:3,cost:0,notes:''},{id:'inv023',size:'225/60R18',qty:5,cost:0,notes:''},{id:'inv024',size:'245/40R18',qty:6,cost:0,notes:''},{id:'inv025',size:'255/55R18',qty:1,cost:0,notes:''},{id:'inv026',size:'255/60R18',qty:1,cost:0,notes:''},{id:'inv027',size:'225/35R19',qty:1,cost:0,notes:''},{id:'inv028',size:'225/40R19',qty:1,cost:0,notes:''},{id:'inv029',size:'235/40R19',qty:3,cost:0,notes:''},{id:'inv030',size:'235/45R19',qty:1,cost:0,notes:''},{id:'inv031',size:'235/50R19',qty:1,cost:0,notes:''},{id:'inv032',size:'235/55R19',qty:1,cost:0,notes:''},{id:'inv033',size:'285/40R19',qty:2,cost:0,notes:''},{id:'inv034',size:'235/50R20',qty:1,cost:0,notes:''},{id:'inv035',size:'245/35R20',qty:1,cost:0,notes:''},{id:'inv036',size:'245/50R20',qty:3,cost:0,notes:''},{id:'inv037',size:'255/50R20',qty:1,cost:0,notes:''},{id:'inv038',size:'275/45R20',qty:1,cost:0,notes:''},{id:'inv039',size:'285/45R20',qty:1,cost:0,notes:''},{id:'inv040',size:'295/30R20',qty:1,cost:0,notes:''},{id:'inv041',size:'315/55R20',qty:1,cost:0,notes:''},{id:'inv042',size:'255/35R21',qty:2,cost:0,notes:''},{id:'inv043',size:'255/40R21',qty:2,cost:0,notes:''},{id:'inv044',size:'275/35R21',qty:3,cost:0,notes:''},{id:'inv045',size:'295/35R21',qty:1,cost:0,notes:''},{id:'inv046',size:'325/30R21',qty:2,cost:0,notes:''},{id:'inv047',size:'275/40R22',qty:3,cost:0,notes:''},{id:'inv048',size:'275/50R22',qty:3,cost:0,notes:''},{id:'inv049',size:'285/40R22',qty:1,cost:0,notes:''},{id:'inv050',size:'285/45R22',qty:2,cost:0,notes:''},{id:'inv051',size:'315/35R22',qty:2,cost:0,notes:''},{id:'inv052',size:'325/30R23',qty:1,cost:0,notes:''},
+  {id:"inv001",size:"195/55R15",qty:1,cost:0,notes:""},{id:"inv002",size:"185/55R16",qty:1,cost:0,notes:""},{id:"inv003",size:"195/60R16",qty:3,cost:0,notes:""},{id:"inv004",size:"205/55R16",qty:1,cost:0,notes:""},{id:"inv005",size:"205/60R16",qty:1,cost:0,notes:""},{id:"inv006",size:"215/55R16",qty:4,cost:0,notes:""},{id:"inv007",size:"215/65R16",qty:1,cost:0,notes:""},{id:"inv008",size:"225/50R16",qty:1,cost:0,notes:""},{id:"inv009",size:"235/65R16",qty:1,cost:0,notes:""},{id:"inv010",size:"205/40R17",qty:1,cost:0,notes:""},{id:"inv011",size:"215/45R17",qty:1,cost:0,notes:""},{id:"inv012",size:"225/60R17",qty:1,cost:0,notes:""},{id:"inv013",size:"225/65R17",qty:5,cost:0,notes:""},{id:"inv014",size:"235/55R17",qty:1,cost:0,notes:""},{id:"inv015",size:"245/55R17",qty:1,cost:0,notes:""},{id:"inv016",size:"245/65R17",qty:1,cost:0,notes:""},{id:"inv017",size:"255/50R17",qty:3,cost:0,notes:""},{id:"inv018",size:"255/65R17",qty:1,cost:0,notes:""},{id:"inv019",size:"265/70R17",qty:1,cost:0,notes:""},{id:"inv020",size:"215/40R18",qty:1,cost:0,notes:""},{id:"inv021",size:"225/50R18",qty:2,cost:0,notes:""},{id:"inv022",size:"225/55R18",qty:3,cost:0,notes:""},{id:"inv023",size:"225/60R18",qty:5,cost:0,notes:""},{id:"inv024",size:"245/40R18",qty:6,cost:0,notes:""},{id:"inv025",size:"255/55R18",qty:1,cost:0,notes:""},{id:"inv026",size:"255/60R18",qty:1,cost:0,notes:""},{id:"inv027",size:"225/35R19",qty:1,cost:0,notes:""},{id:"inv028",size:"225/40R19",qty:1,cost:0,notes:""},{id:"inv029",size:"235/40R19",qty:3,cost:0,notes:""},{id:"inv030",size:"235/45R19",qty:1,cost:0,notes:""},{id:"inv031",size:"235/50R19",qty:1,cost:0,notes:""},{id:"inv032",size:"235/55R19",qty:1,cost:0,notes:""},{id:"inv033",size:"285/40R19",qty:2,cost:0,notes:""},{id:"inv034",size:"235/50R20",qty:1,cost:0,notes:""},{id:"inv035",size:"245/35R20",qty:1,cost:0,notes:""},{id:"inv036",size:"245/50R20",qty:3,cost:0,notes:""},{id:"inv037",size:"255/50R20",qty:1,cost:0,notes:""},{id:"inv038",size:"275/45R20",qty:1,cost:0,notes:""},{id:"inv039",size:"285/45R20",qty:1,cost:0,notes:""},{id:"inv040",size:"295/30R20",qty:1,cost:0,notes:""},{id:"inv041",size:"315/55R20",qty:1,cost:0,notes:""},{id:"inv042",size:"255/35R21",qty:2,cost:0,notes:""},{id:"inv043",size:"255/40R21",qty:2,cost:0,notes:""},{id:"inv044",size:"275/35R21",qty:3,cost:0,notes:""},{id:"inv045",size:"295/35R21",qty:1,cost:0,notes:""},{id:"inv046",size:"325/30R21",qty:2,cost:0,notes:""},{id:"inv047",size:"275/40R22",qty:3,cost:0,notes:""},{id:"inv048",size:"275/50R22",qty:3,cost:0,notes:""},{id:"inv049",size:"285/40R22",qty:1,cost:0,notes:""},{id:"inv050",size:"285/45R22",qty:2,cost:0,notes:""},{id:"inv051",size:"315/35R22",qty:2,cost:0,notes:""},{id:"inv052",size:"325/30R23",qty:1,cost:0,notes:""},
 ];
 const DEFAULT_SETTINGS = {
   businessName:"Wheel Rush Mobile Tire Repair", owner1Name:"Owner 1", owner2Name:"Owner 2",
@@ -611,16 +454,15 @@ const DEFAULT_SETTINGS = {
 };
 const EMPTY_JOB = () => ({
   id:"", date:TODAY(), service:"Tire Repair", area:"Miami", payment:"Cash",
-  status:"Completed", source:"Google Search", customerName:"", customerPhone:"",
+  status:"Completed", source:"Google", customerName:"", customerPhone:"",
   tireSize:"", qty:1, revenue:"", tireCost:"", miscCost:"", miles:"", note:"",
   emergency:false, lateNight:false, highway:false, weekend:false,
 });
 
-// ── Business logic ───────────────────────────────────────────────────────────
 const jobDirectCost  = (j,s) => r2(Number(j.miles||0)*Number(s.costPerMile||0.65)+Number(j.tireCost||0)+Number(j.miscCost||0));
 const jobGrossProfit = (j,s) => r2(Number(j.revenue||0)-jobDirectCost(j,s));
-const weeklyFixed    = s => r2((Array.isArray(s.expenses)?s.expenses:[]).filter(e=>e.active).reduce((t,e)=>t+Number(e.amount||0),0)*12/52);
-const monthlyFixed   = s => (Array.isArray(s.expenses)?s.expenses:[]).filter(e=>e.active).reduce((t,e)=>t+Number(e.amount||0),0);
+const weeklyFixed    = s => { const exps=Array.isArray(s.expenses)?s.expenses:[]; return r2(exps.filter(e=>e.active).reduce((t,e)=>t+Number(e.amount||0),0)*12/52); };
+const monthlyFixed   = s => { const exps=Array.isArray(s.expenses)?s.expenses:[]; return exps.filter(e=>e.active).reduce((t,e)=>t+Number(e.amount||0),0); };
 function premiums(j) {
   let p = 0;
   if (j.emergency) p+=20; if (j.lateNight) p+=20;
@@ -679,8 +521,8 @@ function dedupeInventory(items) {
 }
 function sanitizeJob(j) {
   return {
-    id: String(j.id||uid()), date: String(j.date||""), service: String(j.service||""),
-    area: String(j.area||""), payment: String(j.payment||""), status: String(j.status||"Completed"),
+    id: String(j.id||uid()), date: String(j.date||TODAY()), service: String(j.service||"Tire Repair"),
+    area: String(j.area||"Miami"), payment: String(j.payment||"Cash"), status: String(j.status||"Completed"),
     source: String(j.source||""), customerName: String(j.customerName||""),
     customerPhone: String(j.customerPhone||""), tireSize: String(j.tireSize||""),
     qty: Number(j.qty||1), revenue: Number(j.revenue||0), tireCost: Number(j.tireCost||0),
@@ -703,49 +545,156 @@ function openReviewSMS(phone,url,customerName,service,city) {
   const msg = encodeURIComponent(buildReviewMsg(url,customerName,service,city));
   window.open((phone?"sms:"+phone:"sms:")+"?body="+msg);
 }
+
 function generateInvoicePDF(job,settings) {
   const jsPDF = (window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
-  if (!jsPDF) { alert("PDF library not loaded."); return null; }
+  if (!jsPDF) { alert("PDF library not loaded. Try again in a moment."); return null; }
   const doc = new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
-  const W=210,M=18;
-  const NAVY=[0,20,60],ORANGE=[240,120,0],OFFWHITE=[240,240,220],NEAR_BLK=[20,20,20],GRAY=[120,120,130],LGRAY=[220,220,225],WHITE=[255,255,255];
-  doc.setFillColor(...NAVY);doc.rect(0,0,W,42,"F");
-  doc.setFillColor(...ORANGE);doc.rect(0,42,W,3,"F");
-  try{doc.addImage(LOGO_SRC,"PNG",M,7,24,24);}catch{}
-  doc.setFont("helvetica","bold");doc.setFontSize(18);doc.setTextColor(...WHITE);doc.text("Wheel Rush",M+30,19);
-  doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(180,200,220);doc.text("Mobile Tire Repair  ·  Miami, FL  ·  305-897-7030",M+30,27);
-  doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...ORANGE);doc.text("INVOICE",W-M,19,{align:"right"});
+  const W=210, M=18, col2=130;
+  const NAVY=[0,20,60], ORANGE=[240,120,0], OFFWHITE=[240,240,222],
+        NEAR_BLK=[20,20,20], GRAY=[110,110,125], LGRAY=[215,215,222], WHITE=[255,255,255];
+
+  // ── Header bar ─────────────────────────────────────────────────────────────
+  doc.setFillColor(...NAVY);   doc.rect(0,0,W,44,"F");
+  doc.setFillColor(...ORANGE); doc.rect(0,44,W,3,"F");
+  try { doc.addImage(LOGO_SRC,"PNG",M,8,24,24); } catch {}
+  doc.setFont("helvetica","bold"); doc.setFontSize(19); doc.setTextColor(...WHITE);
+  doc.text("Wheel Rush",M+30,20);
+  doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(175,200,225);
+  doc.text("Mobile Tire Repair  ·  Miami, FL  ·  305-897-7030",M+30,28);
+  // Invoice label + number
+  doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(...ORANGE);
+  doc.text("INVOICE",W-M,20,{align:"right"});
   const invNum="WR-"+(job.date||"").replace(/-/g,"")+"-"+(job.id||"").slice(-4).toUpperCase();
-  doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(180,200,220);doc.text("#"+invNum,W-M,27,{align:"right"});
-  let y=52;
-  doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(...ORANGE);doc.text("BILL TO",M,y);
-  doc.setFont("helvetica","bold");doc.setFontSize(13);doc.setTextColor(...NEAR_BLK);doc.text((job.customerName||"Valued Customer").trim(),M,y+7);
-  if(job.customerPhone){doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(...GRAY);doc.text(job.customerPhone,M,y+14);}
-  const dbX=128,dbW=66;
-  doc.setFillColor(...OFFWHITE);doc.roundedRect(dbX,y-5,dbW,34,3,3,"F");
-  const details=[["Date",job.date||""],["Location",(job.area||"—")],["Payment",(job.payment||"—")],["Status",job.status==="Pending"?"PENDING":"PAID"]];
+  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(175,200,225);
+  doc.text("#"+invNum,W-M,28,{align:"right"});
+
+  let y=54;
+
+  // ── Bill To ────────────────────────────────────────────────────────────────
+  const custName = (job.customerName||"").trim() || "Service Customer";
+  doc.setFont("helvetica","bold"); doc.setFontSize(7); doc.setTextColor(...ORANGE);
+  doc.text("BILL TO",M,y);
+  doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(...NEAR_BLK);
+  doc.text(custName,M,y+8);
+  if (job.customerPhone) {
+    // Format phone cleanly: 3055551234 → (305) 555-1234
+    const raw = String(job.customerPhone).replace(/\D/g,"");
+    const fmt = raw.length===10
+      ? "("+raw.slice(0,3)+") "+raw.slice(3,6)+"-"+raw.slice(6)
+      : job.customerPhone;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...GRAY);
+    doc.text(fmt,M,y+16);
+  }
+
+  // ── Detail box (Date / Location / Payment / Status / Source) ────────────────
+  const dbX=126, dbW=66;
+  const details=[
+    ["Date",       job.date||"—"],
+    ["Location",   job.area||"—"],
+    ["Payment",    job.payment||"—"],
+    ["Status",     job.status==="Pending"?"PENDING":"PAID"],
+    ["Source",     (job.source||"Direct")],
+  ];
+  const dbH = details.length * 7.4 + 5;
+  doc.setFillColor(...OFFWHITE); doc.roundedRect(dbX,y-5,dbW,dbH,3,3,"F");
   let dy=y+1;
-  details.forEach(([lbl,val])=>{doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(...GRAY);doc.text(lbl,dbX+6,dy);doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...(lbl==="Status"?(val==="PAID"?[0,120,60]:[200,30,30]):NAVY));doc.text(val,dbX+dbW-4,dy,{align:"right"});dy+=7.5;});
-  y+=38;doc.setDrawColor(...LGRAY);doc.setLineWidth(0.3);doc.line(M,y,W-M,y);y+=8;
-  doc.setFillColor(...NAVY);doc.roundedRect(M,y-4,W-M*2,11,2,2,"F");
-  doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...WHITE);
-  doc.text("SERVICE DESCRIPTION",M+4,y+3);doc.text("QTY",148,y+3,{align:"center"});doc.text("AMOUNT",W-M-2,y+3,{align:"right"});y+=14;
-  doc.setFillColor(...OFFWHITE);doc.rect(M,y-4,W-M*2,job.tireSize?20:14,"F");
-  doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...NEAR_BLK);doc.text(job.service||"Tire Service",M+4,y+2);
-  if(job.tireSize){doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(...GRAY);doc.text("Tire Size: "+job.tireSize,M+4,y+9);}
-  doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...NAVY);doc.text(String(Number(job.qty||1)),148,y+2,{align:"center"});doc.text(money(Number(job.revenue||0)),W-M-2,y+2,{align:"right"});
-  y+=(job.tireSize?24:18);
-  if((job.note||"").trim()){doc.setFont("helvetica","italic");doc.setFontSize(9);doc.setTextColor(...GRAY);const nl=doc.splitTextToSize("Note: "+job.note,W-M*2-8);doc.text(nl,M+4,y);y+=nl.length*5+4;}
-  y+=4;doc.setDrawColor(...LGRAY);doc.line(M,y,W-M,y);y+=10;
-  const tx=W-M-72,tw=72;
-  doc.setFillColor(...NAVY);doc.roundedRect(tx,y-4,tw,20,3,3,"F");
-  doc.setFillColor(...ORANGE);doc.roundedRect(tx,y-4,4,20,2,2,"F");
-  doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(180,200,220);doc.text("TOTAL DUE",tx+10,y+4);
-  doc.setFontSize(16);doc.setTextColor(...WHITE);doc.text(money(Number(job.revenue||0)),W-M-4,y+9,{align:"right"});
-  const fy=272;
-  doc.setFillColor(...NAVY);doc.rect(0,fy,W,25,"F");doc.setFillColor(...ORANGE);doc.rect(0,fy,W,2,"F");
-  doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(...WHITE);doc.text("Thank you for choosing Wheel Rush!",W/2,fy+10,{align:"center"});
-  doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(180,200,220);doc.text("Mobile Tire Repair  ·  We Come to You  ·  305-897-7030",W/2,fy+17,{align:"center"});
+  details.forEach(([lbl,val]) => {
+    doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(...GRAY);
+    doc.text(lbl,dbX+5,dy);
+    doc.setFont("helvetica","bold"); doc.setFontSize(7.5);
+    let color = NAVY;
+    if (lbl==="Status") color = val==="PAID"?[0,110,55]:[190,30,30];
+    doc.setTextColor(...color);
+    doc.text(String(val),dbX+dbW-4,dy,{align:"right"});
+    dy+=7.4;
+  });
+  y = Math.max(y+30, y-5+dbH+4);
+
+  // ── Divider ────────────────────────────────────────────────────────────────
+  doc.setDrawColor(...LGRAY); doc.setLineWidth(0.25); doc.line(M,y,W-M,y); y+=8;
+
+  // ── Table header ──────────────────────────────────────────────────────────
+  doc.setFillColor(...NAVY); doc.roundedRect(M,y-4,W-M*2,11,2,2,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(8); doc.setTextColor(...WHITE);
+  doc.text("SERVICE DESCRIPTION",M+4,y+3);
+  doc.text("QTY",150,y+3,{align:"center"});
+  doc.text("AMOUNT",W-M-2,y+3,{align:"right"});
+  y+=15;
+
+  // ── Service line item ─────────────────────────────────────────────────────
+  const svcLabel = (job.service||"Tire Service")+" (Mobile Service)";
+  const meta1 = job.area       ? "📍 "+job.area                        : null;
+  const meta2 = job.tireSize   ? "🛞  Tire Size: "+job.tireSize         : null;
+  const meta3 =                  "🚗  Quantity: "+String(Number(job.qty||1));
+  const metas = [meta1,meta2,meta3].filter(Boolean);
+  const rowH  = 14 + metas.length*6;
+
+  doc.setFillColor(...OFFWHITE); doc.rect(M,y-4,W-M*2,rowH,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(...NEAR_BLK);
+  doc.text(svcLabel,M+4,y+3);
+  let my=y+9;
+  metas.forEach(line => {
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(...GRAY);
+    doc.text(line,M+6,my); my+=6;
+  });
+  // Qty + amount on the right (aligned to service line top)
+  doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(...NAVY);
+  doc.text(String(Number(job.qty||1)),150,y+3,{align:"center"});
+  doc.text(money(Number(job.revenue||0)),W-M-2,y+3,{align:"right"});
+  y+=rowH+4;
+
+  // ── Notes ─────────────────────────────────────────────────────────────────
+  if ((job.note||"").trim()) {
+    doc.setFont("helvetica","italic"); doc.setFontSize(9); doc.setTextColor(...GRAY);
+    const nl=doc.splitTextToSize("Note: "+job.note, W-M*2-10);
+    doc.text(nl,M+4,y); y+=nl.length*5+6;
+  }
+
+  // ── Price breakdown ────────────────────────────────────────────────────────
+  doc.setDrawColor(...LGRAY); doc.setLineWidth(0.2); doc.line(M,y,W-M,y); y+=8;
+  const rev = Number(job.revenue||0);
+  const tc  = Number(job.tireCost||0);
+  const svcFee = tc>0 ? rev-tc : rev;
+  const breakdownRows = [
+    ["Service Fee",  money(Math.max(0,svcFee))],
+    ["Tire Cost",    tc>0?money(tc):"Included"],
+    ["Mobile Convenience","Included"],
+  ];
+  breakdownRows.forEach(([lbl,val]) => {
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(...GRAY);
+    doc.text(lbl,M+4,y);
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(...NAVY);
+    doc.text(val,W-M-2,y,{align:"right"});
+    y+=7;
+  });
+  y+=4;
+
+  // ── Total block ───────────────────────────────────────────────────────────
+  doc.setDrawColor(...LGRAY); doc.setLineWidth(0.25); doc.line(M,y,W-M,y); y+=6;
+  const tx=W-M-76, tw=76;
+  doc.setFillColor(...NAVY); doc.roundedRect(tx,y-3,tw,22,3,3,"F");
+  doc.setFillColor(...ORANGE); doc.roundedRect(tx,y-3,4,22,2,2,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(175,200,225);
+  doc.text("TOTAL DUE",tx+10,y+5);
+  doc.setFontSize(17); doc.setTextColor(...WHITE);
+  doc.text(money(rev),W-M-4,y+12,{align:"right"});
+  y+=28;
+
+  // ── Trust line ────────────────────────────────────────────────────────────
+  doc.setFont("helvetica","italic"); doc.setFontSize(8.5); doc.setTextColor(...GRAY);
+  doc.text("On-site service completed. No towing required.",M,y,{align:"left"});
+  y+=12;
+
+  // ── Footer ────────────────────────────────────────────────────────────────
+  const fy=275;
+  doc.setFillColor(...NAVY);  doc.rect(0,fy,W,22,"F");
+  doc.setFillColor(...ORANGE); doc.rect(0,fy,W,2,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(9.5); doc.setTextColor(...WHITE);
+  doc.text("Thank you for choosing Wheel Rush — Mobile Tire Service You Can Trust",W/2,fy+10,{align:"center"});
+  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(175,200,225);
+  doc.text("305-897-7030  ·  Miami, FL  ·  wheelrush.com",W/2,fy+17,{align:"center"});
+
   return doc;
 }
 function sendInvoice(job,settings) {
@@ -757,35 +706,61 @@ function migrateOldJobs() {
   const OLD=["wr-jobs-v5","wr-upgraded-jobs-v1","wr2-jobs-v1","wheelrush_jobs"];
   const cur=load(KEYS.jobs,[]);const ids=new Set(cur.map(j=>String(j.id)));
   let mg=[...cur],cnt=0;
-  OLD.forEach(k=>{try{const o=load(k,[]);if(Array.isArray(o))o.forEach(j=>{if(!ids.has(String(j.id))){mg.push({...j,id:String(j.id||Date.now()),source:j.source||"Google Search",tireCost:j.tireCost||j.cost||0,miscCost:j.miscCost||0});ids.add(String(j.id));cnt++;}});}catch{}});
+  OLD.forEach(k=>{try{const o=load(k,[]);if(Array.isArray(o))o.forEach(j=>{if(!ids.has(String(j.id))){mg.push({...j,id:String(j.id||Date.now()),source:j.source||"Google",tireCost:j.tireCost||j.cost||0,miscCost:j.miscCost||0});ids.add(String(j.id));cnt++;}});}catch{}});
   if(cnt>0)persist(KEYS.jobs,mg);
   return mg;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ── COMPONENTS ───────────────────────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
+// ── Error Boundary ────────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = {crashed:false, error:null}; }
+  static getDerivedStateFromError(error) { return {crashed:true, error}; }
+  componentDidCatch(error, info) { console.error("WheelRush crash:", error, info); }
+  render() {
+    if (this.state.crashed) {
+      return React.createElement("div", {
+        style:{height:"100%",display:"flex",flexDirection:"column",alignItems:"center",
+               justifyContent:"center",background:"#0a0a0f",padding:"32px",gap:16}
+      },
+        React.createElement("div",{style:{fontSize:40}},"⚠️"),
+        React.createElement("div",{style:{color:"#f0f0fa",fontSize:18,fontWeight:700,textAlign:"center"}},"Something went wrong"),
+        React.createElement("div",{style:{color:"#8888a8",fontSize:13,textAlign:"center",lineHeight:1.6,maxWidth:280}},
+          "The app hit an error. Tap to recover."),
+        React.createElement("div",{style:{color:"#44445a",fontSize:11,textAlign:"center",fontFamily:"monospace",maxWidth:320,wordBreak:"break-all",marginTop:4}},
+          String(this.state.error||"").slice(0,140)),
+        React.createElement("button",{
+          onClick:()=>this.setState({crashed:false,error:null}),
+          style:{background:"linear-gradient(135deg,#5a97ff,#3d7ef5)",color:"#fff",
+                 border:"none",borderRadius:12,padding:"14px 28px",fontSize:15,
+                 fontWeight:700,cursor:"pointer",marginTop:8}
+        },"Reload App")
+      );
+    }
+    return this.props.children;
+  }
+}
 
+// ── EmptyState ────────────────────────────────────────────────────────────────
 function EmptyState({icon,title,sub,action,branded}) {
   return html`<div class="empty page-enter">
-    ${branded!==false&&html`<img src=${LOGO_SRC} alt="" style=${{width:96,height:96,objectFit:"contain",opacity:.09,marginBottom:12,display:"block",margin:"0 auto 12px"}} onError=${e=>e.target.style.display="none"}/>`}
+    ${branded!==false&&html`<img src=${LOGO_SRC} alt="" style=${{width:96,height:96,objectFit:"contain",opacity:.09,display:"block",margin:"0 auto 12px"}} onError=${e=>e.target.style.display="none"}/>`}
     <div class="empty-icon" style=${{opacity:branded===false?1:0.7}}>${icon}</div>
     <div class="empty-title">${title}</div>
-    ${sub && html`<div class="empty-sub">${sub}</div>`}
-    ${action && html`<div style=${{marginTop:18}}>${action}</div>`}
+    ${sub&&html`<div class="empty-sub">${sub}</div>`}
+    ${action&&html`<div style=${{marginTop:18}}>${action}</div>`}
   </div>`;
 }
 
-// ── Animated Progress Ring ────────────────────────────────────────────────────
+// ── Progress Ring ─────────────────────────────────────────────────────────────
 function ProgressRing({size,stroke,pct,color,children}) {
   const radius = (size-stroke)/2;
   const circ = 2*Math.PI*radius;
   const offset = circ - (clamp(pct,0,100)/100)*circ;
   return html`<div class="progress-ring" style=${{width:size,height:size}}>
     <svg width=${size} height=${size}>
-      <circle class="progress-ring-bg" cx=${size/2} cy=${size/2} r=${radius} stroke-width=${stroke}/>
-      <circle class="progress-ring-fill" cx=${size/2} cy=${size/2} r=${radius} stroke-width=${stroke}
-        stroke=${color} style=${{strokeDasharray:circ,strokeDashoffset:offset,color:color}}/>
+      <circle class="progress-ring-bg" cx=${size/2} cy=${size/2} r=${radius} strokeWidth=${stroke}/>
+      <circle class="progress-ring-fill" cx=${size/2} cy=${size/2} r=${radius} strokeWidth=${stroke}
+        stroke=${color} style=${{strokeDasharray:circ,strokeDashoffset:offset,color}}/>
     </svg>
     <div class="progress-ring-label">${children}</div>
   </div>`;
@@ -820,7 +795,7 @@ function CityInput({value,onChange}) {
         ${TOP_CITIES.map(c=>html`<div key=${c} class="city-option" onMouseDown=${()=>pick(c)}><span>📍</span>${c}</div>`)}
       </div>`}
       ${q&&matches.map(c=>html`<div key=${c} class="city-option" onMouseDown=${()=>pick(c)}><span>📍</span>${c}</div>`)}
-      ${q&&matches.length===0&&html`<div class="city-option" style=${{color:"#999"}} onMouseDown=${()=>pick(q)}>Use "<strong>${q}</strong>" →</div>`}
+      ${q&&matches.length===0&&html`<div class="city-option" style=${{color:"#999"}} onMouseDown=${()=>pick(q)}>Use "${q}" →</div>`}
     </div>`}
   </div>`;
 }
@@ -840,7 +815,7 @@ function QuickQuote({form,settings,onApply,onFormChange,priceMode,setPriceMode})
   const decLabel=profit<skip?"Too Low":profit>=skip+40?"Strong Margin":"Take It";
   const decCls=profit<skip?"low":"take";
   const handleMode=(mode,price)=>{if(setPriceMode)setPriceMode(mode);onApply(price===""?"":String(price));if(mode==="custom")setTimeout(()=>customRef.current&&customRef.current.focus(),80);};
-  const inpSt={background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.18)",borderRadius:8,padding:"8px 10px",color:"#fff",fontSize:15,outline:"none",width:"100%",fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:600,textAlign:"center"};
+  const inpSt={background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.18)",borderRadius:8,padding:"8px 10px",color:"#fff",fontSize:15,outline:"none",width:"100%",fontFamily:'"IBM Plex Mono",monospace',fontWeight:600,textAlign:"center"};
   const lbl={fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:".6px",color:"var(--t2)",marginBottom:5,textAlign:"center"};
   return html`<div class="quote-box card-anim">
     <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8,marginBottom:14}}>
@@ -857,10 +832,10 @@ function QuickQuote({form,settings,onApply,onFormChange,priceMode,setPriceMode})
         <div class="qq-suggested-label">${priceMode==="custom"?"Custom Price":priceMode==="premium"?"Premium Price":"Suggested Price"}</div>
         <div class="qq-suggested-price">${money(dispPrice)}</div>
         <div style=${{display:"flex",justifyContent:"center",gap:16,marginTop:8,marginBottom:8}}>
-          <div style=${{textAlign:"center"}}><div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:2}}>Cost</div><div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:15,fontWeight:700,color:"var(--t2)"}}>${money(directCost)}</div></div>
+          <div style=${{textAlign:"center"}}><div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:2}}>Cost</div><div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:15,fontWeight:700,color:"var(--t2)"}}>${money(directCost)}</div></div>
           <div style=${{width:1,background:"var(--border)"}}/>
-          <div style=${{textAlign:"center"}}><div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:2}}>Profit</div><div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:15,fontWeight:700,color:profit>=skip?"#4ade80":"#ef4444"}}>${money(profit)}</div></div>
-          ${prem>0&&html`<div style=${{width:1,background:"var(--border)"}}/><div style=${{textAlign:"center"}}><div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:2}}>Surcharge</div><div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:15,fontWeight:700,color:"#fb923c"}}>+${money(prem)}</div></div>`}
+          <div style=${{textAlign:"center"}}><div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:2}}>Profit</div><div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:15,fontWeight:700,color:profit>=skip?"#4ade80":"#ef4444"}}>${money(profit)}</div></div>
+          ${prem>0&&html`<div style=${{width:1,background:"var(--border)"}}/><div style=${{textAlign:"center"}}><div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:2}}>Surcharge</div><div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:15,fontWeight:700,color:"#fb923c"}}>+${money(prem)}</div></div>`}
         </div>
         <span class=${"qq-dec-badge "+decCls}>${decLabel}</span>
       </div>
@@ -871,14 +846,14 @@ function QuickQuote({form,settings,onApply,onFormChange,priceMode,setPriceMode})
       </div>
       ${priceMode==="custom"&&html`<div style=${{padding:"10px 10px 4px"}}>
         <div style=${{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:".6px",color:"var(--t2)",marginBottom:6,textAlign:"center"}}>Custom Price ($)</div>
-        <input ref=${customRef} type="number" min="0" inputMode="decimal" placeholder="0.00" value=${form.revenue||""} onChange=${e=>onFormChange("revenue",e.target.value)} style=${{background:"rgba(255,255,255,.12)",border:"2px solid rgba(255,255,255,.3)",borderRadius:10,padding:"12px",color:"#fff",fontSize:22,outline:"none",width:"100%",fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,textAlign:"center"}}/>
+        <input ref=${customRef} type="number" min="0" inputMode="decimal" placeholder="0.00" value=${form.revenue||""} onChange=${e=>onFormChange("revenue",e.target.value)} style=${{background:"rgba(255,255,255,.12)",border:"2px solid rgba(255,255,255,.3)",borderRadius:10,padding:"12px",color:"#fff",fontSize:22,outline:"none",width:"100%",fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,textAlign:"center"}}/>
         <div style=${{fontSize:10,color:"var(--t3)",textAlign:"center",marginTop:5}}>Profit: ${money(r2(Number(form.revenue||0)-directCost))}</div>
       </div>`}
     </div>`}
   </div>`;
 }
 
-// ── Auth screen ───────────────────────────────────────────────────────────────
+// ── AuthScreen ────────────────────────────────────────────────────────────────
 function AuthScreen({onAuth}) {
   const [email,setEmail]=useState("");const [pass,setPass]=useState("");
   const [mode,setMode]=useState("login");const [err,setErr]=useState("");const [busy,setBusy]=useState(false);
@@ -891,12 +866,12 @@ function AuthScreen({onAuth}) {
   const google=async()=>{try{const c=await _auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());onAuth(c.user);}catch(e){setErr(e.message);}};
   return html`<div style=${{height:"100%",display:"flex",flexDirection:"column",background:"#0a0a0a",padding:"0 24px",paddingTop:"env(safe-area-inset-top)"}}>
     <div style=${{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",paddingBottom:16}}>
-      <img src=${LOGO_SRC} alt="Wheel Rush" onError=${e=>e.target.style.display="none"} style=${{width:80,height:80,objectFit:"contain",borderRadius:18,marginBottom:20,boxShadow:"0 4px 20px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06)",animation:"scaleIn .5s ease"}}/>
+      <img src=${LOGO_SRC} alt="Wheel Rush" onError=${e=>e.target.style.display="none"} style=${{width:80,height:80,objectFit:"contain",borderRadius:18,marginBottom:20,boxShadow:"0 4px 20px rgba(0,0,0,.6), 0 0 0 1px rgba(79,142,247,.15)",animation:"scaleIn .5s ease"}}/>
       <div class="shimmer-text" style=${{fontSize:26,fontWeight:700,marginBottom:4}}>Wheel Rush</div>
       <div style=${{color:"#555",fontSize:13,fontWeight:600}}>Mobile Tire Repair · Miami</div>
     </div>
     <div style=${{paddingBottom:"calc(32px + env(safe-area-inset-bottom))"}}>
-      ${err&&html`<div style=${{background:"var(--red-dim)",border:"1px solid rgba(239,68,68,.3)",color:"#f87171",padding:"12px 16px",borderRadius:12,fontSize:13,fontWeight:600,marginBottom:16,animation:"fadeSlideUp .3s ease"}}>${err}</div>`}
+      ${err&&html`<div style=${{background:"var(--red-dim)",border:"1px solid rgba(239,68,68,.3)",color:"#f87171",padding:"12px 16px",borderRadius:12,fontSize:13,fontWeight:600,marginBottom:16}}>${err}</div>`}
       <div class="auth-field"><label class="auth-label">Email</label><input class="auth-inp2" type="email" placeholder="you@email.com" value=${email} onChange=${e=>setEmail(e.target.value)} autoCapitalize="off"/></div>
       <div class="auth-field" style=${{marginBottom:20}}><label class="auth-label">Password</label><input class="auth-inp2" type="password" placeholder="••••••••" value=${pass} onChange=${e=>setPass(e.target.value)} onKeyDown=${e=>e.key==="Enter"&&submit()}/></div>
       <button class="auth-btn-main press-scale" onClick=${submit} disabled=${busy}>${busy?"Working…":mode==="login"?"Sign In":"Create Account"}</button>
@@ -911,6 +886,7 @@ function AuthScreen({onAuth}) {
   </div>`;
 }
 
+// ── Header ────────────────────────────────────────────────────────────────────
 function Header({syncStatus,onSignOut}) {
   const isLive=syncStatus==="connected",isSyncing=syncStatus==="syncing";
   return html`<div class="header-compact">
@@ -927,17 +903,14 @@ function Header({syncStatus,onSignOut}) {
   </div>`;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ── PRO DASHBOARD (Redesigned) ───────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
+// ── Dashboard ─────────────────────────────────────────────────────────────────
 function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
-  // QuickQuote state (lives here so it's on Dashboard)
   const [qqForm,setQqForm]=useState({service:"Tire Repair",miles:"",tireCost:"",miscCost:"",qty:1,revenue:"",emergency:false,lateNight:false,highway:false,weekend:false});
   const [qqMode,setQqMode]=useState("suggested");
   const qqChange=(k,v)=>setQqForm(p=>({...p,[k]:v}));
   const qqApply=price=>setQqForm(p=>({...p,revenue:price}));
   const safeJobs=Array.isArray(jobs)?jobs:[];
-  const today=TODAY(), thisWeek=getWeekStart(today);
+  const today=TODAY(),thisWeek=getWeekStart(today);
   const weekJobs=useMemo(()=>safeJobs.filter(j=>getWeekStart(j.date)===thisWeek),[safeJobs,thisWeek]);
   const todayJobs=useMemo(()=>safeJobs.filter(j=>j.date===today),[safeJobs,today]);
   const totals=useMemo(()=>weekSummary(weekJobs,settings),[weekJobs,settings]);
@@ -951,78 +924,50 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
   const top5Tires=useMemo(()=>{const counts={};safeJobs.forEach(j=>{if(j.tireSize){counts[j.tireSize]=(counts[j.tireSize]||0)+Number(j.qty||1);}});return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([size,sold],i)=>({id:"bs"+i,size,sold}));},[safeJobs]);
   const pendingJobs=useMemo(()=>safeJobs.filter(j=>j.status==="Pending"),[safeJobs]);
   const pendingTotal=pendingJobs.reduce((s,j)=>s+Number(j.revenue||0),0);
-
-  // Week-over-week comparison
   const lastWeekStart=useMemo(()=>{const d=new Date(thisWeek+"T12:00:00");d.setDate(d.getDate()-7);return d.toLocaleDateString("en-CA",{timeZone:"America/New_York"});},[thisWeek]);
   const lastWeekJobs=useMemo(()=>safeJobs.filter(j=>getWeekStart(j.date)===lastWeekStart),[safeJobs,lastWeekStart]);
   const lastWeekGross=lastWeekJobs.reduce((s,j)=>s+jobGrossProfit(j,settings),0);
   const wowChange=lastWeekGross>0?Math.round(((totals.grossProfit-lastWeekGross)/lastWeekGross)*100):0;
-
   const ringColor=goalPct>=100?"var(--green)":goalPct>=60?"var(--blue)":"var(--amber)";
-
   return html`<div class="screen"><div class="page page-enter">
     <div class="pro-hero card-anim">
       <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18}}>
         <div style=${{flex:1}}>
           <div style=${{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
             <div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1.6px",color:"var(--blue)"}}>This Week</div>
-            ${wowChange!==0&&html`<div style=${{fontSize:10,fontWeight:700,color:wowChange>0?"var(--green)":"var(--red)",background:wowChange>0?"var(--green-dim)":"var(--red-dim)",padding:"2px 8px",borderRadius:999}}>
-              ${wowChange>0?"+":""}${wowChange}%
-            </div>`}
+            ${wowChange!==0&&html`<div style=${{fontSize:10,fontWeight:700,color:wowChange>0?"var(--green)":"var(--red)",background:wowChange>0?"var(--green-dim)":"var(--red-dim)",padding:"2px 8px",borderRadius:999}}>${wowChange>0?"+":""}${wowChange}%</div>`}
           </div>
-          <div class="revenue-ticker">
-            <span class="currency">$</span>${Math.floor(totals.grossProfit).toLocaleString()}
-          </div>
-          <div style=${{fontSize:11,color:"var(--t3)",marginTop:8,fontWeight:500}}>
-            gross profit · ${weekJobs.length} job${weekJobs.length!==1?"s":""} · ${money(totals.revenue)} rev
-          </div>
+          <div class="revenue-ticker"><span class="currency">$</span>${Math.floor(totals.grossProfit).toLocaleString()}</div>
+          <div style=${{fontSize:11,color:"var(--t3)",marginTop:8,fontWeight:500}}>gross profit · ${weekJobs.length} job${weekJobs.length!==1?"s":""} · ${money(totals.revenue)} rev</div>
         </div>
         <${ProgressRing} size=${88} stroke=${6} pct=${goalPct} color=${ringColor}>
-          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:18,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${Math.round(goalPct)}%</div>
+          <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:18,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${Math.round(goalPct)}%</div>
           <div style=${{fontSize:8,fontWeight:800,textTransform:"uppercase",letterSpacing:".5px",color:"var(--t3)",marginTop:1}}>Goal</div>
         <//>
       </div>
       <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,padding:"14px 0 6px",borderTop:"1px solid var(--border)"}}>
-        <div style=${{textAlign:"center"}}>
-          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:17,fontWeight:700,color:"var(--green)",letterSpacing:"-1px"}}>${money(totals.net)}</div>
-          <div style=${{fontSize:9,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginTop:3}}>Take-Home</div>
-        </div>
-        <div style=${{textAlign:"center"}}>
-          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:17,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(fixed)}</div>
-          <div style=${{fontSize:9,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginTop:3}}>Fixed/Wk</div>
-        </div>
-        <div style=${{textAlign:"center"}}>
-          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:17,fontWeight:700,color:"var(--blue)",letterSpacing:"-1px"}}>${typeof jobsNeeded==="number"?jobsNeeded:"—"}</div>
-          <div style=${{fontSize:9,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginTop:3}}>Jobs Left</div>
-        </div>
+        <div style=${{textAlign:"center"}}><div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:17,fontWeight:700,color:"var(--green)",letterSpacing:"-1px"}}>${money(totals.net)}</div><div style=${{fontSize:9,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginTop:3}}>Take-Home</div></div>
+        <div style=${{textAlign:"center"}}><div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:17,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(fixed)}</div><div style=${{fontSize:9,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginTop:3}}>Fixed/Wk</div></div>
+        <div style=${{textAlign:"center"}}><div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:17,fontWeight:700,color:"var(--blue)",letterSpacing:"-1px"}}>${typeof jobsNeeded==="number"?jobsNeeded:"—"}</div><div style=${{fontSize:9,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginTop:3}}>Jobs Left</div></div>
       </div>
-      ${goalPct>=100&&html`<div style=${{textAlign:"center",marginTop:12,animation:"scaleIn .4s ease"}}>
-        <span style=${{background:"var(--green-dim)",color:"var(--green)",padding:"6px 16px",borderRadius:999,fontSize:12,fontWeight:800,border:"1px solid rgba(34,197,94,.25)"}}>🎯 Weekly Goal Achieved!</span>
-      </div>`}
+      ${goalPct>=100&&html`<div style=${{textAlign:"center",marginTop:12,animation:"scaleIn .4s ease"}}><span style=${{background:"var(--green-dim)",color:"var(--green)",padding:"6px 16px",borderRadius:999,fontSize:12,fontWeight:800,border:"1px solid rgba(34,197,94,.25)"}}>🎯 Weekly Goal Achieved!</span></div>`}
     </div>
-
-    <div class="card-anim" style=${{marginBottom:16}}>
-      <button class="cta-btn press-scale" onClick=${()=>setTab("add")}>
-        <span style=${{fontSize:18}}>＋</span><span>New Job</span>
-      </button>
-    </div>
-
+    <div class="card-anim" style=${{marginBottom:16}}><button class="cta-btn press-scale" onClick=${()=>setTab("add")}><span style=${{fontSize:18}}>＋</span><span>New Job</span></button></div>
     <div class="card-anim">
       <div class="section-label" style=${{marginTop:0,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <span>Quick Quote</span>
         ${Number(qqForm.revenue||0)>0&&html`<button class="btn primary sm press-scale" style=${{fontSize:11,padding:"4px 12px"}} onClick=${()=>{if(onStartJob)onStartJob(qqForm);setQqForm({service:"Tire Repair",miles:"",tireCost:"",miscCost:"",qty:1,revenue:"",emergency:false,lateNight:false,highway:false,weekend:false});setQqMode("suggested");}}>Start Job →</button>`}
       </div>
       <div style=${{marginBottom:4}}>
-        <div style=${{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap",padding:"0 1px"}}>
-          ${["Tire Repair","Tire Replacement","Tire Installation"].map(s=>html`<button key=${s} class=${"chip press-scale"+(qqForm.service===s?" active":"")} onClick=${()=>qqChange("service",s)} style=${{fontSize:11,padding:"5px 10px"}}>${s.replace("Tire ","")}</button>`)}
+        <div style=${{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>
+          ${["Tire Repair","Tire Replacement","Tire Installation"].map(s=>html`<button key=${s} type="button" class=${"chip press-scale"+(qqForm.service===s?" active":"")} onClick=${()=>qqChange("service",s)} style=${{fontSize:11,padding:"5px 10px"}}>${s.replace("Tire ","")}</button>`)}
         </div>
-        <div style=${{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap",padding:"0 1px"}}>
-          ${FLAGS.map(([k,label])=>html`<button key=${k} class=${"chip press-scale"+(qqForm[k]?" active":"")} onClick=${()=>qqChange(k,!qqForm[k])} style=${{fontSize:10,padding:"4px 8px"}}>${label}</button>`)}
+        <div style=${{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
+          ${FLAGS.map(([k,label])=>html`<button key=${k} type="button" class=${"chip press-scale"+(qqForm[k]?" active":"")} onClick=${()=>qqChange(k,!qqForm[k])} style=${{fontSize:10,padding:"4px 8px"}}>${label}</button>`)}
         </div>
       </div>
       <${QuickQuote} form=${qqForm} settings=${settings} onApply=${qqApply} onFormChange=${qqChange} priceMode=${qqMode} setPriceMode=${setQqMode}/>
     </div>
-
     ${todayJobs.length>0&&html`<div class="card-anim">
       <div class="section-label" style=${{marginTop:0}}>Today</div>
       <div class="mini-grid">
@@ -1032,89 +977,80 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
         <div class="mini-box"><strong>${todayJobs.filter(j=>j.status==="Completed").length}</strong><span>Done</span></div>
       </div>
     </div>`}
-
-    ${pendingJobs.length>0&&html`<div class="pending-banner card-anim press-scale" onClick=${()=>setTab("history")}>
+    ${pendingJobs.length>0&&html`<div class="pending-banner card-anim press-scale" style=${{cursor:"pointer"}} onClick=${()=>setTab("history")}>
       <div><div class="pending-banner-title">⏳ ${pendingJobs.length} Pending</div><div class="pending-banner-sub">${money(pendingTotal)} to collect</div></div>
       <span style=${{fontSize:12,fontWeight:700,color:"var(--gold)"}}>Collect →</span>
     </div>`}
-
-    <div class="card card-anim">
-      <div class="card-pad">
-        <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div>
-            <div class="kpi-label">Weekly Target</div>
-            <div style=${{display:"flex",alignItems:"baseline",gap:6,marginTop:4}}>
-              <span style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:20,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(totals.grossProfit)}</span>
-              <span style=${{fontSize:12,color:"var(--t3)"}}>/ ${money(settings.weeklyGoal)}</span>
-            </div>
-          </div>
-          <div style=${{fontSize:11,color:"var(--t3)"}}>${nextFriday()}</div>
-        </div>
-        <div class="goal-track" style=${{marginTop:12,marginBottom:6}}>
-          <div class=${"goal-fill "+(goalPct>=100?"full":goalPct>=50?"mid":"low")} style=${{width:goalPct+"%"}}/>
-        </div>
+    <div class="card card-anim"><div class="card-pad">
+      <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div><div class="kpi-label">Weekly Target</div><div style=${{display:"flex",alignItems:"baseline",gap:6,marginTop:4}}><span style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:20,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(totals.grossProfit)}</span><span style=${{fontSize:12,color:"var(--t3)"}}>/ ${money(settings.weeklyGoal)}</span></div></div>
+        <div style=${{fontSize:11,color:"var(--t3)"}}>${nextFriday()}</div>
       </div>
-    </div>
-
+      <div class="goal-track" style=${{marginTop:12,marginBottom:6}}><div class=${"goal-fill "+(goalPct>=100?"full":goalPct>=50?"mid":"low")} style=${{width:goalPct+"%"}}/></div>
+    </div></div>
     ${top5Tires.length>0&&html`<div class="card-anim">
       <div class="section-label">Best Sellers</div>
       <div class="card">
         ${top5Tires.map((t,i)=>html`<div key=${t.id} class="card-row">
           <div style=${{display:"flex",alignItems:"center",gap:12}}>
             <div style=${{width:26,height:26,borderRadius:8,flexShrink:0,background:i===0?"var(--blue-dim)":"var(--s3)",color:i===0?"var(--blue)":"var(--t3)",border:i===0?"1px solid rgba(79,142,247,.25)":"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800}}>${i+1}</div>
-            <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:14,color:"var(--t1)",letterSpacing:"-.3px"}}>${t.size}</div>
+            <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:14,color:"var(--t1)",letterSpacing:"-.3px"}}>${t.size||"—"}</div>
           </div>
-          <div><span style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:12,color:"var(--t2)",fontWeight:700}}>${t.sold} sold</span></div>
+          <span style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:12,color:"var(--t2)",fontWeight:700}}>${t.sold} sold</span>
         </div>`)}
       </div>
     </div>`}
-
     ${sources.length>0&&html`<div class="card-anim">
       <div class="section-label">Lead Sources</div>
       <div class="card"><div class="card-pad">
         ${sources.slice(0,6).map(([srcName,count])=>html`<div class="source-bar" key=${srcName}>
           <div style=${{fontSize:12,fontWeight:600,color:"var(--t2)",width:130,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>${srcName}</div>
           <div class="source-bar-track"><div class="source-bar-fill" style=${{width:((count/maxSrc)*100)+"%"}}/></div>
-          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:11,color:"var(--t3)",width:20,textAlign:"right",flexShrink:0,fontWeight:700}}>${count}</div>
+          <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:11,color:"var(--t3)",width:20,textAlign:"right",flexShrink:0,fontWeight:700}}>${count}</div>
         </div>`)}
       </div></div>
     </div>`}
-
     <div class="section-label card-anim">Recent Jobs</div>
     ${recent.length>0?html`<div class="stack">${recent.map((job,idx)=>{
       const profit=jobGrossProfit(job,settings);
       const pg=profit>=70,po=profit>=40&&profit<70;
-      return html`<div class="job-row card-anim press-scale" key=${job.id} style=${{cursor:"pointer",animationDelay:(0.05*idx)+"s"}} onClick=${()=>onRepeat(job)}>
+      return html`<div class="job-row card-anim press-scale" key=${job.id||idx} style=${{cursor:"pointer",animationDelay:(0.05*idx)+"s"}} onClick=${()=>onRepeat(job)}>
         <div class="job-icon">🛞</div>
         <div class="job-main">
-          <div class="job-title">${job.service}</div>
-          <div class="job-meta">${job.area} · ${job.date}${job.tireSize?" · "+job.tireSize:""}</div>
-          <div style=${{marginTop:7,display:"flex",gap:6}}>
-            <span class=${"pill "+(pg?"green":po?"orange":"red")}>${money(profit)}</span>
-            ${job.status==="Pending"&&html`<span class="pill gold">Pending</span>`}
-          </div>
+          <div class="job-title">${job.service||"Tire Service"}</div>
+          <div class="job-meta">${job.area||"Miami"} · ${job.date||""}${job.tireSize?" · "+job.tireSize:""}</div>
+          <div style=${{marginTop:7,display:"flex",gap:6}}><span class=${"pill "+(pg?"green":po?"orange":"red")}>${money(profit)}</span>${job.status==="Pending"&&html`<span class="pill gold">Pending</span>`}</div>
         </div>
         <div class="job-right">
-          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:18,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(job.revenue)}</div>
-          <div style=${{fontSize:10,color:"var(--t3)",marginTop:3}}>${job.payment}</div>
+          <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:18,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(job.revenue||0)}</div>
+          <div style=${{fontSize:10,color:"var(--t3)",marginTop:3}}>${job.payment||""}</div>
         </div>
       </div>`;
-    })}</div>`:html`<${EmptyState} icon="🛞" title="No jobs yet" sub="Tap New Job above to get started." action=${html`<button class="btn primary press-scale" onClick=${()=>setTab("add")}>New Job</button>`}/>`}
+    })}</div>`:html`<${EmptyState} icon="🛞" title="No jobs yet" sub="Tap New Job to get started." action=${html`<button class="btn primary press-scale" onClick=${()=>setTab("add")}>New Job</button>`}/>`}
   </div></div>`;
 }
 
-// ── AddJob (BUG 1 FIXED: no more <> fragments) ──────────────────────────────
+// ── AddJob ────────────────────────────────────────────────────────────────────
 function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit,saving}) {
-  const [form,setForm]=useState(EMPTY_JOB());const [error,setError]=useState("");const [saved,setSaved]=useState(null);const [tick,setTick]=useState(0);const [editingId,setEditingId]=useState(null);const [priceMode,setPriceMode]=useState("suggested");
+  const [form,setForm]=useState(EMPTY_JOB());
+  const [error,setError]=useState("");const [saved,setSaved]=useState(null);const [tick,setTick]=useState(0);
+  const [editingId,setEditingId]=useState(null);const [priceMode,setPriceMode]=useState("suggested");
   const isEditing=!!editingId;
   const recentSizes=useMemo(()=>[...new Set([...load(KEYS.sizes,[]),...DEFAULT_TIRE_SIZES])].slice(0,8),[tick]);
   const lastJob=useMemo(()=>[...(jobs||[])].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).find(j=>j.id!==editingId)||null,[jobs,editingId]);
   useEffect(()=>{
-    if(editJob&&editJob.id){setForm({...EMPTY_JOB(),...editJob,revenue:String(editJob.revenue||""),tireCost:String(editJob.tireCost||""),miscCost:String(editJob.miscCost||""),miles:String(editJob.miles||"")});setEditingId(editJob.id);setSaved(null);setError("");setPriceMode("suggested");if(onClearEdit)onClearEdit();return;}
-    if(prefill){setForm({...EMPTY_JOB(),service:prefill.service||"Tire Repair",area:prefill.area||"Miami",payment:prefill.payment||"Cash",source:prefill.source||"Google Search",tireSize:prefill.tireSize||"",qty:prefill.qty||1,tireCost:String(prefill.tireCost||""),miscCost:String(prefill.miscCost||""),miles:String(prefill.miles||""),emergency:!!prefill.emergency,lateNight:!!prefill.lateNight,highway:!!prefill.highway,weekend:!!prefill.weekend,customerName:prefill.customerName||"",customerPhone:prefill.customerPhone||""});setPriceMode("suggested");if(onClearPrefill)onClearPrefill();}
+    if(editJob&&editJob.id){
+      setForm({...EMPTY_JOB(),...editJob,revenue:String(editJob.revenue||""),tireCost:String(editJob.tireCost||""),miscCost:String(editJob.miscCost||""),miles:String(editJob.miles||"")});
+      setEditingId(editJob.id);setSaved(null);setError("");setPriceMode("suggested");
+      if(onClearEdit)onClearEdit();return;
+    }
+    if(prefill){
+      setForm({...EMPTY_JOB(),service:prefill.service||"Tire Repair",area:prefill.area||"Miami",payment:prefill.payment||"Cash",source:prefill.source||"Google",tireSize:prefill.tireSize||"",qty:prefill.qty||1,tireCost:String(prefill.tireCost||""),miscCost:String(prefill.miscCost||""),miles:String(prefill.miles||""),emergency:!!prefill.emergency,lateNight:!!prefill.lateNight,highway:!!prefill.highway,weekend:!!prefill.weekend,customerName:prefill.customerName||"",customerPhone:prefill.customerPhone||""});
+      setPriceMode("suggested");if(onClearPrefill)onClearPrefill();
+    }
   },[prefill,editJob]);
   const setF=(k,v)=>{setForm(p=>({...p,[k]:v}));setError("");};
-  const useLastJob=()=>{if(!lastJob)return;setForm({...EMPTY_JOB(),service:lastJob.service,area:lastJob.area,payment:lastJob.payment,source:lastJob.source,tireSize:lastJob.tireSize,tireCost:String(lastJob.tireCost||""),miscCost:String(lastJob.miscCost||""),miles:String(lastJob.miles||""),emergency:lastJob.emergency,lateNight:lastJob.lateNight,highway:lastJob.highway,weekend:lastJob.weekend});};
+  const useLastJob=()=>{if(!lastJob)return;setForm({...EMPTY_JOB(),service:lastJob.service,area:lastJob.area,payment:lastJob.payment,source:lastJob.source||"Google",tireSize:lastJob.tireSize,tireCost:String(lastJob.tireCost||""),miscCost:String(lastJob.miscCost||""),miles:String(lastJob.miles||""),emergency:lastJob.emergency,lateNight:lastJob.lateNight,highway:lastJob.highway,weekend:lastJob.weekend});};
   const doSave=async(andAdd=false)=>{
     const rev=Number(form.revenue||0);if(!rev){setError("Enter the job price.");return;}
     if(form.tireSize){try{const p=load(KEYS.sizes,[]);persist(KEYS.sizes,[form.tireSize,...p.filter(s=>s!==form.tireSize)].slice(0,10));}catch{}}
@@ -1127,7 +1063,7 @@ function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit
   const requestReview=()=>openReviewSMS(form.customerPhone,(settings.googleReviewUrl||"").trim(),form.customerName,form.service,form.area);
   return html`<div class="screen" style=${{paddingBottom:0}}>
     <div class="page-enter" style=${{padding:"14px 14px 0"}}>
-      ${isEditing&&html`<div style=${{background:"var(--gold-dim)",border:"1px solid rgba(192,149,74,.3)",borderRadius:12,padding:"12px 16px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center",animation:"fadeSlideUp .3s ease"}}>
+      ${isEditing&&html`<div style=${{background:"var(--gold-dim)",border:"1px solid rgba(200,164,74,.3)",borderRadius:12,padding:"12px 16px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <span style=${{fontSize:13,fontWeight:700,color:"var(--gold)"}}>✏️ Editing — ${form.date}</span>
         <button class="btn secondary sm press-scale" onClick=${cancelEdit}>Cancel</button>
       </div>`}
@@ -1135,18 +1071,19 @@ function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit
         ${lastJob&&!isEditing&&html`<button type="button" class="btn secondary sm press-scale" onClick=${useLastJob}>↩ Last Job</button>`}
         ${!isEditing&&html`<button type="button" class="btn secondary sm press-scale" onClick=${()=>{setForm(EMPTY_JOB());setSaved(null);setError("");setPriceMode("suggested");}}>✕ Clear</button>`}
       </div>
-      ${error&&html`<div style=${{background:"var(--red-dim)",border:"1px solid rgba(239,68,68,.3)",borderRadius:12,padding:"12px 16px",fontSize:13,color:"var(--red)",marginBottom:14,fontWeight:600,animation:"fadeSlideUp .3s ease"}}>${error}</div>`}
+      ${error&&html`<div style=${{background:"var(--red-dim)",border:"1px solid rgba(239,68,68,.3)",borderRadius:12,padding:"12px 16px",fontSize:13,color:"var(--red)",marginBottom:14,fontWeight:600}}>${error}</div>`}
       ${saved&&!isEditing&&html`<div class="success-strip">
         <div class="success-strip-title">✅ ${money(saved.revenue)} · ${money(jobGrossProfit(saved,settings))} profit</div>
         <button class="btn primary sm press-scale" onClick=${()=>sendInvoice(saved,settings)}>🧾 Invoice</button>
         ${saved.status==="Completed"&&html`<button class="btn success sm press-scale" onClick=${requestReview}>⭐ Review</button>`}
+        ${saved.customerPhone&&html`<button class="btn success sm press-scale" onClick=${()=>window.open("tel:"+saved.customerPhone)}>📞 Call</button>`}
         <button class="btn secondary sm press-scale" onClick=${()=>{setForm({...saved,id:"",revenue:String(saved.revenue)});setSaved(null);}}>🔁 Dup</button>
       </div>`}
       <${QuickQuote} form=${form} settings=${settings} onApply=${v=>setF("revenue",v)} onFormChange=${setF} priceMode=${priceMode} setPriceMode=${setPriceMode}/>
       <div class="form-group card-anim">
-        <div class="form-group-title">Pricing & Costs</div>
+        <div class="form-group-title">Pricing &amp; Costs</div>
         <div class="field-row">
-          <div class="field"><label>Job Price ($)</label><input type="number" min="0" inputMode="decimal" value=${form.revenue} onChange=${e=>setF("revenue",e.target.value)} placeholder=${String(suggestedPrice(form,settings))} style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:18,padding:"14px"}}/></div>
+          <div class="field"><label>Job Price ($)</label><input type="number" min="0" inputMode="decimal" value=${form.revenue} onChange=${e=>setF("revenue",e.target.value)} placeholder=${String(suggestedPrice(form,settings))} style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:18,padding:"14px"}}/></div>
           <div class="field"><label>Tire Cost ($)</label><input type="number" min="0" inputMode="decimal" value=${form.tireCost} onChange=${e=>setF("tireCost",e.target.value)} placeholder="0"/></div>
         </div>
         <div class="field-row">
@@ -1162,12 +1099,12 @@ function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit
         <div class="field"><label>Lead Source</label><div class="src-grid">${SOURCE_QUICK.map(s=>html`<button key=${s.label} type="button" class=${"src-btn press-scale"+(form.source===s.label?" active":"")} onClick=${()=>setF("source",s.label)}>${s.icon+" "+s.label}</button>`)}</div></div>
       </div>
       <div class="form-group card-anim">
-        <div class="form-group-title">Location & Travel</div>
+        <div class="form-group-title">Location &amp; Travel</div>
         <div class="field"><label>City / Area</label><${CityInput} value=${form.area} onChange=${v=>setF("area",v)}/></div>
         <div class="field"><label>Miles Driven</label><input type="number" min="0" inputMode="decimal" value=${form.miles} onChange=${e=>setF("miles",e.target.value)} placeholder="0"/></div>
       </div>
       <div class="form-group card-anim">
-        <div class="form-group-title">Tire Size & Payment</div>
+        <div class="form-group-title">Tire Size &amp; Payment</div>
         <div class="field"><label>Tire Size</label><input value=${form.tireSize} onChange=${e=>setF("tireSize",e.target.value)} placeholder="225/55R17"/><div class="chip-row" style=${{marginTop:8}}>${recentSizes.map(sz=>html`<button type="button" key=${sz} class=${"chip sm"+(form.tireSize===sz?" active":"")} onClick=${()=>setF("tireSize",sz)}>${sz}</button>`)}</div></div>
         <div class="field"><label>Payment Method</label><div class="pay-grid">${PAYMENT_OPTIONS.map(p=>html`<button key=${p.label} type="button" class=${"pay-btn press-scale"+(form.payment===p.label?" active":"")} onClick=${()=>setF("payment",p.label)}><span class="pay-icon">${p.icon}</span>${p.label}</button>`)}</div></div>
       </div>
@@ -1179,20 +1116,19 @@ function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit
       ${form.status==="Completed"&&html`<button class="btn blue press-scale" style=${{width:"100%",marginBottom:10}} onClick=${requestReview}>⭐ Send Review${form.customerPhone?" via SMS":""}</button>`}
       <div style=${{height:90}}/>
     </div>
-
     <div class="sticky-save">
       ${isEditing
-        ?[html`<button key="cancel" class="btn secondary press-scale" onClick=${cancelEdit}>Cancel</button>`,html`<button key="save" class="btn primary press-scale" onClick=${()=>doSave(false)} disabled=${saving}>${saving?"Saving…":"Update Job ✓"}</button>`]
+        ?[html`<button key="cancel" class="btn secondary press-scale" onClick=${cancelEdit}>Cancel</button>`,html`<button key="update" class="btn primary press-scale" onClick=${()=>doSave(false)} disabled=${saving}>${saving?"Saving…":"Update Job ✓"}</button>`]
         :[html`<button key="addmore" class="btn secondary press-scale" onClick=${()=>doSave(true)} disabled=${saving}>Save + Add</button>`,html`<button key="save" class="btn primary press-scale" onClick=${()=>doSave(false)} disabled=${saving}>${saving?"Saving…":"Save Job →"}</button>`]}
     </div>
   </div>`;
 }
 
-// ── History (BUG 3 FIXED: .page div structure) ───────────────────────────────
+// ── History ───────────────────────────────────────────────────────────────────
 function History({jobs,settings,onRepeat,onDelete,onEdit}) {
   const safeJobs=Array.isArray(jobs)?jobs:[];
   const [filter,setFilter]=useState("All");const [search,setSearch]=useState("");const [view,setView]=useState("weeks");
-  const cities=useMemo(()=>Array.from(new Set(safeJobs.map(j=>j.area))),[safeJobs]);
+  const cities=useMemo(()=>Array.from(new Set(safeJobs.map(j=>j.area).filter(Boolean))),[safeJobs]);
   const filtered=useMemo(()=>{
     let j=safeJobs;
     if(filter==="Repair")j=j.filter(x=>/repair/i.test(x.service));
@@ -1204,7 +1140,7 @@ function History({jobs,settings,onRepeat,onDelete,onEdit}) {
   },[safeJobs,filter,search]);
   const weekGroups=useMemo(()=>groupByWeek(filtered),[filtered]);
   const handleDelete=id=>{if(!window.confirm("Delete this job?"))return;onDelete(id);};
-  const markPaid=job=>{if(onEdit)onEdit({...job,status:"Completed",_markPaidOnly:true});};
+  const markPaid=job=>{if(onEdit)onEdit({...job,status:"Completed"});};
   const JobRow=({job})=>{
     const profit=jobGrossProfit(job,settings);const profitCls=profit>=70?"green":profit>=40?"orange":"red";
     const sendReview=()=>openReviewSMS(job.customerPhone,(settings.googleReviewUrl||"").trim(),job.customerName,job.service,job.area);
@@ -1212,14 +1148,14 @@ function History({jobs,settings,onRepeat,onDelete,onEdit}) {
       <div style=${{padding:"15px 17px",display:"flex",alignItems:"flex-start",gap:12}}>
         <div class="job-icon">🛞</div>
         <div style=${{flex:1,minWidth:0}}>
-          <div class="job-title">${job.service}</div>
-          <div class="job-meta">${job.area} · ${job.date}${job.tireSize?" · "+job.tireSize:""}</div>
+          <div class="job-title">${job.service||"Tire Service"}</div>
+          <div class="job-meta">${job.area||"Miami"} · ${job.date||""}${job.tireSize?" · "+job.tireSize:""}</div>
           ${(job.customerName||job.customerPhone)&&html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:1}}>👤 ${job.customerName||""}${job.customerPhone?" · "+job.customerPhone:""}</div>`}
           <div style=${{marginTop:7,display:"flex",gap:6,flexWrap:"wrap"}}><span class=${"pill "+profitCls}>${money(profit)}</span>${job.status==="Pending"&&html`<span class="pill gold">Pending</span>`}</div>
         </div>
         <div style=${{textAlign:"right",flexShrink:0}}>
-          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:18,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(job.revenue)}</div>
-          <div style=${{fontSize:10,color:"var(--t3)",marginTop:2}}>${job.payment}</div>
+          <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:18,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(job.revenue||0)}</div>
+          <div style=${{fontSize:10,color:"var(--t3)",marginTop:2}}>${job.payment||""}</div>
         </div>
       </div>
       <div style=${{padding:"10px 17px 12px",borderTop:"1px solid var(--border2)",display:"flex",gap:6,flexWrap:"wrap",justifyContent:"flex-end"}}>
@@ -1228,11 +1164,11 @@ function History({jobs,settings,onRepeat,onDelete,onEdit}) {
         <button class="btn blue xs press-scale" onClick=${()=>sendInvoice(job,settings)}>🧾</button>
         <button class="btn secondary xs press-scale" onClick=${sendReview}>⭐</button>
         ${job.status==="Pending"&&html`<button class="btn success xs press-scale" onClick=${()=>markPaid(job)}>✓ Paid</button>`}
+        ${job.customerPhone&&html`<button class="btn secondary xs press-scale" onClick=${()=>window.open("tel:"+job.customerPhone)}>📞</button>`}
         <button class="btn danger xs press-scale" onClick=${()=>handleDelete(job.id)}>×</button>
       </div>
     </div>`;
   };
-  // BUG 3 FIX: .page div now correctly wraps ALL content
   return html`<div class="screen"><div class="page page-enter">
     <div style=${{marginBottom:12}}>
       <input value=${search} onChange=${e=>setSearch(e.target.value)} placeholder="Search jobs, tires, customers…" style=${{width:"100%",background:"var(--s2)",border:"1px solid var(--border)",borderRadius:14,padding:"14px 18px",outline:"none",fontSize:15,color:"var(--t1)"}}/>
@@ -1243,14 +1179,16 @@ function History({jobs,settings,onRepeat,onDelete,onEdit}) {
     <div style=${{display:"flex",gap:8,marginBottom:14}}>
       <button class=${"chip sm"+(view==="weeks"?" active":"")} onClick=${()=>setView("weeks")}>By Week</button>
       <button class=${"chip sm"+(view==="list"?" active":"")} onClick=${()=>setView("list")}>All Jobs</button>
-      <span style=${{marginLeft:"auto",fontFamily:"\"IBM Plex Mono\",monospace",fontSize:12,color:"#999",alignSelf:"center"}}>${filtered.length} jobs</span>
+      <span style=${{marginLeft:"auto",fontFamily:'"IBM Plex Mono",monospace',fontSize:12,color:"#999",alignSelf:"center"}}>${filtered.length} jobs</span>
     </div>
-    ${filtered.length===0?html`<${EmptyState} icon="📋" title="No jobs found" sub=${search?"Try different search.":"No jobs match."}/>`:view==="weeks"?html`<div>
-      ${weekGroups.map(([wk,wkJobs])=>{const t=weekSummary(wkJobs,settings);return html`<div key=${wk} style=${{marginBottom:20}}>
-        <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0"}}><div><div style=${{fontWeight:700,fontSize:13}}>${weekLabel(wk)}</div><div class="sub">${wkJobs.length} jobs · ${money(t.revenue)} rev</div></div><div class=${"value "+(t.net>=0?"green":"red")}>${money(t.net)}</div></div>
-        <div class="stack">${wkJobs.map(job=>html`<${JobRow} key=${job.id} job=${job}/>`)}</div>
-      </div>`;})}
-    </div>`:html`<div class="stack">${filtered.map(job=>html`<${JobRow} key=${job.id} job=${job}/>`)}</div>`}
+    ${filtered.length===0
+      ?html`<${EmptyState} icon="📋" title="No jobs found" sub=${search?"Try a different search.":"No jobs match this filter."}/>`
+      :view==="weeks"
+        ?html`<div>${weekGroups.map(([wk,wkJobs])=>{const t=weekSummary(wkJobs,settings);return html`<div key=${wk} style=${{marginBottom:20}}>
+            <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0"}}><div><div style=${{fontWeight:700,fontSize:13}}>${weekLabel(wk)}</div><div class="sub">${wkJobs.length} jobs · ${money(t.revenue)} rev</div></div><div class=${"value "+(t.net>=0?"green":"red")}>${money(t.net)}</div></div>
+            <div class="stack">${wkJobs.map(job=>html`<${JobRow} key=${job.id} job=${job}/>`)}</div>
+          </div>`;})}</div>`
+        :html`<div class="stack">${filtered.map(job=>html`<${JobRow} key=${job.id} job=${job}/>`)}</div>`}
   </div></div>`;
 }
 
@@ -1260,8 +1198,8 @@ function Expenses({expenses,setExpenses}) {
   const [form,setForm]=useState({date:TODAY(),category:"Fuel",amount:"",note:""});
   const CATS=["Fuel","Oil/Fluids","Equipment Repair","Supplies","Food","Tolls/Parking","Other"];
   const setF=(k,v)=>setForm(p=>({...p,[k]:v}));
-  const add=()=>{const amt=Number(form.amount||0);if(!amt){alert("Enter an amount.");return;}setExpenses(prev=>[{...form,id:uid(),amount:amt},...prev]);setForm({date:TODAY(),category:"Fuel",amount:"",note:""});};
-  const remove=id=>{if(!window.confirm("Delete?"))return;setExpenses(prev=>prev.filter(e=>e.id!==id));};
+  const add=()=>{const amt=Number(form.amount||0);if(!amt){alert("Enter an amount.");return;}setExpenses(prev=>Array.isArray(prev)?[{...form,id:uid(),amount:amt},...prev]:[{...form,id:uid(),amount:amt}]);setForm({date:TODAY(),category:"Fuel",amount:"",note:""});};
+  const remove=id=>{if(!window.confirm("Delete?"))return;setExpenses(prev=>(Array.isArray(prev)?prev:[]).filter(e=>e.id!==id));};
   const total=safe.reduce((s,e)=>s+Number(e.amount||0),0);
   const thisWeek=getWeekStart(TODAY());
   const weekTotal=safe.filter(e=>getWeekStart(e.date||TODAY())===thisWeek).reduce((s,e)=>s+Number(e.amount||0),0);
@@ -1274,12 +1212,21 @@ function Expenses({expenses,setExpenses}) {
       <div class="mini-box"><strong>${safe.length?money(total/safe.length):"—"}</strong><span>Avg</span></div>
     </div>
     <div class="card card-anim" style=${{marginBottom:14}}><div class="card-pad">
-      <div class="field-row"><div class="field" style=${{marginBottom:8}}><label>Date</label><input type="date" value=${form.date} onChange=${e=>setF("date",e.target.value)}/></div><div class="field" style=${{marginBottom:8}}><label>Amount ($)</label><input type="number" min="0" inputMode="decimal" value=${form.amount} onChange=${e=>setF("amount",e.target.value)} placeholder="0.00" style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700}}/></div></div>
+      <div class="field-row">
+        <div class="field" style=${{marginBottom:8}}><label>Date</label><input type="date" value=${form.date} onChange=${e=>setF("date",e.target.value)}/></div>
+        <div class="field" style=${{marginBottom:8}}><label>Amount ($)</label><input type="number" min="0" inputMode="decimal" value=${form.amount} onChange=${e=>setF("amount",e.target.value)} placeholder="0.00" style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700}}/></div>
+      </div>
       <div class="field" style=${{marginBottom:8}}><label>Category</label><select value=${form.category} onChange=${e=>setF("category",e.target.value)}>${CATS.map(c=>html`<option key=${c}>${c}</option>`)}</select></div>
       <div class="field" style=${{marginBottom:10}}><label>Note</label><input value=${form.note} onChange=${e=>setF("note",e.target.value)} placeholder="BP station, etc."/></div>
       <button class="btn primary press-scale" style=${{width:"100%"}} onClick=${add}>+ Log Expense</button>
     </div></div>
-    ${safe.length===0?html`<${EmptyState} icon="🧾" title="No expenses logged" sub="Track fuel, supplies, repairs."/>`:html`<div class="stack">${[...safe].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(exp=>html`<div class="job-row card-anim" key=${exp.id}><div class="job-icon" style=${{fontSize:16}}>🧾</div><div class="job-main"><div class="job-title">${exp.category}</div><div class="job-meta">${exp.date}${exp.note?" · "+exp.note:""}</div></div><div class="job-right"><div class="value red">${money(exp.amount)}</div><button class="btn danger sm press-scale" style=${{marginTop:8}} onClick=${()=>remove(exp.id)}>×</button></div></div>`)}</div>`}
+    ${safe.length===0
+      ?html`<${EmptyState} icon="🧾" title="No expenses logged" sub="Track fuel, supplies, repairs."/>`
+      :html`<div class="stack">${[...safe].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map((exp,idx)=>html`<div class="job-row card-anim" key=${exp.id||idx}>
+          <div class="job-icon" style=${{fontSize:16}}>🧾</div>
+          <div class="job-main"><div class="job-title">${exp.category||"Expense"}</div><div class="job-meta">${exp.date||""}${exp.note?" · "+exp.note:""}</div></div>
+          <div class="job-right"><div class="value red">${money(exp.amount||0)}</div><button class="btn danger sm press-scale" style=${{marginTop:8}} onClick=${()=>remove(exp.id)}>×</button></div>
+        </div>`)}</div>`}
   </div></div>`;
 }
 
@@ -1310,79 +1257,110 @@ function Payouts({jobs,settings}) {
   </div></div>`;
 }
 
-// ── Inventory (minimal — keeping existing logic, adding animations) ───────────
+// ── Inventory ─────────────────────────────────────────────────────────────────
 function Inventory({inventory,setInventory,jobs}) {
-  const inv=Array.isArray(inventory)?inventory:[];const jobsArr=Array.isArray(jobs)?jobs:[];
-  const [search,setSearch]=useState('');const [editId,setEditId]=useState(null);
+  const inv=Array.isArray(inventory)?inventory:[];
+  const jobsArr=Array.isArray(jobs)?jobs:[];
+  const [search,setSearch]=useState("");
+  const [editId,setEditId]=useState(null);
   const pendingRef=useRef([]);
-  const top5=useMemo(()=>{const stats={};jobsArr.forEach(j=>{const s=(j.tireSize||'').trim();if(!s)return;if(!stats[s])stats[s]={size:s,jobs:0,qtySold:0,profit:0};stats[s].jobs+=1;stats[s].qtySold+=Number(j.qty||1);stats[s].profit+=jobGrossProfit(j,{costPerMile:0.65});});return Object.values(stats).sort((a,b)=>b.jobs!==a.jobs?b.jobs-a.jobs:b.profit-a.profit).slice(0,5);},[jobsArr]);
+  const top5=useMemo(()=>{
+    const stats={};
+    jobsArr.forEach(j=>{const s=(j.tireSize||"").trim();if(!s)return;if(!stats[s])stats[s]={size:s,jobs:0,qtySold:0,profit:0};stats[s].jobs+=1;stats[s].qtySold+=Number(j.qty||1);stats[s].profit+=jobGrossProfit(j,{costPerMile:0.65});});
+    return Object.values(stats).sort((a,b)=>b.jobs!==a.jobs?b.jobs-a.jobs:b.profit-a.profit).slice(0,5);
+  },[jobsArr]);
   const bestSellers=top5.map(t=>t.size);
   const fbWrite=(item)=>{if(!_db||!item.size.trim())return;fbSet(invCol(),item.id,{id:item.id,size:item.size,qty:item.qty,cost:item.cost,notes:item.notes});};
   const saveLocal=(next)=>{persist(KEYS.inventory,next);};
   const saveInv=(next,changedId,deleted)=>{saveLocal(next);if(!_db)return;if(deleted){fbDel(invCol(),deleted);pendingRef.current=pendingRef.current.filter(r=>r.id!==deleted);}else if(changedId){const item=next.find(i=>i.id===changedId);if(item&&item.size.trim()){fbWrite(item);pendingRef.current=pendingRef.current.filter(r=>r.id!==changedId);}}};
-  const update=(id,patch)=>{setInventory(prev=>{const next=prev.map(i=>i.id===id?sanitizeInvItem({...i,...patch}):i);saveInv(next,id);const item=next.find(i=>i.id===id);if(item&&item.size.trim())pendingRef.current=pendingRef.current.filter(r=>r.id!==id);else pendingRef.current=pendingRef.current.map(r=>r.id===id?{...r,...patch}:r);return next;});};
-  const add=()=>{const id=uid();const newItem={id,size:'',qty:0,cost:0,notes:''};pendingRef.current=[newItem,...pendingRef.current];setInventory(prev=>{const next=[newItem,...prev];saveLocal(next);return next;});setEditId(id);};
-  const remove=id=>{if(!window.confirm('Remove?'))return;pendingRef.current=pendingRef.current.filter(r=>r.id!==id);setInventory(prev=>{const next=prev.filter(i=>i.id!==id);saveInv(next,null,id);return next;});setEditId(null);};
+  const update=(id,patch)=>{setInventory(prev=>{const next=prev.map(i=>i.id===id?sanitizeInvItem({...i,...patch}):i);saveInv(next,id);return next;});};
+  const add=()=>{const id=uid();const newItem={id,size:"",qty:0,cost:0,notes:""};pendingRef.current=[newItem,...pendingRef.current];setInventory(prev=>{const next=[newItem,...prev];saveLocal(next);return next;});setEditId(id);};
+  const remove=id=>{if(!window.confirm("Remove?"))return;pendingRef.current=pendingRef.current.filter(r=>r.id!==id);setInventory(prev=>{const next=prev.filter(i=>i.id!==id);saveInv(next,null,id);return next;});setEditId(null);};
   const step=(id,delta)=>{setInventory(prev=>{const next=prev.map(i=>i.id===id?sanitizeInvItem({...i,qty:Math.max(0,(Number(i.qty)||0)+delta)}):i);saveInv(next,id);return next;});};
   const deduped=useMemo(()=>dedupeInventory(inv.filter(i=>i.size.trim())),[inv]);
   const totalQty=deduped.reduce((s,i)=>s+Number(i.qty||0),0);
   const totalValue=deduped.reduce((s,i)=>s+Number(i.qty||0)*Number(i.cost||0),0);
   const lowStock=deduped.filter(i=>Number(i.qty||0)>0&&Number(i.qty||0)<=LOW_STOCK);
   const outOfStock=deduped.filter(i=>Number(i.qty||0)===0);
-  const filtered=search.trim()?inv.filter(i=>(i.size||'').toLowerCase().includes(search.toLowerCase())):inv;
-  const sorted=[...filtered].sort((a,b)=>{const aBlank=!(a.size||'').trim(),bBlank=!(b.size||'').trim();if(aBlank&&!bBlank)return -1;if(!aBlank&&bBlank)return 1;const aBest=bestSellers.indexOf(a.size||''),bBest=bestSellers.indexOf(b.size||'');if(aBest!==-1&&bBest===-1)return -1;if(aBest===-1&&bBest!==-1)return 1;if(aBest!==-1&&bBest!==-1)return aBest-bBest;return(a.size||'').localeCompare(b.size||'');});
+  const filtered=search.trim()?inv.filter(i=>(i.size||"").toLowerCase().includes(search.toLowerCase())):inv;
+  const sorted=[...filtered].sort((a,b)=>{const aB=!(a.size||"").trim(),bB=!(b.size||"").trim();if(aB&&!bB)return -1;if(!aB&&bB)return 1;const ai=bestSellers.indexOf(a.size||""),bi=bestSellers.indexOf(b.size||"");if(ai!==-1&&bi===-1)return -1;if(ai===-1&&bi!==-1)return 1;if(ai!==-1&&bi!==-1)return ai-bi;return(a.size||"").localeCompare(b.size||"");});
   return html`<div class="screen"><div class="page page-enter">
     <div class="kpi-grid three card-anim">
       <div class="kpi"><div class="kpi-label">Total Tires</div><div class="kpi-value">${totalQty}</div><div class="kpi-sub">${deduped.length} sizes</div></div>
       <div class="kpi"><div class="kpi-label">Stock Value</div><div class="kpi-value" style=${{fontSize:16}}>${money(totalValue)}</div><div class="kpi-sub">at cost</div></div>
-      <div class="kpi"><div class="kpi-label">Attention</div><div class="kpi-value" style=${{fontSize:20,color:outOfStock.length>0?"var(--amber)":"var(--t3)"}}>${outOfStock.length+lowStock.length}</div><div class="kpi-sub">need reorder</div></div>
+      <div class="kpi"><div class="kpi-label">Attention</div><div class="kpi-value" style=${{fontSize:20,color:outOfStock.length>0?"var(--amber)":"var(--t3)"}}>${outOfStock.length+lowStock.length}</div><div class="kpi-sub">reorder</div></div>
     </div>
+    ${(outOfStock.length>0||lowStock.length>0)&&html`<div style=${{background:"var(--s2)",border:"1px solid var(--border)",borderRadius:14,padding:"14px 18px",marginBottom:12}}>
+      ${outOfStock.length>0&&html`<div style=${{marginBottom:lowStock.length>0?10:0}}>
+        <div style=${{fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Out of Stock</div>
+        <div style=${{display:"flex",flexWrap:"wrap",gap:6}}>${outOfStock.map(i=>html`<span key=${i.id} style=${{background:"var(--s3)",color:"var(--t2)",padding:"4px 12px",borderRadius:999,fontSize:11,fontWeight:700}}>${i.size||"—"}</span>`)}</div>
+      </div>`}
+      ${lowStock.length>0&&html`<div>
+        <div style=${{fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Low Stock</div>
+        <div style=${{display:"flex",flexWrap:"wrap",gap:6}}>${lowStock.map(i=>html`<span key=${i.id} style=${{background:"var(--amber-dim)",color:"var(--amber)",padding:"4px 12px",borderRadius:999,fontSize:11,fontWeight:700}}>${i.size} · ${i.qty}</span>`)}</div>
+      </div>`}
+    </div>`}
     <div style=${{display:"flex",gap:8,marginBottom:12}}>
       <input value=${search} onChange=${e=>setSearch(e.target.value)} placeholder="Search by tire size…" style=${{flex:1,background:"var(--s2)",border:"1px solid var(--border)",borderRadius:12,padding:"13px 16px",fontSize:15,outline:"none",color:"var(--t1)"}}/>
       <button class="btn primary press-scale" style=${{flexShrink:0,padding:"13px 20px",fontSize:14,borderRadius:12}} onClick=${add}>+ Add</button>
     </div>
-    ${sorted.length===0?html`<${EmptyState} icon="🛞" title="No inventory" sub="Tap + Add to add a tire size."/>`:html`<div class="card card-anim">
-      ${sorted.map((item,idx)=>{const isEditing=editId===item.id;const qty=Number(item.qty||0);const isLow=qty>0&&qty<=LOW_STOCK,isOut=qty===0;const isPending=!(item.size||'').trim();
-        return html`<div key=${item.id} style=${{borderBottom:idx<sorted.length-1?"1px solid var(--border2)":"none"}}>
-          <div style=${{display:"flex",alignItems:"center",padding:"14px 18px",gap:12,cursor:"pointer"}} onClick=${()=>setEditId(isEditing?null:item.id)}>
-            <div style=${{flex:1,minWidth:0}}><div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:15,color:isPending?"var(--gold)":"var(--t1)",letterSpacing:"-.3px"}}>${isPending?html`<span style=${{fontSize:13,fontWeight:600}}>Enter size →</span>`:item.size}</div>${item.cost>0&&html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:2}}>Cost ${money(item.cost)}</div>`}</div>
-            ${bestSellers.includes(item.size||'')&&!isPending&&html`<span style=${{fontSize:9,fontWeight:800,background:"var(--gold-dim)",color:"var(--gold)",borderRadius:999,padding:"3px 10px"}}>BEST</span>`}
-            ${isOut&&!isPending&&html`<span style=${{fontSize:9,fontWeight:800,color:"var(--t3)",background:"var(--s3)",borderRadius:999,padding:"3px 10px"}}>OUT</span>`}
-            ${isLow&&!isOut&&html`<span style=${{fontSize:9,fontWeight:800,color:"var(--amber)",background:"var(--amber-dim)",borderRadius:999,padding:"3px 10px"}}>LOW</span>`}
-            <div style=${{display:"flex",alignItems:"center",gap:0,background:"var(--s3)",borderRadius:10,overflow:"hidden",flexShrink:0}} onClick=${e=>e.stopPropagation()}>
-              <button onClick=${()=>step(item.id,-1)} style=${{background:"none",border:"none",width:36,height:36,fontSize:18,fontWeight:700,color:"var(--t2)",lineHeight:1}}>−</button>
-              <div style=${{width:32,textAlign:"center",fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:15,color:isOut?"var(--t3)":isLow?"var(--amber)":"var(--t1)"}}>${qty}</div>
-              <button onClick=${()=>step(item.id,1)} style=${{background:"none",border:"none",width:36,height:36,fontSize:18,fontWeight:700,color:"var(--t2)",lineHeight:1}}>+</button>
+    ${sorted.length===0
+      ?html`<${EmptyState} icon="🛞" title="No inventory" sub="Tap + Add to add a tire size."/>`
+      :html`<div class="card card-anim">
+        ${sorted.map((item,idx)=>{
+          const isEditing=editId===item.id;
+          const qty=Number(item.qty||0);const isLow=qty>0&&qty<=LOW_STOCK,isOut=qty===0;
+          const isPending=!(item.size||"").trim();
+          return html`<div key=${item.id||idx} style=${{borderBottom:idx<sorted.length-1?"1px solid var(--border2)":"none"}}>
+            <div style=${{display:"flex",alignItems:"center",padding:"14px 18px",gap:12,cursor:"pointer"}} onClick=${()=>setEditId(isEditing?null:item.id)}>
+              <div style=${{flex:1,minWidth:0}}>
+                <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15,color:isPending?"var(--gold)":"var(--t1)",letterSpacing:"-.3px"}}>${isPending?html`<span style=${{fontSize:13,fontWeight:600}}>Enter size →</span>`:item.size}</div>
+                ${item.cost>0&&html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:2}}>Cost ${money(item.cost)}</div>`}
+              </div>
+              ${bestSellers.includes(item.size||"")&&!isPending&&html`<span style=${{fontSize:9,fontWeight:800,background:"var(--gold-dim)",color:"var(--gold)",borderRadius:999,padding:"3px 10px"}}>BEST</span>`}
+              ${isOut&&!isPending&&html`<span style=${{fontSize:9,fontWeight:800,color:"var(--t3)",background:"var(--s3)",borderRadius:999,padding:"3px 10px"}}>OUT</span>`}
+              ${isLow&&!isOut&&html`<span style=${{fontSize:9,fontWeight:800,color:"var(--amber)",background:"var(--amber-dim)",borderRadius:999,padding:"3px 10px"}}>LOW</span>`}
+              <div style=${{display:"flex",alignItems:"center",background:"var(--s3)",borderRadius:10,overflow:"hidden",flexShrink:0}} onClick=${e=>e.stopPropagation()}>
+                <button onClick=${()=>step(item.id,-1)} style=${{background:"none",border:"none",width:36,height:36,fontSize:18,fontWeight:700,color:"var(--t2)",lineHeight:1}}>−</button>
+                <div style=${{width:32,textAlign:"center",fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15,color:isOut?"var(--t3)":isLow?"var(--amber)":"var(--t1)"}}>${qty}</div>
+                <button onClick=${()=>step(item.id,1)} style=${{background:"none",border:"none",width:36,height:36,fontSize:18,fontWeight:700,color:"var(--t2)",lineHeight:1}}>+</button>
+              </div>
             </div>
-          </div>
-          ${isEditing&&html`<div style=${{padding:"0 18px 16px",display:"grid",gridTemplateColumns:"1fr 1fr auto",gap:10,alignItems:"end",background:"var(--s2)",borderTop:"1px solid var(--border2)",animation:"fadeSlideUp .2s ease"}}>
-            <div><div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Size</div><input autoFocus=${isPending} value=${item.size} onChange=${e=>update(item.id,{size:e.target.value})} placeholder="225/55R17" style=${{border:"1px solid var(--border)",borderRadius:10,padding:"11px 13px",fontSize:15,fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,outline:"none",width:"100%",background:"var(--s1)",color:"var(--t1)"}}/></div>
-            <div><div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Cost ($)</div><input value=${item.cost||""} type="number" min="0" onChange=${e=>update(item.id,{cost:Number(e.target.value||0)})} placeholder="0" style=${{border:"1px solid var(--border)",borderRadius:10,padding:"11px 13px",fontSize:14,outline:"none",width:"100%",background:"var(--s1)",color:"var(--t1)"}}/></div>
-            <button class="btn danger sm" style=${{alignSelf:"end",height:44}} onClick=${()=>remove(item.id)}>×</button>
-          </div>`}
-        </div>`;})}
-    </div>`}
+            ${isEditing&&html`<div style=${{padding:"0 18px 16px",display:"grid",gridTemplateColumns:"1fr 1fr auto",gap:10,alignItems:"end",background:"var(--s2)",borderTop:"1px solid var(--border2)"}}>
+              <div><div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Size</div><input autoFocus=${isPending} value=${item.size} onChange=${e=>update(item.id,{size:e.target.value})} placeholder="225/55R17" style=${{border:"1px solid var(--border)",borderRadius:10,padding:"11px 13px",fontSize:15,fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,outline:"none",width:"100%",background:"var(--s1)",color:"var(--t1)"}}/></div>
+              <div><div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Cost ($)</div><input value=${item.cost||""} type="number" min="0" onChange=${e=>update(item.id,{cost:Number(e.target.value||0)})} placeholder="0" style=${{border:"1px solid var(--border)",borderRadius:10,padding:"11px 13px",fontSize:14,outline:"none",width:"100%",background:"var(--s1)",color:"var(--t1)"}}/></div>
+              <button class="btn danger sm" style=${{alignSelf:"end",height:44}} onClick=${()=>remove(item.id)}>×</button>
+            </div>`}
+          </div>`;
+        })}
+      </div>`}
   </div></div>`;
 }
 
-// ── Settings (compact) ────────────────────────────────────────────────────────
+// ── Settings ──────────────────────────────────────────────────────────────────
 function Settings({settings,setSettings,jobs,setJobs,inventory,setInventory,expenses,onResetInventory}) {
+  const exps=Array.isArray(settings.expenses)?settings.expenses:[];
   const upd=(k,v)=>setSettings(p=>({...p,[k]:v}));
   const updExp=(id,patch)=>setSettings(p=>({...p,expenses:(Array.isArray(p.expenses)?p.expenses:[]).map(e=>e.id===id?{...e,...patch}:e)}));
   const addExp=()=>setSettings(p=>({...p,expenses:[...(Array.isArray(p.expenses)?p.expenses:[]),{id:uid(),name:"New Expense",amount:0,active:true}]}));
   const delExp=id=>setSettings(p=>({...p,expenses:(Array.isArray(p.expenses)?p.expenses:[]).filter(e=>e.id!==id)}));
-  const exportCSV=()=>{const headers=["Date","Service","Area","Source","Revenue","Tire Cost","Misc Cost","Miles","Direct Cost","Gross Profit","Payment","Tire Size","Qty","Customer","Phone","Notes"];const rows=[...(jobs||[])].sort((a,b)=>a.date.localeCompare(b.date)).map(j=>{const dc=jobDirectCost(j,settings),gp=jobGrossProfit(j,settings);return[j.date,j.service,j.area,j.source||"",Number(j.revenue||0).toFixed(2),Number(j.tireCost||0).toFixed(2),Number(j.miscCost||0).toFixed(2),Number(j.miles||0).toFixed(1),dc.toFixed(2),gp.toFixed(2),j.payment,j.tireSize||"",j.qty||1,j.customerName||"",j.customerPhone||"",(j.note||"").replace(/,/g," ")].map(v=>'"'+v+'"').join(",");});const csv=[headers.join(",")].concat(rows).join("\n");const blob=new Blob([csv],{type:"text/csv"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="wheel-rush-"+TODAY()+".csv";a.click();URL.revokeObjectURL(url);};
-  const exportData=()=>{const d={jobs,settings,inventory,expenses,exportedAt:new Date().toISOString(),version:"6"};const blob=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="wheel-rush-backup-"+TODAY()+".json";a.click();URL.revokeObjectURL(url);};
+  const exportCSV=()=>{
+    const headers=["Date","Service","Area","Source","Revenue","Tire Cost","Misc Cost","Miles","Direct Cost","Gross Profit","Payment","Tire Size","Qty","Customer","Phone","Notes"];
+    const rows=[...(jobs||[])].sort((a,b)=>a.date.localeCompare(b.date)).map(j=>{const dc=jobDirectCost(j,settings),gp=jobGrossProfit(j,settings);return[j.date,j.service,j.area,j.source||"",Number(j.revenue||0).toFixed(2),Number(j.tireCost||0).toFixed(2),Number(j.miscCost||0).toFixed(2),Number(j.miles||0).toFixed(1),dc.toFixed(2),gp.toFixed(2),j.payment,j.tireSize||"",j.qty||1,j.customerName||"",j.customerPhone||"",(j.note||"").replace(/,/g," ")].map(v=>'"'+v+'"').join(",");});
+    const csv=[headers.join(",")].concat(rows).join("\n");
+    const blob=new Blob([csv],{type:"text/csv"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="wheel-rush-"+TODAY()+".csv";a.click();URL.revokeObjectURL(url);
+  };
+  const exportData=()=>{const d={jobs,settings,inventory,expenses,exportedAt:new Date().toISOString(),version:"10"};const blob=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="wheel-rush-backup-"+TODAY()+".json";a.click();URL.revokeObjectURL(url);};
   const importData=()=>{const inp=document.createElement("input");inp.type="file";inp.accept=".json";inp.onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(Array.isArray(data.jobs))setJobs(data.jobs);if(data.settings&&typeof data.settings==="object")setSettings({...DEFAULT_SETTINGS,...data.settings});alert("Import complete.");}catch{alert("Could not import.");}};inp.click();};
-  const resetInventory=()=>{if(!window.confirm("Reset inventory to 52-size list?"))return;const fresh=DEFAULT_INVENTORY.map(i=>({...i}));setInventory(fresh);persist(KEYS.inventory,fresh);if(onResetInventory)onResetInventory(fresh);alert("✅ Done!");};
+  const resetInventory=()=>{if(!window.confirm("Reset inventory to 52-size list?"))return;const fresh=DEFAULT_INVENTORY.map(i=>({...i}));setInventory(fresh);persist(KEYS.inventory,fresh);if(onResetInventory)onResetInventory(fresh);alert("Done!");};
   const clearAll=()=>{if(!window.confirm("Clear ALL data? Cannot be undone."))return;Object.values(KEYS).forEach(k=>localStorage.removeItem(k));window.location.reload();};
   const monthly=monthlyFixed(settings),weekly=weeklyFixed(settings);
   return html`<div class="screen"><div class="page page-enter">
-    <div class="section-label" style=${{marginTop:0}}>Owners & Split</div>
+    <div class="section-label" style=${{marginTop:0}}>Owners &amp; Split</div>
     <div class="card card-anim">
-      ${[{nk:"owner1Name",pk:"profitSplit1",ak:"owner1Active",lbl:"Owner 1"},{nk:"owner2Name",pk:"profitSplit2",ak:"owner2Active",lbl:"Owner 2"}].map(({nk,pk,ak,lbl})=>{const active=settings[ak]!==false;return html`<div key=${nk} class="settings-row" style=${{opacity:active?1:0.55}}><div style=${{flex:1}}><div style=${{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><div class="label">${lbl}</div><button onClick=${()=>upd(ak,!active)} style=${{border:"none",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,cursor:"pointer",background:active?"var(--t1)":"var(--s3)",color:active?"var(--bg)":"var(--t3)"}}>${active?"ON":"OFF"}</button></div><input class="settings-inp" style=${{width:"100%"}} value=${settings[nk]} onChange=${e=>upd(nk,e.target.value)} disabled=${!active}/></div><div style=${{flexShrink:0,marginLeft:12}}><div class="label" style=${{marginBottom:6}}>Split %</div><input type="number" class="settings-inp" style=${{width:80}} value=${settings[pk]} onChange=${e=>upd(pk,Number(e.target.value||0))} disabled=${!active}/></div></div>`;})}
+      ${[{nk:"owner1Name",pk:"profitSplit1",ak:"owner1Active",lbl:"Owner 1"},{nk:"owner2Name",pk:"profitSplit2",ak:"owner2Active",lbl:"Owner 2"}].map(({nk,pk,ak,lbl})=>{const active=settings[ak]!==false;return html`<div key=${nk} class="settings-row" style=${{opacity:active?1:0.55}}><div style=${{flex:1}}><div style=${{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><div class="label">${lbl}</div><button onClick=${()=>upd(ak,!active)} style=${{border:"none",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,cursor:"pointer",background:active?"var(--t1)":"var(--s3)",color:active?"var(--bg)":"var(--t3)"}}>${active?"ON":"OFF"}</button></div><input class="settings-inp" style=${{width:"100%"}} value=${settings[nk]} onChange=${e=>upd(nk,e.target.value)} disabled=${!active}/></div><div style=${{flexShrink:0,marginLeft:12}}><div class="label" style=${{marginBottom:6}}>Split %</div><input type="number" class="settings-inp" style=${{width:80}} value=${settings[pk]} onChange=${e=>upd(pk,Number(e.target.value||0))} disabled=${!active}/></div></div>`;} )}
     </div>
-    <div class="section-label">Goals & Pricing</div>
+    <div class="section-label">Goals &amp; Pricing</div>
     <div class="card card-anim">
       <div class="settings-row"><div class="label">Weekly Goal</div><input type="number" class="settings-inp" style=${{width:110}} value=${settings.weeklyGoal||""} onChange=${e=>upd("weeklyGoal",Number(e.target.value||0))}/></div>
       <div class="settings-row"><div class="label">Tax Rate %</div><input type="number" class="settings-inp" style=${{width:80}} value=${settings.taxRate||""} onChange=${e=>upd("taxRate",Number(e.target.value||0))}/></div>
@@ -1394,7 +1372,7 @@ function Settings({settings,setSettings,jobs,setJobs,inventory,setInventory,expe
     <div class="card card-anim"><div class="card-pad"><input class="settings-inp" style=${{width:"100%"}} value=${settings.googleReviewUrl||""} onChange=${e=>upd("googleReviewUrl",e.target.value)} placeholder="https://g.page/r/…/review"/></div></div>
     <div class="section-label">Monthly Fixed Expenses</div>
     <div class="card card-anim">
-      ${(Array.isArray(settings.expenses)?settings.expenses:[]).map(exp=>html`<div class="expense-row" key=${exp.id}><input value=${exp.name} onChange=${e=>updExp(exp.id,{name:e.target.value})}/><input type="number" value=${exp.amount} onChange=${e=>updExp(exp.id,{amount:Number(e.target.value||0)})}/><button class=${"btn sm "+(exp.active?"success":"secondary")} onClick=${()=>updExp(exp.id,{active:!exp.active})}>${exp.active?"On":"Off"}</button><button class="btn danger sm" onClick=${()=>delExp(exp.id)}>×</button></div>`)}
+      ${exps.map(exp=>html`<div class="expense-row" key=${exp.id}><input value=${exp.name} onChange=${e=>updExp(exp.id,{name:e.target.value})}/><input type="number" value=${exp.amount} onChange=${e=>updExp(exp.id,{amount:Number(e.target.value||0)})}/><button class=${"btn sm "+(exp.active?"success":"secondary")} onClick=${()=>updExp(exp.id,{active:!exp.active})}>${exp.active?"On":"Off"}</button><button class="btn danger sm" onClick=${()=>delExp(exp.id)}>×</button></div>`)}
       <div class="card-row"><button class="btn secondary sm press-scale" onClick=${addExp}>+ Add</button><div style=${{textAlign:"right"}}><div class="value">${money(monthly)}/mo</div><div class="sub">${money(weekly)}/wk</div></div></div>
     </div>
     <div class="section-label">Data</div>
@@ -1405,61 +1383,47 @@ function Settings({settings,setSettings,jobs,setJobs,inventory,setInventory,expe
       <div class="card-row"><div class="label">Reset Inventory</div><button class="btn orange sm press-scale" onClick=${resetInventory}>Reset</button></div>
       <div class="card-row"><div class="label" style=${{color:"var(--red)"}}>Reset Everything</div><button class="btn danger sm" onClick=${clearAll}>Reset</button></div>
     </div>
-    <div style=${{padding:"8px 0 4px",textAlign:"center",fontSize:11,color:"var(--t3)"}}>Wheel Rush Pro v10 · Firebase Sync</div>
+    <div style=${{padding:"8px 0 4px",textAlign:"center",fontSize:11,color:"var(--t3)"}}>Wheel Rush v10 Pro · Firebase Sync</div>
   </div></div>`;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ═══ ROOT APP COMPONENT ═════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════════════════════════════
+// ── App ───────────────────────────────────────────────────────────────────────
 function App() {
-  // ── Auth state ───────────────────────────────────────────────────────────
-  const [user,setUser]=useState(null);
-  const [authReady,setAuthReady]=useState(false);
-  const [syncStatus,setSyncStatus]=useState("local");
-
-  // ── Core data state ──────────────────────────────────────────────────────
-  const [jobs,setJobs]=useState(()=>load(KEYS.jobs,[]));
-  const [settings,setSettings]=useState(()=>{const loaded={...DEFAULT_SETTINGS,...load(KEYS.settings,{})};if(typeof loaded.expenses==="string"){try{loaded.expenses=JSON.parse(loaded.expenses);}catch(e){loaded.expenses=[];}}if(!Array.isArray(loaded.expenses))loaded.expenses=[];return loaded;});
-  const [inventory,setInventory]=useState(()=>load(KEYS.inventory,DEFAULT_INVENTORY.map(i=>({...i}))));
-  const [expenses,setExpenses]=useState(()=>load(KEYS.expenses,[]));
-
-  // ── UI state ─────────────────────────────────────────────────────────────
-  const [tab,setTab]=useState("dashboard");
-  const [saving,setSaving]=useState(false);
-  const [prefill,setPrefill]=useState(null);
-  const [editJob,setEditJob]=useState(null);
-
-  // ── Refs for Firebase listeners ──────────────────────────────────────────
-  const unsubJobs=useRef(null);
-  const unsubInv=useRef(null);
-  const unsubExp=useRef(null);
-  const unsubSettings=useRef(null);
-  const pendingRef=useRef([]);
+  const [user,setUser]       = useState(null);
+  const [authReady,setAuthReady] = useState(false);
+  const [syncStatus,setSyncStatus] = useState("local");
+  const [jobs,setJobs]       = useState(()=>load(KEYS.jobs,[]));
+  const [settings,setSettings] = useState(()=>{
+    const raw = load(KEYS.settings, {});
+    const merged = {...DEFAULT_SETTINGS, ...raw};
+    // Ensure expenses is always an array
+    if (!Array.isArray(merged.expenses)) {
+      try { const p=JSON.parse(merged.expenses||"[]"); merged.expenses=Array.isArray(p)?p:DEFAULT_SETTINGS.expenses; }
+      catch { merged.expenses = DEFAULT_SETTINGS.expenses; }
+    }
+    return merged;
+  });
+  const [inventory,setInventory] = useState(()=>{const r=load(KEYS.inventory,null);return Array.isArray(r)?r:DEFAULT_INVENTORY.map(i=>({...i}));});
+  const [expenses,setExpenses]   = useState(()=>{const r=load(KEYS.expenses,null);return Array.isArray(r)?r:[];});
+  const [tab,setTab]     = useState("dashboard");
+  const [saving,setSaving] = useState(false);
+  const [prefill,setPrefill] = useState(null);
+  const [editJob,setEditJob] = useState(null);
+  const pendingRef = useRef([]);
 
   // ── Auth listener ────────────────────────────────────────────────────────
   useEffect(()=>{
-    if(!_auth)return setAuthReady(true);
+    if(!_auth) return setAuthReady(true);
     const unsub=_auth.onAuthStateChanged(u=>{setUser(u||null);setAuthReady(true);});
     return ()=>unsub();
   },[]);
 
-  // ── Firebase listeners (when user is logged in) ──────────────────────────
+  // ── Firebase listeners ───────────────────────────────────────────────────
   useEffect(()=>{
-    if(!user){
-      setSyncStatus("local");
-      [unsubJobs,unsubInv,unsubExp,unsubSettings].forEach(r=>{if(r.current){r.current();r.current=null;}});
-      return;
-    }
+    if(!user){setSyncStatus("local");return;}
     setSyncStatus("syncing");
-
-    // Jobs listener
-    unsubJobs.current=fbListen(jobCol(),docs=>{
-      setJobs(docs);persist(KEYS.jobs,docs);setSyncStatus("connected");
-    });
-
-    // Inventory listener
-    unsubInv.current=fbListen(invCol(),docs=>{
+    const u1=fbListen(jobCol(),docs=>{setJobs(docs);persist(KEYS.jobs,docs);setSyncStatus("connected");});
+    const u2=fbListen(invCol(),docs=>{
       if(docs.length>0){
         const pending=pendingRef.current||[];
         const merged=[...docs];
@@ -1468,158 +1432,87 @@ function App() {
         setInventory(deduped);persist(KEYS.inventory,deduped);
       }
     });
-
-    // Expenses listener
-    unsubExp.current=fbListen(expCol(),docs=>{
-      setExpenses(docs);persist(KEYS.expenses,docs);
-    });
-
-    // Settings listener
+    const u3=fbListen(expCol(),docs=>{setExpenses(Array.isArray(docs)?docs:[]);persist(KEYS.expenses,docs);});
+    let u4=()=>{};
     if(settingDoc()){
-      unsubSettings.current=settingDoc().onSnapshot(snap=>{
-        if(snap.exists){
-          const d=snap.data();Object.keys(d).forEach(k=>{if(typeof d[k]==="string"){try{const p=JSON.parse(d[k]);if(Array.isArray(p))d[k]=p;}catch(e){}}});
-          setSettings(prev=>{const merged={...DEFAULT_SETTINGS,...prev,...d};persist(KEYS.settings,merged);return merged;});
+      u4=settingDoc().onSnapshot(snap=>{
+        if(snap&&snap.exists){
+          const d=snap.data();
+          Object.keys(d).forEach(k=>{if(typeof d[k]==="string"){try{const p=JSON.parse(d[k]);if(Array.isArray(p))d[k]=p;}catch{}}});
+          setSettings(prev=>{const merged={...DEFAULT_SETTINGS,...prev,...d};if(!Array.isArray(merged.expenses))merged.expenses=DEFAULT_SETTINGS.expenses;persist(KEYS.settings,merged);return merged;});
         }
       },()=>{});
     }
-
-    return ()=>{
-      [unsubJobs,unsubInv,unsubExp,unsubSettings].forEach(r=>{if(r.current){r.current();r.current=null;}});
-    };
+    return ()=>{u1();u2();u3();u4();};
   },[user]);
 
-  // ── Persist settings on change ───────────────────────────────────────────
+  // ── Persist settings ─────────────────────────────────────────────────────
   useEffect(()=>{
     persist(KEYS.settings,settings);
     if(user&&settingDoc()){
       const t=setTimeout(()=>{
-        const clean={};Object.keys(settings).forEach(k=>{const v=settings[k];if(v!==null&&v!==undefined)clean[k]=v;});
+        const clean={};Object.keys(settings).forEach(k=>{const v=settings[k];if(v!==null&&v!==undefined)clean[k]=typeof v==="object"?JSON.stringify(v):v;});
         settingDoc().set(clean).catch(()=>{});
-      },1000);
+      },1200);
       return ()=>clearTimeout(t);
     }
   },[settings,user]);
 
-  // ── Persist jobs locally (offline fallback) ──────────────────────────────
   useEffect(()=>{persist(KEYS.jobs,jobs);},[jobs]);
   useEffect(()=>{persist(KEYS.inventory,inventory);},[inventory]);
 
-  // ── Save job handler ─────────────────────────────────────────────────────
+  // ── Save job ─────────────────────────────────────────────────────────────
   const saveJob=useCallback(async(job,addAnother)=>{
     setSaving(true);
     try{
-      const id=job.id||uid();
-      const full={...job,id};
-      // Update recent sizes
-      if(full.tireSize){const sizes=load(KEYS.sizes,[]);const updated=[full.tireSize,...sizes.filter(s=>s!==full.tireSize)].slice(0,12);persist(KEYS.sizes,updated);}
-      // Update recent cities
-      if(full.area){const cities=load(KEYS.cities,[]);const updated=[full.area,...cities.filter(c=>c!==full.area)].slice(0,12);persist(KEYS.cities,updated);}
-      // Deduct inventory
+      const id=job.id||uid();const full={...job,id};
+      if(full.tireSize){const sz=load(KEYS.sizes,[]);persist(KEYS.sizes,[full.tireSize,...sz.filter(s=>s!==full.tireSize)].slice(0,12));}
+      if(full.area){const ct=load(KEYS.cities,[]);persist(KEYS.cities,[full.area,...ct.filter(c=>c!==full.area)].slice(0,12));}
       if(/replacement|installation/i.test(full.service)&&full.tireSize){
         const qty=Number(full.qty||1);
-        setInventory(prev=>{
-          const next=prev.map(i=>i.size===full.tireSize?{...i,qty:Math.max(0,(Number(i.qty)||0)-qty)}:i);
-          persist(KEYS.inventory,next);
-          if(user)next.forEach(x=>fbSet(invCol(),x.id,{id:x.id,size:x.size||"",qty:Number(x.qty||0),cost:Number(x.cost||0),notes:x.notes||""}));
-          return next;
-        });
+        setInventory(prev=>{const next=prev.map(i=>i.size===full.tireSize?{...i,qty:Math.max(0,(Number(i.qty)||0)-qty)}:i);persist(KEYS.inventory,next);if(user)next.forEach(x=>fbSet(invCol(),x.id,{id:x.id,size:x.size||"",qty:Number(x.qty||0),cost:Number(x.cost||0),notes:x.notes||""}));return next;});
       }
-      // Save to state + Firebase
-      setJobs(prev=>{
-        const exists=prev.find(j=>j.id===id);
-        const next=exists?prev.map(j=>j.id===id?full:j):[full,...prev];
-        persist(KEYS.jobs,next);
-        return next;
-      });
-      if(user){
-        await fbSet(jobCol(),id,{
-          id,date:String(full.date||""),service:String(full.service||""),area:String(full.area||""),
-          source:String(full.source||""),payment:String(full.payment||""),status:String(full.status||"Completed"),
-          customerName:String(full.customerName||""),customerPhone:String(full.customerPhone||""),
-          tireSize:String(full.tireSize||""),qty:Number(full.qty||1),
-          revenue:Number(full.revenue||0),tireCost:Number(full.tireCost||0),
-          miscCost:Number(full.miscCost||0),miles:Number(full.miles||0),
-          note:String(full.note||""),
-          emergency:!!full.emergency,lateNight:!!full.lateNight,
-          highway:!!full.highway,weekend:!!full.weekend
-        });
-      }
+      setJobs(prev=>{const exists=prev.find(j=>j.id===id);const next=exists?prev.map(j=>j.id===id?full:j):[full,...prev];persist(KEYS.jobs,next);return next;});
+      if(user){await fbSet(jobCol(),id,{id,date:String(full.date||""),service:String(full.service||""),area:String(full.area||""),source:String(full.source||""),payment:String(full.payment||""),status:String(full.status||"Completed"),customerName:String(full.customerName||""),customerPhone:String(full.customerPhone||""),tireSize:String(full.tireSize||""),qty:Number(full.qty||1),revenue:Number(full.revenue||0),tireCost:Number(full.tireCost||0),miscCost:Number(full.miscCost||0),miles:Number(full.miles||0),note:String(full.note||""),emergency:!!full.emergency,lateNight:!!full.lateNight,highway:!!full.highway,weekend:!!full.weekend});}
       if(!addAnother){setTab("dashboard");setEditJob(null);}
     }catch(e){console.warn("saveJob:",e);}
     finally{setSaving(false);}
   },[user]);
 
-  // ── Expense wrapper (BUG 3+5+6 FIX) ─────────────────────────────────────
+  // ── Expense handler (BUG 3 FIX) ──────────────────────────────────────────
   const handleSetExpenses=useCallback(updater=>{
     setExpenses(prev=>{
-      const next=typeof updater==="function"?updater(prev):updater;
+      const prevArr=Array.isArray(prev)?prev:[];
+      const next=typeof updater==="function"?updater(prevArr):Array.isArray(updater)?updater:prevArr;
       persist(KEYS.expenses,next);
       if(user){
         const nextIds=new Set(next.map(x=>x.id));
-        // Delete removed expenses from Firebase
-        prev.forEach(x=>{if(!nextIds.has(x.id))fbDel(expCol(),x.id);});
-        // Upsert current expenses
-        next.forEach(x=>fbSet(expCol(),x.id,{
-          id:String(x.id||""),date:String(x.date||""),
-          category:String(x.category||""),amount:Number(x.amount||0),
-          note:String(x.note||"")
-        }));
+        prevArr.forEach(x=>{if(!nextIds.has(x.id))fbDel(expCol(),x.id);});
+        next.forEach(x=>fbSet(expCol(),x.id,{id:String(x.id||""),date:String(x.date||""),category:String(x.category||""),amount:Number(x.amount||0),note:String(x.note||"")}));
       }
       return next;
     });
   },[user]);
 
-  // ── Inventory save handler ───────────────────────────────────────────────
+  // ── Inventory handler ─────────────────────────────────────────────────────
   const handleSetInventory=useCallback(updater=>{
-    setInventory(prev=>{
-      const next=typeof updater==="function"?updater(prev):updater;
-      persist(KEYS.inventory,next);
-      if(user)next.forEach(x=>fbSet(invCol(),x.id,{id:x.id,size:x.size||"",qty:Number(x.qty||0),cost:Number(x.cost||0),notes:x.notes||""}));
-      return next;
-    });
+    setInventory(prev=>{const next=typeof updater==="function"?updater(prev):updater;persist(KEYS.inventory,next);if(user)next.forEach(x=>fbSet(invCol(),x.id,{id:x.id,size:x.size||"",qty:Number(x.qty||0),cost:Number(x.cost||0),notes:x.notes||""}));return next;});
   },[user]);
 
-  // ── Reset inventory (for Settings) ───────────────────────────────────────
-  const resetInventoryFb=useCallback(fresh=>{
-    pendingRef.current=[];
-    if(user&&invCol()){fresh.forEach(x=>fbSet(invCol(),x.id,{id:x.id,size:x.size||"",qty:Number(x.qty||0),cost:Number(x.cost||0),notes:x.notes||""}));}
-  },[user]);
-
-  // ── Repeat / edit job helper ─────────────────────────────────────────────
-  const handleRepeat=useCallback(job=>{setPrefill(job);setTab("add");},[]);
-  const handleEdit=useCallback(job=>{setEditJob(job);setTab("add");},[]);
+  const resetInventoryFb=useCallback(fresh=>{pendingRef.current=[];if(user&&invCol())fresh.forEach(x=>fbSet(invCol(),x.id,{id:x.id,size:x.size||"",qty:Number(x.qty||0),cost:Number(x.cost||0),notes:x.notes||""}));},[user]);
+  const handleRepeat  =useCallback(job=>{setPrefill(job);setTab("add");},[]);
+  const handleEdit    =useCallback(job=>{setEditJob(job);setTab("add");},[]);
   const handleStartJob=useCallback(qqForm=>{setPrefill({...EMPTY_JOB(),...qqForm});setTab("add");},[]);
+  const signOut       =useCallback(()=>{if(_auth)_auth.signOut().catch(()=>{});},[]);
+  const deleteJob     =useCallback(id=>{setJobs(prev=>{const next=prev.filter(j=>j.id!==id);persist(KEYS.jobs,next);return next;});if(user)fbDel(jobCol(),id);},[user]);
 
-  // ── Sign out ─────────────────────────────────────────────────────────────
-  const signOut=useCallback(()=>{if(_auth)_auth.signOut().then(()=>{setUser(null);setSyncStatus("local");}).catch(()=>{});},[]);
-
-  // ── Delete job ───────────────────────────────────────────────────────────
-  const deleteJob=useCallback(id=>{
-    setJobs(prev=>{const next=prev.filter(j=>j.id!==id);persist(KEYS.jobs,next);return next;});
-    if(user)fbDel(jobCol(),id);
-  },[user]);
-
-  // ── Mark job status ──────────────────────────────────────────────────────
-  const markJob=useCallback((id,status)=>{
-    setJobs(prev=>{
-      const next=prev.map(j=>j.id===id?{...j,status}:j);
-      persist(KEYS.jobs,next);
-      const job=next.find(j=>j.id===id);
-      if(user&&job)fbSet(jobCol(),id,{...job,status});
-      return next;
-    });
-  },[user]);
-
-  // ── Loading state ────────────────────────────────────────────────────────
+  // ── Loading ───────────────────────────────────────────────────────────────
   if(!authReady)return html`<div style=${{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--bg)"}}>
-    <div class="shimmer-text" style=${{fontSize:24,fontWeight:700}}>Wheel Rush</div>
+    <img src=${LOGO_SRC} alt="WR" class="logo-pulse" style=${{width:72,height:72,objectFit:"contain",borderRadius:16,boxShadow:"0 4px 24px rgba(0,0,0,.6), 0 0 0 1px rgba(79,142,247,.15)"}} onError=${e=>e.target.style.display="none"}/>
   </div>`;
 
-  // ── Auth screen ──────────────────────────────────────────────────────────
   if(!user)return html`<${AuthScreen} onAuth=${u=>setUser(u)}/>`;
 
-  // ── Tab routing ──────────────────────────────────────────────────────────
   const TABS=[
     {id:"dashboard",icon:"⚡",label:"Home"},
     {id:"add",icon:"＋",label:"Add"},
@@ -1632,27 +1525,14 @@ function App() {
 
   let content=null;
   switch(tab){
-    case "dashboard":
-      content=html`<${Dashboard} jobs=${jobs} settings=${settings} setTab=${setTab} onRepeat=${handleRepeat} inventory=${inventory} onStartJob=${handleStartJob}/>`;
-      break;
-    case "add":
-      content=html`<${AddJob} onSave=${saveJob} settings=${settings} jobs=${jobs} prefill=${prefill} onClearPrefill=${()=>setPrefill(null)} editJob=${editJob} onClearEdit=${()=>setEditJob(null)} saving=${saving}/>`;
-      break;
-    case "history":
-      content=html`<${History} jobs=${jobs} settings=${settings} onEdit=${handleEdit} onDelete=${deleteJob} onRepeat=${handleRepeat}/>`;
-      break;
-    case "payouts":
-      content=html`<${Payouts} jobs=${jobs} settings=${settings}/>`;
-      break;
-    case "expenses":
-      content=html`<${Expenses} expenses=${expenses} setExpenses=${handleSetExpenses}/>`;
-      break;
-    case "inventory":
-      content=html`<${Inventory} inventory=${inventory} setInventory=${handleSetInventory} jobs=${jobs}/>`;
-      break;
-    case "settings":
-      content=html`<${Settings} settings=${settings} setSettings=${setSettings} jobs=${jobs} setJobs=${setJobs} inventory=${inventory} setInventory=${handleSetInventory} expenses=${expenses} onResetInventory=${resetInventoryFb}/>`;
-      break;
+    case "dashboard": content=html`<${Dashboard} jobs=${jobs} settings=${settings} setTab=${setTab} onRepeat=${handleRepeat} inventory=${inventory} onStartJob=${handleStartJob}/>`; break;
+    case "add":       content=html`<${AddJob} onSave=${saveJob} settings=${settings} jobs=${jobs} prefill=${prefill} onClearPrefill=${()=>setPrefill(null)} editJob=${editJob} onClearEdit=${()=>setEditJob(null)} saving=${saving}/>`; break;
+    case "history":   content=html`<${History} jobs=${jobs} settings=${settings} onEdit=${handleEdit} onDelete=${deleteJob} onRepeat=${handleRepeat}/>`; break;
+    case "payouts":   content=html`<${Payouts} jobs=${jobs} settings=${settings}/>`; break;
+    case "expenses":  content=html`<${Expenses} expenses=${expenses} setExpenses=${handleSetExpenses}/>`; break;
+    case "inventory": content=html`<${Inventory} inventory=${inventory} setInventory=${handleSetInventory} jobs=${jobs}/>`; break;
+    case "settings":  content=html`<${Settings} settings=${settings} setSettings=${setSettings} jobs=${jobs} setJobs=${setJobs} inventory=${inventory} setInventory=${handleSetInventory} expenses=${expenses} onResetInventory=${resetInventoryFb}/>`; break;
+    default: content=null;
   }
 
   return html`<div style=${{display:"flex",flexDirection:"column",height:"100vh",background:"var(--bg)",overflow:"hidden"}}>
@@ -1660,15 +1540,18 @@ function App() {
     <div style=${{flex:1,overflow:"auto",WebkitOverflowScrolling:"touch"}}>${content}</div>
     <nav class="bottom-nav">
       ${TABS.map(t=>html`<button key=${t.id} class=${"nav-btn"+(tab===t.id?" active":"")} data-id=${t.id} onClick=${()=>setTab(t.id)}>
-        ${t.id==="dashboard"?html`<img src=${LOGO_SRC} alt="" class="nav-logo-ico" style=${{width:22,height:22,objectFit:"contain",borderRadius:5,opacity:tab==="dashboard"?1:0.5,transition:"opacity .15s"}} onError=${e=>{e.target.style.display="none"}}/>`:html`<span class="ico">${t.icon}</span>`}
+        ${t.id==="dashboard"
+          ?html`<img src=${LOGO_SRC} alt="" class="nav-logo-ico" style=${{width:22,height:22,objectFit:"contain",borderRadius:5,opacity:tab==="dashboard"?1:0.45,transition:"opacity .15s"}} onError=${e=>e.target.style.display="none"}/>`
+          :html`<span class="ico">${t.icon}</span>`}
         <span>${t.label}</span>
       </button>`)}
     </nav>
   </div>`;
 }
 
-// ── Mount ────────────────────────────────────────────────────────────────────
-ReactDOM.render(html`<${App}/>`, document.getElementById("root"));
+// ── Mount ─────────────────────────────────────────────────────────────────────
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(React.createElement(ErrorBoundary, null, html`<${App}/>`));
 </script>
 </body>
 </html>
