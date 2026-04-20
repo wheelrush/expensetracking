@@ -415,6 +415,140 @@ async function fbBatch(ops) {
   } catch(e) { console.warn("fbBatch:", e); }
 }
 
+// ── Per-user collection refs (users/{uid}/inventory, users/{uid}/jobs) ────────
+function userInvCol(uid)  { return (_db && uid) ? _db.collection("users").doc(uid).collection("inventory") : null; }
+function userJobCol(uid)  { return (_db && uid) ? _db.collection("users").doc(uid).collection("jobs")      : null; }
+
+// ── Tire size normalization ──────────────────────────────────────────────────
+// "225/55R17" → "225/55R17"
+// "225 55 17" → "225/55R17"
+// "LT275/70/17" → "275/70R17"
+// "" / junk   → ""
+function normalizeTireSize(s) {
+  if (!s) return "";
+  const m = String(s).match(/(\d{3})\s*[\/\-\s]+\s*(\d{2,3})\s*[\/\-\s]*\s*R?\s*(\d{2})/i);
+  if (!m) return "";
+  return m[1] + "/" + m[2] + "R" + m[3];
+}
+
+// ── Build deduction plan against current inventory (pure, no writes) ──────────
+// New tires consumed before used. Higher-qty rows consumed first within a condition.
+function planInventoryDeduction(inventory, tireSize, qtyNeeded) {
+  const targetSize = normalizeTireSize(tireSize);
+  if (!targetSize || !qtyNeeded || qtyNeeded <= 0) return null;
+
+  const matches = (inventory || [])
+    .filter(i => normalizeTireSize(i.size) === targetSize && (Number(i.qty) || 0) > 0)
+    .sort((a, b) => {
+      const ac = (String(a.condition||"new").toLowerCase() === "new") ? 0 : 1;
+      const bc = (String(b.condition||"new").toLowerCase() === "new") ? 0 : 1;
+      if (ac !== bc) return ac - bc;
+      return (Number(b.qty) || 0) - (Number(a.qty) || 0);
+    });
+
+  if (matches.length === 0) return null;
+
+  const plan = [];
+  let remaining = qtyNeeded;
+  for (const row of matches) {
+    if (remaining <= 0) break;
+    const have = Number(row.qty) || 0;
+    const take = Math.min(have, remaining);
+    plan.push({
+      id: String(row.id),
+      size: String(row.size || ""),
+      condition: String(row.condition || "New"),
+      before: have,
+      deducted: take,
+      after: have - take,
+    });
+    remaining -= take;
+  }
+
+  return { plan, totalDeducted: qtyNeeded - remaining, shortfall: remaining };
+}
+
+// ── Apply a deduction plan to local state + Firebase ─────────────────────────
+function applyInventoryDeduction(plan, setInventory, user) {
+  if (!plan || !Array.isArray(plan.plan) || plan.plan.length === 0) return;
+  const byId = {};
+  plan.plan.forEach(step => { byId[step.id] = step.after; });
+  setInventory(prev => {
+    const arr = Array.isArray(prev) ? prev : [];
+    const next = arr.map(i => byId[i.id] !== undefined ? {...i, qty: byId[i.id]} : i);
+    persist(KEYS.inventory, next);
+    if (user && userInvCol(user.uid)) {
+      next.filter(x => byId[x.id] !== undefined).forEach(x => {
+        fbSet(userInvCol(user.uid), x.id, {
+          id:String(x.id), size:String(x.size||""), brand:String(x.brand||""), model:String(x.model||""),
+          condition: String(x.condition||"New"),
+          qty:Number(x.qty||0), cost:Number(x.cost||0), sellPrice:Number(x.sellPrice||0),
+          notes:String(x.notes||""),
+        });
+      });
+    }
+    return next;
+  });
+}
+
+// ── Restore a prior deduction (for job delete/undo) ──────────────────────────
+function restoreInventoryDeduction(deductions, setInventory, user) {
+  if (!Array.isArray(deductions) || deductions.length === 0) return;
+  const addMap = {};
+  deductions.forEach(d => { addMap[d.id] = (addMap[d.id] || 0) + (Number(d.deducted) || 0); });
+  setInventory(prev => {
+    const arr = Array.isArray(prev) ? prev : [];
+    const next = arr.map(i => addMap[i.id] ? {...i, qty: (Number(i.qty)||0) + addMap[i.id]} : i);
+    persist(KEYS.inventory, next);
+    if (user && userInvCol(user.uid)) {
+      next.filter(x => addMap[x.id]).forEach(x => {
+        fbSet(userInvCol(user.uid), x.id, {
+          id:String(x.id), size:String(x.size||""), brand:String(x.brand||""), model:String(x.model||""),
+          condition: String(x.condition||"New"),
+          qty:Number(x.qty||0), cost:Number(x.cost||0), sellPrice:Number(x.sellPrice||0),
+          notes:String(x.notes||""),
+        });
+      });
+    }
+    return next;
+  });
+}
+
+// ── Inventory CRUD (Firestore + local) ───────────────────────────────────────
+async function saveInventory(item, setInventory, user) {
+  const id = String(item.id || uid());
+  const full = {
+    id,
+    size:      String(item.size      || "").trim(),
+    brand:     String(item.brand     || "").trim(),
+    model:     String(item.model     || "").trim(),
+    condition: String(item.condition || "New"),
+    qty:       Math.max(0, Number(item.qty || 0)),
+    cost:      Number(item.cost      || 0),
+    sellPrice: Number(item.sellPrice || 0),
+    notes:     String(item.notes     || "").trim(),
+  };
+  setInventory(prev => {
+    const arr = Array.isArray(prev) ? prev : [];
+    const exists = arr.some(i => i.id === id);
+    const next = exists ? arr.map(i => i.id === id ? full : i) : [full, ...arr];
+    persist(KEYS.inventory, next);
+    return next;
+  });
+  if (user && userInvCol(user.uid)) await fbSet(userInvCol(user.uid), id, full);
+  return full;
+}
+
+async function deleteInventory(id, setInventory, user) {
+  setInventory(prev => {
+    const arr = Array.isArray(prev) ? prev : [];
+    const next = arr.filter(i => i.id !== id);
+    persist(KEYS.inventory, next);
+    return next;
+  });
+  if (user && userInvCol(user.uid)) await fbDel(userInvCol(user.uid), id);
+}
+
 const KEYS = {
   jobs: "wr2-jobs-v2", settings: "wr2-settings-v2",
   inventory: "wr2-inventory-v2", expenses: "wr2-expenses-v1",
@@ -1090,10 +1224,11 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
 }
 
 // ── AddJob ────────────────────────────────────────────────────────────────────
-function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit,saving}) {
+function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit,saving,onSwitchToInventory}) {
   const [form,setForm]=useState(EMPTY_JOB());
   const [error,setError]=useState("");const [saved,setSaved]=useState(null);const [tick,setTick]=useState(0);
   const [editingId,setEditingId]=useState(null);const [priceMode,setPriceMode]=useState("suggested");
+  const [invFeedback,setInvFeedback]=useState(null); // {kind:'deducted'|'partial'|'missing', ...}
   const isEditing=!!editingId;
   const recentSizes=useMemo(()=>[...new Set([...load(KEYS.sizes,[]),...DEFAULT_TIRE_SIZES])].slice(0,8),[tick]);
   const lastJob=useMemo(()=>[...(jobs||[])].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).find(j=>j.id!==editingId)||null,[jobs,editingId]);
@@ -1114,9 +1249,28 @@ function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit
     const rev=Number(form.revenue||0);if(!rev){setError("Enter the job price.");return;}
     if(form.tireSize){try{const p=load(KEYS.sizes,[]);persist(KEYS.sizes,[form.tireSize,...p.filter(s=>s!==form.tireSize)].slice(0,10));}catch{}}
     const entry=sanitizeJob({...form,id:editingId||uid(),qty:Number(form.qty||1),revenue:r2(rev),tireCost:r2(form.tireCost),miscCost:r2(form.miscCost),miles:r2(form.miles)});
-    await onSave(entry,isEditing?false:andAdd);setTick(t=>t+1);
+    const result=await onSave(entry,isEditing?false:andAdd);setTick(t=>t+1);
+
+    // Inventory feedback (only on new tire jobs)
+    setInvFeedback(null);
+    if(!isEditing && result && entry.tireSize && /replacement|installation/i.test(entry.service)){
+      const qtyNeeded=Math.max(1,Number(entry.qty||1));
+      const sizeNorm=result.sizeNormalized||normalizeTireSize(entry.tireSize);
+      if(result.deductions && result.deductions.length>0){
+        const total=result.deductions.reduce((s,x)=>s+x.deducted,0);
+        if(result.shortfall>0){
+          setInvFeedback({kind:"partial", total, short:result.shortfall, size:sizeNorm});
+        } else {
+          setInvFeedback({kind:"deducted", total, size:sizeNorm});
+        }
+      } else if(sizeNorm){
+        setInvFeedback({kind:"missing", size:sizeNorm, qty:qtyNeeded,
+          brand:entry.tireBrand||"", model:entry.tireModel||""});
+      }
+    }
+
     if(isEditing){setEditingId(null);setForm(EMPTY_JOB());setError("");setPriceMode("suggested");}
-    else{setSaved(entry);if(andAdd){setForm(EMPTY_JOB());setError("");setSaved(null);setPriceMode("suggested");}}
+    else{setSaved(entry);if(andAdd){setForm(EMPTY_JOB());setError("");setSaved(null);setPriceMode("suggested");setInvFeedback(null);}}
   };
   const cancelEdit=()=>{setEditingId(null);setPriceMode("suggested");setForm(EMPTY_JOB());setError("");setSaved(null);};
   const requestReview=()=>openReviewSMS(form.customerPhone,(settings.googleReviewUrl||"").trim(),form.customerName,form.service,form.area);
@@ -1137,6 +1291,22 @@ function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit
         ${saved.status==="Completed"&&html`<button class="btn success sm press-scale" onClick=${requestReview}>⭐ Review</button>`}
         ${saved.customerPhone&&html`<button class="btn success sm press-scale" onClick=${()=>window.open("tel:"+saved.customerPhone)}>📞 Call</button>`}
         <button class="btn secondary sm press-scale" onClick=${()=>{setForm({...saved,id:"",revenue:String(saved.revenue)});setSaved(null);}}>🔁 Dup</button>
+      </div>`}
+
+      ${invFeedback&&invFeedback.kind==="deducted"&&html`<div style=${{background:"var(--green-dim,rgba(34,197,94,.08))",border:"1px solid rgba(34,197,94,.3)",borderRadius:12,padding:"10px 14px",fontSize:13,color:"var(--green,#22c55e)",marginBottom:14,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
+        <span>📦 Deducted ${invFeedback.total} ${invFeedback.total===1?"tire":"tires"} (${invFeedback.size}) from stock.</span>
+        <button class="btn secondary sm press-scale" style=${{padding:"4px 10px",fontSize:11}} onClick=${()=>setInvFeedback(null)}>✕</button>
+      </div>`}
+      ${invFeedback&&invFeedback.kind==="partial"&&html`<div style=${{background:"var(--amber-dim)",border:"1px solid rgba(234,179,8,.35)",borderRadius:12,padding:"10px 14px",fontSize:13,color:"var(--amber)",marginBottom:14,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
+        <span>⚠️ Took ${invFeedback.total} from stock — short ${invFeedback.short} (${invFeedback.size}).</span>
+        <button class="btn secondary sm press-scale" style=${{padding:"4px 10px",fontSize:11}} onClick=${()=>setInvFeedback(null)}>✕</button>
+      </div>`}
+      ${invFeedback&&invFeedback.kind==="missing"&&html`<div style=${{background:"rgba(79,142,247,.08)",border:"1px solid rgba(79,142,247,.25)",borderRadius:12,padding:"12px 14px",fontSize:13,color:"var(--t1)",marginBottom:14,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexWrap:"wrap"}}>
+        <span>🛞 No ${invFeedback.size} tires in stock.</span>
+        <div style=${{display:"flex",gap:6}}>
+          ${onSwitchToInventory&&html`<button class="btn primary sm press-scale" style=${{padding:"4px 10px",fontSize:11}} onClick=${()=>{onSwitchToInventory();setInvFeedback(null);}}>+ Add to Stock</button>`}
+          <button class="btn secondary sm press-scale" style=${{padding:"4px 10px",fontSize:11}} onClick=${()=>setInvFeedback(null)}>✕</button>
+        </div>
       </div>`}
       <${QuickQuote} form=${form} settings=${settings} onApply=${v=>setF("revenue",v)} onFormChange=${setF} priceMode=${priceMode} setPriceMode=${setPriceMode}/>
       <div class="form-group card-anim">
@@ -1318,7 +1488,7 @@ function Payouts({jobs,settings}) {
 }
 
 // ── Inventory ─────────────────────────────────────────────────────────────────
-function Inventory({inventory, setInventory, jobs}) {
+function Inventory({inventory, setInventory, jobs, user}) {
   const inv     = Array.isArray(inventory) ? inventory : [];
   const jobsArr = Array.isArray(jobs) ? jobs : [];
 
@@ -1349,16 +1519,16 @@ function Inventory({inventory, setInventory, jobs}) {
     return Object.keys(c).sort(function(a,b){ return c[b] - c[a]; }).slice(0, 5);
   }, [jobsArr]);
 
-  // ── firebase helper (now writes full model incl. brand/model/condition/sellPrice) ──
+  // ── firebase helper (writes to users/{uid}/inventory with full model) ──
   function fbWriteItem(item) {
-    if (!_db) return;
+    if (!_db || !user || !user.uid) return;
     if (!(item.size || '').trim()) return;
-    fbSet(invCol(), item.id, {
+    fbSet(userInvCol(user.uid), item.id, {
       id:        String(item.id),
       size:      String(item.size || '').trim(),
       brand:     String(item.brand || ''),
       model:     String(item.model || ''),
-      condition: item.condition === 'Used' ? 'Used' : 'New',
+      condition: String(item.condition || 'New'),
       qty:       Number(item.qty  || 0),
       cost:      Number(item.cost || 0),
       sellPrice: Number(item.sellPrice || 0),
@@ -1444,7 +1614,7 @@ function Inventory({inventory, setInventory, jobs}) {
       const arr  = Array.isArray(prev) ? prev : [];
       const next = arr.filter(function(i){ return i.id !== id; });
       persist(KEYS.inventory, next);
-      setTimeout(function(){ if (_db) fbDel(invCol(), id); }, 0);
+      setTimeout(function(){ if (_db && user && user.uid) fbDel(userInvCol(user.uid), id); }, 0);
       return next;
     });
     setEditId(function(cur){ return cur === id ? null : cur; });
@@ -1456,7 +1626,6 @@ function Inventory({inventory, setInventory, jobs}) {
   }, [inv]);
   const totalQty = deduped.reduce(function(s,i){ return s + Number(i.qty || 0); }, 0);
   const totalVal = deduped.reduce(function(s,i){ return s + Number(i.qty || 0) * Number(i.cost || 0); }, 0);
-  const lowStock = deduped.filter(function(i){ return Number(i.qty||0) > 0 && Number(i.qty||0) <= LOW_STOCK; });
   const outStock = deduped.filter(function(i){ return Number(i.qty||0) === 0; });
 
   const searchLo   = search.trim().toLowerCase();
@@ -1517,21 +1686,24 @@ function Inventory({inventory, setInventory, jobs}) {
           </div>
         </div>
         <div>
-          <div style=${lblSt}>Condition</div>
-          <div style=${{display:'flex',gap:8}}>
+          <div style=${lblSt}>Condition <span style=${{color:'var(--blue)'}}>*</span></div>
+          <div style=${{display:'flex',gap:10,background:'var(--s2)',padding:4,borderRadius:12,border:'1px solid var(--border)'}}>
             ${['New','Used'].map(function(c){
               const active = nt.condition === c;
+              const icon = c === 'New' ? '✨' : '🔄';
               return html`<button key=${c} type="button"
                 onClick=${function(){ ntPatch('condition', c); }}
                 style=${{
-                  flex:1, padding:'12px', borderRadius:10,
-                  border: active ? '1.5px solid var(--blue)' : '1px solid var(--border)',
-                  background: active ? 'var(--blue-dim)' : 'var(--s3)',
-                  color: active ? 'var(--blue)' : 'var(--t2)',
-                  fontSize:14, fontWeight:700, cursor:'pointer',
+                  flex:1, padding:'14px', borderRadius:10,
+                  border: 'none',
+                  background: active ? 'var(--blue)' : 'transparent',
+                  color: active ? '#fff' : 'var(--t2)',
+                  fontSize:15, fontWeight:800, cursor:'pointer',
                   fontFamily:'"IBM Plex Sans",sans-serif',
-                  transition:'all .15s'
-                }}>${c}</button>`;
+                  transition:'all .15s',
+                  boxShadow: active ? '0 2px 8px var(--blue-glow)' : 'none',
+                  display:'flex', alignItems:'center', justifyContent:'center', gap:8
+                }}><span style=${{fontSize:16}}>${icon}</span>${c}</button>`;
             })}
           </div>
         </div>
@@ -1698,7 +1870,6 @@ function Inventory({inventory, setInventory, jobs}) {
   function renderSavedRow(item, idx, total) {
     const isEditing = editId === item.id;
     const qty   = Number(item.qty || 0);
-    const isLow = qty > 0 && qty <= LOW_STOCK;
     const isOut = qty === 0;
     const hasSz = (item.size || '').trim() !== '';
     const subline = [item.brand, item.model].filter(function(s){ return (s||'').trim(); }).join(' ');
@@ -1719,13 +1890,12 @@ function Inventory({inventory, setInventory, jobs}) {
         </div>
         ${bestSellers.includes(item.size||'')&&hasSz&&html`<span style=${{fontSize:9,fontWeight:800,background:'var(--gold-dim)',color:'var(--gold)',borderRadius:999,padding:'3px 10px',flexShrink:0}}>BEST</span>`}
         ${isOut&&hasSz&&html`<span style=${{fontSize:9,fontWeight:800,color:'var(--t3)',background:'var(--s3)',borderRadius:999,padding:'3px 10px',flexShrink:0}}>OUT</span>`}
-        ${isLow&&!isOut&&html`<span style=${{fontSize:9,fontWeight:800,color:'var(--amber)',background:'var(--amber-dim)',borderRadius:999,padding:'3px 10px',flexShrink:0}}>LOW</span>`}
         <div style=${{display:'flex',alignItems:'center',background:'var(--s3)',borderRadius:10,overflow:'hidden',flexShrink:0}}
           onClick=${function(e){ e.stopPropagation(); }}>
           <button onClick=${function(){ stepExisting(item.id,-1); }}
             style=${{background:'none',border:'none',width:36,height:36,fontSize:18,fontWeight:700,color:'var(--t2)',lineHeight:1}}>−</button>
           <div style=${{width:32,textAlign:'center',fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:15,
-            color:isOut?'var(--t3)':isLow?'var(--amber)':'var(--t1)'}}>${qty}</div>
+            color:isOut?'var(--t3)':'var(--t1)'}}>${qty}</div>
           <button onClick=${function(){ stepExisting(item.id,1); }}
             style=${{background:'none',border:'none',width:36,height:36,fontSize:18,fontWeight:700,color:'var(--t2)',lineHeight:1}}>+</button>
         </div>
@@ -1740,23 +1910,17 @@ function Inventory({inventory, setInventory, jobs}) {
     <div class="kpi-grid three card-anim">
       <div class="kpi"><div class="kpi-label">Total Tires</div><div class="kpi-value">${totalQty}</div><div class="kpi-sub">${deduped.length} sizes</div></div>
       <div class="kpi"><div class="kpi-label">Stock Value</div><div class="kpi-value" style=${{fontSize:16}}>${money(totalVal)}</div><div class="kpi-sub">at cost</div></div>
-      <div class="kpi"><div class="kpi-label">Reorder</div><div class="kpi-value" style=${{fontSize:20,color:(outStock.length+lowStock.length)>0?'var(--amber)':'var(--t3)'}}>${outStock.length+lowStock.length}</div><div class="kpi-sub">sizes</div></div>
+      <div class="kpi"><div class="kpi-label">Out of Stock</div><div class="kpi-value" style=${{fontSize:20,color:outStock.length>0?'var(--amber)':'var(--t3)'}}>${outStock.length}</div><div class="kpi-sub">sizes</div></div>
     </div>
 
-    <!-- low/out alerts -->
-    ${(outStock.length>0||lowStock.length>0)&&html`<div style=${{background:'var(--s2)',border:'1px solid var(--border)',borderRadius:14,padding:'14px 18px',marginBottom:12}}>
-      ${outStock.length>0&&html`<div style=${{marginBottom:lowStock.length>0?10:0}}>
+    <!-- out-of-stock alerts -->
+    ${outStock.length>0&&html`<div style=${{background:'var(--s2)',border:'1px solid var(--border)',borderRadius:14,padding:'14px 18px',marginBottom:12}}>
+      <div>
         <div style=${{fontSize:10,fontWeight:800,textTransform:'uppercase',letterSpacing:'1px',color:'var(--t3)',marginBottom:6}}>Out of Stock</div>
         <div style=${{display:'flex',flexWrap:'wrap',gap:6}}>
           ${outStock.map(function(i){ return html`<span key=${i.id} style=${{background:'var(--s3)',color:'var(--t2)',padding:'4px 12px',borderRadius:999,fontSize:11,fontWeight:700}}>${i.size||'—'}</span>`; })}
         </div>
-      </div>`}
-      ${lowStock.length>0&&html`<div>
-        <div style=${{fontSize:10,fontWeight:800,textTransform:'uppercase',letterSpacing:'1px',color:'var(--t3)',marginBottom:6}}>Low Stock</div>
-        <div style=${{display:'flex',flexWrap:'wrap',gap:6}}>
-          ${lowStock.map(function(i){ return html`<span key=${i.id} style=${{background:'var(--amber-dim)',color:'var(--amber)',padding:'4px 12px',borderRadius:999,fontSize:11,fontWeight:700}}>${(i.size||'—')} · ${i.qty}</span>`; })}
-        </div>
-      </div>`}
+      </div>
     </div>`}
 
     <!-- search + add -->
@@ -1929,8 +2093,8 @@ function App() {
   useEffect(()=>{
     if(!user){setSyncStatus("local");return;}
     setSyncStatus("syncing");
-    const u1=fbListen(jobCol(),docs=>{setJobs(docs);persist(KEYS.jobs,docs);setSyncStatus("connected");});
-    const u2=fbListen(invCol(),docs=>{
+    const u1=fbListen(userJobCol(user.uid),docs=>{setJobs(docs);persist(KEYS.jobs,docs);setSyncStatus("connected");});
+    const u2=fbListen(userInvCol(user.uid),docs=>{
       if(docs.length>0){
         setInventory(prev=>{
           // Keep any blank/pending rows that exist in current local state
@@ -1974,22 +2138,56 @@ function App() {
   useEffect(()=>{persist(KEYS.inventory,inventory);},[inventory]);
 
   // ── Save job ─────────────────────────────────────────────────────────────
+  // Returns { deductions, shortfall, sizeNormalized, foundAny } so caller can show feedback.
   const saveJob=useCallback(async(job,addAnother)=>{
     setSaving(true);
+    let deductions=null, shortfall=0, sizeNormalized="", foundAny=false;
     try{
-      const id=job.id||uid();const full={...job,id};
+      const id=job.id||uid();
+      const isNew=!job.id;
+      const full={...job,id};
       if(full.tireSize){const sz=load(KEYS.sizes,[]);persist(KEYS.sizes,[full.tireSize,...sz.filter(s=>s!==full.tireSize)].slice(0,12));}
       if(full.area){const ct=load(KEYS.cities,[]);persist(KEYS.cities,[full.area,...ct.filter(c=>c!==full.area)].slice(0,12));}
-      if(/replacement|installation/i.test(full.service)&&full.tireSize){
-        const qty=Number(full.qty||1);
-        setInventory(prev=>{const next=prev.map(i=>i.size===full.tireSize?{...i,qty:Math.max(0,(Number(i.qty)||0)-qty)}:i);persist(KEYS.inventory,next);if(user)next.filter(x=>x.size===full.tireSize).forEach(x=>fbSet(invCol(),x.id,{id:String(x.id),size:String(x.size||""),brand:String(x.brand||""),model:String(x.model||""),condition:x.condition==="Used"?"Used":"New",qty:Number(x.qty||0),cost:Number(x.cost||0),sellPrice:Number(x.sellPrice||0),notes:String(x.notes||"")}));return next;});
+
+      // Inventory deduction ONLY on new tire-related jobs (not on edits — edit doesn't replay deductions)
+      const isTireJob=/replacement|installation/i.test(full.service);
+      if(isNew && isTireJob && full.tireSize){
+        const qtyNeeded=Math.max(1,Number(full.qty||1));
+        sizeNormalized=normalizeTireSize(full.tireSize);
+        const plan=planInventoryDeduction(inventory,full.tireSize,qtyNeeded);
+        if(plan){
+          foundAny=true;
+          applyInventoryDeduction(plan,setInventory,user);
+          deductions=plan.plan;
+          shortfall=plan.shortfall||0;
+        }
+        full.inventoryDeducted=!!deductions;
+        full.inventoryDeductions=deductions||null;
+        full.inventoryShortfall=shortfall;
       }
+
       setJobs(prev=>{const exists=prev.find(j=>j.id===id);const next=exists?prev.map(j=>j.id===id?full:j):[full,...prev];persist(KEYS.jobs,next);return next;});
-      if(user){await fbSet(jobCol(),id,{id,date:String(full.date||""),service:String(full.service||""),area:String(full.area||""),source:String(full.source||""),payment:String(full.payment||""),status:String(full.status||"Completed"),customerName:String(full.customerName||""),customerPhone:String(full.customerPhone||""),tireSize:String(full.tireSize||""),qty:Number(full.qty||1),revenue:Number(full.revenue||0),tireCost:Number(full.tireCost||0),miscCost:Number(full.miscCost||0),miles:Number(full.miles||0),note:String(full.note||""),emergency:!!full.emergency,lateNight:!!full.lateNight,highway:!!full.highway,weekend:!!full.weekend});}
+
+      if(user && userJobCol(user.uid)){
+        // Flatten deductions to JSON string since fbSet strips nested objects/arrays
+        const dedStr = full.inventoryDeductions ? JSON.stringify(full.inventoryDeductions) : "";
+        await fbSet(userJobCol(user.uid),id,{
+          id,date:String(full.date||""),service:String(full.service||""),vehicleType:String(full.vehicleType||""),area:String(full.area||""),source:String(full.source||""),payment:String(full.payment||""),status:String(full.status||"Completed"),
+          customerName:String(full.customerName||""),customerPhone:String(full.customerPhone||""),
+          tireSize:String(full.tireSize||""),qty:Number(full.qty||1),revenue:Number(full.revenue||0),
+          tireCost:Number(full.tireCost||0),miscCost:Number(full.miscCost||0),miles:Number(full.miles||0),
+          note:String(full.note||""),
+          emergency:!!full.emergency,lateNight:!!full.lateNight,highway:!!full.highway,weekend:!!full.weekend,
+          inventoryDeducted:!!full.inventoryDeducted,
+          inventoryDeductions: dedStr,
+          inventoryShortfall: Number(full.inventoryShortfall||0),
+        });
+      }
       if(!addAnother){setTab("dashboard");setEditJob(null);}
     }catch(e){console.warn("saveJob:",e);}
     finally{setSaving(false);}
-  },[user]);
+    return { deductions, shortfall, sizeNormalized, foundAny };
+  },[user,inventory]);
 
   // ── Expense handler (BUG 3 FIX) ──────────────────────────────────────────
   const handleSetExpenses=useCallback(updater=>{
@@ -2012,17 +2210,29 @@ function App() {
       const next=typeof updater==="function"?updater(prev):updater;
       persist(KEYS.inventory,next);
       // Only push items that have a size to Firebase — blank rows stay local
-      if(user) next.filter(x=>(x.size||"").trim()).forEach(x=>fbSet(invCol(),x.id,{id:String(x.id),size:String(x.size||""),brand:String(x.brand||""),model:String(x.model||""),condition:x.condition==="Used"?"Used":"New",qty:Number(x.qty||0),cost:Number(x.cost||0),sellPrice:Number(x.sellPrice||0),notes:String(x.notes||"")}));
+      if(user&&userInvCol(user.uid)) next.filter(x=>(x.size||"").trim()).forEach(x=>fbSet(userInvCol(user.uid),x.id,{id:String(x.id),size:String(x.size||""),brand:String(x.brand||""),model:String(x.model||""),condition:String(x.condition||"New"),qty:Number(x.qty||0),cost:Number(x.cost||0),sellPrice:Number(x.sellPrice||0),notes:String(x.notes||"")}));
       return next;
     });
   },[user]);
 
-  const resetInventoryFb=useCallback(fresh=>{pendingRef.current=[];if(user&&invCol())fresh.forEach(x=>fbSet(invCol(),x.id,{id:String(x.id),size:String(x.size||""),brand:String(x.brand||""),model:String(x.model||""),condition:x.condition==="Used"?"Used":"New",qty:Number(x.qty||0),cost:Number(x.cost||0),sellPrice:Number(x.sellPrice||0),notes:String(x.notes||"")}));},[user]);
+  const resetInventoryFb=useCallback(fresh=>{pendingRef.current=[];if(user&&userInvCol(user.uid))fresh.forEach(x=>fbSet(userInvCol(user.uid),x.id,{id:String(x.id),size:String(x.size||""),brand:String(x.brand||""),model:String(x.model||""),condition:String(x.condition||"New"),qty:Number(x.qty||0),cost:Number(x.cost||0),sellPrice:Number(x.sellPrice||0),notes:String(x.notes||"")}));},[user]);
   const handleRepeat  =useCallback(job=>{setPrefill(job);setTab("add");},[]);
   const handleEdit    =useCallback(job=>{setEditJob(job);setTab("add");},[]);
   const handleStartJob=useCallback(qqForm=>{setPrefill({...EMPTY_JOB(),...qqForm});setTab("add");},[]);
   const signOut       =useCallback(()=>{if(_auth)_auth.signOut().catch(()=>{});},[]);
-  const deleteJob     =useCallback(id=>{setJobs(prev=>{const next=prev.filter(j=>j.id!==id);persist(KEYS.jobs,next);return next;});if(user)fbDel(jobCol(),id);},[user]);
+  const deleteJob=useCallback(async id=>{
+    // Restore inventory if this job had deductions (accept either array or JSON string from Firestore)
+    const targetJob=jobs.find(j=>j.id===id);
+    if(targetJob&&targetJob.inventoryDeducted){
+      let deds=targetJob.inventoryDeductions;
+      if(typeof deds==="string"){try{deds=JSON.parse(deds);}catch{deds=null;}}
+      if(Array.isArray(deds)&&deds.length>0){
+        try{restoreInventoryDeduction(deds,setInventory,user);}catch(e){console.warn("restore:",e);}
+      }
+    }
+    setJobs(prev=>{const next=prev.filter(j=>j.id!==id);persist(KEYS.jobs,next);return next;});
+    if(user&&userJobCol(user.uid))await fbDel(userJobCol(user.uid),id);
+  },[user,jobs]);
 
   // ── Loading ───────────────────────────────────────────────────────────────
   if(!authReady)return html`<div style=${{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--bg)"}}>
@@ -2044,11 +2254,11 @@ function App() {
   let content=null;
   switch(tab){
     case "dashboard": content=html`<${Dashboard} jobs=${jobs} settings=${settings} setTab=${setTab} onRepeat=${handleRepeat} inventory=${inventory} onStartJob=${handleStartJob}/>`; break;
-    case "add":       content=html`<${AddJob} onSave=${saveJob} settings=${settings} jobs=${jobs} prefill=${prefill} onClearPrefill=${()=>setPrefill(null)} editJob=${editJob} onClearEdit=${()=>setEditJob(null)} saving=${saving}/>`; break;
+    case "add":       content=html`<${AddJob} onSave=${saveJob} settings=${settings} jobs=${jobs} prefill=${prefill} onClearPrefill=${()=>setPrefill(null)} editJob=${editJob} onClearEdit=${()=>setEditJob(null)} saving=${saving} onSwitchToInventory=${()=>setTab("inventory")}/>`; break;
     case "history":   content=html`<${History} jobs=${jobs} settings=${settings} onEdit=${handleEdit} onDelete=${deleteJob} onRepeat=${handleRepeat}/>`; break;
     case "payouts":   content=html`<${Payouts} jobs=${jobs} settings=${settings}/>`; break;
     case "expenses":  content=html`<${Expenses} expenses=${expenses} setExpenses=${handleSetExpenses}/>`; break;
-    case "inventory": content=html`<${Inventory} inventory=${inventory} setInventory=${handleSetInventory} jobs=${jobs}/>`; break;
+    case "inventory": content=html`<${Inventory} inventory=${inventory} setInventory=${handleSetInventory} jobs=${jobs} user=${user}/>`; break;
     case "settings":  content=html`<${Settings} settings=${settings} setSettings=${setSettings} jobs=${jobs} setJobs=${setJobs} inventory=${inventory} setInventory=${handleSetInventory} expenses=${expenses} onResetInventory=${resetInventoryFb}/>`; break;
     default: content=null;
   }
