@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Wheel Rush" />
+  <meta name="theme-color" content="#111111" />
+  <title>Wheel Rush â Business Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="./icon.png">
+  <link rel="apple-touch-icon" href="./icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icon.png">
+  <link rel="manifest" href="./manifest.json">
+<style>
+  /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+     WHEEL RUSH â PREMIUM OPERATOR OS  v10 (Pro Edition)
+     Premium dark Â· Blue accent Â· Orange CTA Â· Animated Â· Pro Dashboard
+     âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+  :root {
+    --bg:       #0a0a0f;
+    --s1:       #13131a;
+    --s2:       #1c1c26;
+    --s3:       #242432;
+    --s4:       #2e2e40;
+    --border:   rgba(255,255,255,.06);
+    --border2:  rgba(255,255,255,.03);
+    --t1: #f0f0fa;
+    --t2: #8888a8;
+    --t3: #44445a;
+    --blue:     #4f8ef7;
+    --blue-dim: rgba(79,142,247,.12);
+    --blue-glow:rgba(79,142,247,.25);
+    --orange:   #ff7d3b;
+    --orange-dim:rgba(255,125,59,.12);
+    --orange-glow:rgba(255,125,59,.3);
+    --green:    #22c55e;
+    --green-dim:rgba(34,197,94,.12);
+    --red:      #ef4444;
+    --red-dim:  rgba(239,68,68,.10);
+    --amber:    #f59e0b;
+    --amber-dim:rgba(245,158,11,.10);
+    --gold:     #c8a44a;
+    --gold-dim: rgba(200,164,74,.12);
+    --r1: 22px;
+    --r2: 16px;
+    --r3: 12px;
+    --r4: 8px;
+    --sh-card:  0 1px 0 rgba(255,255,255,.04) inset, 0 4px 24px rgba(0,0,0,.5);
+    --sh-hero:  0 0 0 1px rgba(79,142,247,.2), 0 8px 40px rgba(79,142,247,.15);
+    --sh-cta:   0 0 0 1px rgba(255,125,59,.25), 0 8px 32px rgba(255,125,59,.2);
+    --sh-float: 0 12px 48px rgba(0,0,0,.7);
+  }
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body,#root { height:100%; font-family:"IBM Plex Sans",sans-serif; background:var(--bg); overflow:hidden; color:var(--t1); }
+  input,select,textarea,button { font-family:"IBM Plex Sans",sans-serif; }
+  input,select,textarea { font-size:16px !important; color:var(--t1); }
+  button { cursor:pointer; }
+  .app    { height:100%; display:flex; flex-direction:column; }
+  .screen { flex:1; overflow:auto; -webkit-overflow-scrolling:touch; background:var(--bg); }
+  .page   { padding:20px 16px calc(120px + env(safe-area-inset-bottom)); }
+
+  /* ââ PREMIUM ANIMATIONS ââââââââââââââââââââââââââââââââââââââââââ */
+  @keyframes fadeSlideUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes fadeSlideIn {
+    from { opacity:0; transform:translateX(-12px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+  @keyframes scaleIn {
+    from { opacity:0; transform:scale(.92); }
+    to   { opacity:1; transform:scale(1); }
+  }
+  @keyframes shimmer {
+    0%   { background-position:-200% center; }
+    100% { background-position:200% center; }
+  }
+  @keyframes ringPulse {
+    0%,100% { filter:drop-shadow(0 0 3px currentColor); }
+    50%     { filter:drop-shadow(0 0 10px currentColor); }
+  }
+  @keyframes countUp {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes heroGlow {
+    0%,100% { opacity:.6; }
+    50%     { opacity:1; }
+  }
+  @keyframes confettiDrop {
+    0%   { transform:translateY(-20px) rotate(0deg); opacity:1; }
+    100% { transform:translateY(100px) rotate(360deg); opacity:0; }
+  }
+  @keyframes tickerScroll {
+    0%   { transform:translateY(100%); opacity:0; }
+    15%  { transform:translateY(0); opacity:1; }
+    85%  { transform:translateY(0); opacity:1; }
+    100% { transform:translateY(-100%); opacity:0; }
+  }
+  @keyframes gradientShift {
+    0%   { background-position:0% 50%; }
+    50%  { background-position:100% 50%; }
+    100% { background-position:0% 50%; }
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  @keyframes logoPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.55;transform:scale(.94)} }
+  .syncing    { animation:pulse 1.4s infinite; }
+  .logo-pulse { animation:logoPulse 2s ease-in-out infinite; }
+
+  /* Page transition wrapper */
+  .page-enter { animation: fadeSlideUp .35s cubic-bezier(.4,0,.2,1) both; }
+
+  /* Card entrance stagger */
+  .card-anim { animation: fadeSlideUp .4s cubic-bezier(.4,0,.2,1) both; }
+  .card-anim:nth-child(1) { animation-delay:.05s; }
+  .card-anim:nth-child(2) { animation-delay:.1s; }
+  .card-anim:nth-child(3) { animation-delay:.15s; }
+  .card-anim:nth-child(4) { animation-delay:.2s; }
+  .card-anim:nth-child(5) { animation-delay:.25s; }
+  .card-anim:nth-child(6) { animation-delay:.3s; }
+
+  /* Micro-interactions */
+  .press-scale { transition:transform .1s, opacity .1s; }
+  .press-scale:active { transform:scale(.96); opacity:.85; }
+
+  /* Shimmer loader */
+  .shimmer-text {
+    background:linear-gradient(90deg, var(--t1) 25%, var(--orange) 50%, var(--t1) 75%);
+    background-size:200% auto;
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent;
+    animation:shimmer 3s linear infinite;
+  }
+
+  /* ââ Header ââ */
+  .header-compact {
+    background: linear-gradient(180deg, #16161f 0%, #0f0f17 100%);
+    padding: 12px 18px;
+    padding-top: calc(12px + env(safe-area-inset-top));
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    flex-shrink:0;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 0 rgba(79,142,247,.1);
+  }
+  .header-compact h1 { font-size:16px; font-weight:700; letter-spacing:-.4px; color:var(--t1); }
+  .header-compact p  { font-size:10px; color:var(--t3); margin-top:2px; }
+
+  /* ââ PRO DASHBOARD HERO ââââââââââââââââââââââââââââââââââââââââââ */
+  .pro-hero {
+    background: linear-gradient(145deg, #12121e 0%, #0d1020 40%, #101828 100%);
+    border:1px solid rgba(79,142,247,.15);
+    border-radius:var(--r1); padding:24px 22px;
+    position:relative; overflow:hidden;
+    box-shadow: 0 0 0 1px rgba(79,142,247,.08), 0 12px 48px rgba(0,0,0,.6), 0 0 80px rgba(79,142,247,.06);
+    margin-bottom:16px;
+  }
+  .pro-hero::before {
+    content:''; position:absolute;
+    top:-60px; right:-40px; width:220px; height:220px;
+    background:radial-gradient(circle, rgba(79,142,247,.1) 0%, transparent 65%);
+    pointer-events:none; animation:heroGlow 4s ease-in-out infinite;
+  }
+  .pro-hero::after {
+    content:''; position:absolute;
+    bottom:-40px; left:-30px; width:160px; height:160px;
+    background:radial-gradient(circle, rgba(34,197,94,.06) 0%, transparent 65%);
+    pointer-events:none;
+  }
+
+  /* Revenue ticker */
+  .revenue-ticker {
+    font-family:"IBM Plex Mono",monospace;
+    font-size:38px; font-weight:700; letter-spacing:-2px;
+    line-height:1; color:var(--t1);
+    text-shadow:0 0 30px rgba(255,255,255,.1);
+    animation:countUp .6s cubic-bezier(.4,0,.2,1) both;
+  }
+  .revenue-ticker .currency { font-size:22px; color:var(--t2); font-weight:600; }
+
+  /* Progress Ring */
+  .progress-ring { position:relative; display:inline-flex; align-items:center; justify-content:center; }
+  .progress-ring svg { transform:rotate(-90deg); }
+  .progress-ring-bg { fill:none; stroke:var(--s4); }
+  .progress-ring-fill {
+    fill:none; stroke-linecap:round;
+    transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);
+    filter:drop-shadow(0 0 6px currentColor);
+  }
+  .progress-ring-label {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+
+  /* ââ Section labels ââ */
+  .section-label {
+    font-size:9px; font-weight:800; text-transform:uppercase;
+    letter-spacing:1.8px; color:var(--t3); margin:28px 0 10px;
+  }
+  .section-label:first-child { margin-top:0; }
+
+  /* ââ Card system ââ */
+  .card {
+    background:var(--s1); border-radius:var(--r1); overflow:hidden;
+    box-shadow:var(--sh-card); border:1px solid var(--border); margin-bottom:12px;
+    transition:transform .2s, box-shadow .2s;
+  }
+  .card:hover { box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 8px 32px rgba(0,0,0,.6); }
+  .card-pad  { padding:18px 20px; }
+  .card-row  { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:15px 20px; border-bottom:1px solid var(--border2); }
+  .card-row:last-child { border-bottom:none; }
+
+  /* ââ Hero CTA ââ */
+  .hero-cta {
+    background: linear-gradient(135deg, #1a1a28 0%, #14141e 100%);
+    border:1px solid rgba(79,142,247,.2);
+    border-radius:var(--r1); padding:20px;
+    box-shadow:var(--sh-hero);
+    margin-bottom:14px;
+    position:relative; overflow:hidden;
+  }
+  .hero-cta::before {
+    content:''; position:absolute;
+    top:-40px; right:-40px; width:180px; height:180px;
+    background:radial-gradient(circle, rgba(79,142,247,.12) 0%, transparent 70%);
+    pointer-events:none;
+  }
+
+  /* ââ Orange action button / CTA ââ */
+  .cta-btn {
+    background: linear-gradient(135deg, #ff8c4b 0%, #ff6420 100%);
+    color:#fff; border:none; border-radius:var(--r3);
+    padding:15px 22px; font-size:15px; font-weight:800;
+    letter-spacing:-.2px; box-shadow:var(--sh-cta);
+    transition:opacity .15s, transform .15s, box-shadow .15s;
+    display:flex; align-items:center; gap:8px; justify-content:center;
+    width:100%;
+  }
+  .cta-btn:active { opacity:.85; transform:scale(.97); box-shadow:0 0 0 1px rgba(255,125,59,.4), 0 4px 16px rgba(255,125,59,.3); }
+
+  /* ââ KPI grids ââ */
+  .kpi-grid {
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:1px; background:var(--border);
+    border-radius:var(--r1); overflow:hidden; margin-bottom:12px;
+    box-shadow:var(--sh-card);
+  }
+  .kpi-grid.three { grid-template-columns:1fr 1fr 1fr; }
+  .kpi { background:var(--s1); padding:17px 16px 15px; }
+  .kpi-label { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--t3); margin-bottom:8px; }
+  .kpi-value { font-family:"IBM Plex Mono",monospace; font-size:20px; font-weight:700; line-height:1; letter-spacing:-.8px; color:var(--t1); }
+  .kpi-value.green  { color:var(--green); }
+  .kpi-value.red    { color:var(--red); }
+  .kpi-value.blue   { color:var(--blue); }
+  .kpi-sub  { font-size:10px; color:var(--t3); margin-top:6px; font-weight:500; }
+
+  /* ââ Mini stat strip ââ */
+  .mini-grid {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:1px; background:var(--border);
+    border-radius:var(--r1); overflow:hidden; margin-bottom:12px;
+    box-shadow:var(--sh-card);
+  }
+  .mini-box { background:var(--s1); padding:15px 8px; text-align:center; }
+  .mini-box strong { display:block; font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:700; color:var(--t1); letter-spacing:-.3px; }
+  .mini-box span   { display:block; font-size:8px; color:var(--t3); text-transform:uppercase; letter-spacing:.8px; margin-top:5px; font-weight:700; }
+
+  /* ââ Goal track ââ */
+  .goal-track { height:3px; background:var(--s4); border-radius:999px; overflow:hidden; margin:14px 0 8px; }
+  .goal-fill  { height:100%; border-radius:999px; transition:width .7s cubic-bezier(.4,0,.2,1); }
+  .goal-fill.full  { background:var(--green); box-shadow:0 0 8px var(--green); }
+  .goal-fill.mid   { background:var(--blue);  box-shadow:0 0 8px var(--blue-glow); }
+  .goal-fill.low   { background:var(--amber); }
+
+  /* ââ Stack / job rows ââ */
+  .stack { display:grid; gap:10px; }
+  .job-row {
+    background:var(--s1); border-radius:var(--r2); padding:15px 17px;
+    display:flex; align-items:flex-start; gap:13px;
+    box-shadow:var(--sh-card); border:1px solid var(--border);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .job-row:active { transform:scale(.985); }
+  .job-icon  { width:42px; height:42px; border-radius:12px; background:var(--s3); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px; }
+  .job-main  { flex:1; min-width:0; }
+  .job-title { font-size:14px; font-weight:700; color:var(--t1); letter-spacing:-.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .job-meta  { font-size:11px; color:var(--t3); margin-top:3px; line-height:1.6; }
+  .job-right { text-align:right; flex-shrink:0; }
+
+  /* ââ Pending banner ââ */
+  .pending-banner {
+    background:var(--gold-dim); border:1px solid rgba(200,164,74,.2);
+    border-radius:var(--r2); padding:15px 18px; margin-bottom:12px;
+    display:flex; justify-content:space-between; align-items:center;
+    box-shadow:0 0 20px rgba(200,164,74,.08);
+  }
+  .pending-banner-title { font-size:13px; font-weight:700; color:var(--gold); }
+  .pending-banner-sub   { font-size:11px; color:rgba(200,164,74,.6); margin-top:3px; font-weight:600; }
+
+  /* ââ Source bars ââ */
+  .source-bar         { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border2); }
+  .source-bar:last-child { border-bottom:none; }
+  .source-bar-track   { flex:1; height:2px; background:var(--s4); border-radius:999px; overflow:hidden; }
+  .source-bar-fill    { height:100%; background:var(--blue); border-radius:999px; box-shadow:0 0 6px var(--blue-glow); transition:width .8s cubic-bezier(.4,0,.2,1); }
+
+  /* ââ Typography helpers ââ */
+  .label { font-size:11px; color:var(--t2); font-weight:500; }
+  .sub   { font-size:11px; color:var(--t3); font-weight:500; }
+  .mono  { font-family:"IBM Plex Mono",monospace; }
+  .value { font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:700; color:var(--t1); }
+  .value.big    { font-size:22px; }
+  .value.green  { color:var(--green); }
+  .value.red    { color:var(--red); }
+  .value.orange { color:var(--orange); }
+  .sub.green    { color:var(--green); font-weight:700; }
+  .sub.red      { color:var(--red);   font-weight:700; }
+  .sub.orange   { color:var(--orange); font-weight:700; }
+
+  /* ââ Pills ââ */
+  .pill { display:inline-block; padding:3px 10px; border-radius:999px; font-size:10px; font-weight:800; line-height:1.5; letter-spacing:.2px; }
+  .pill.green  { background:var(--green-dim); color:var(--green); }
+  .pill.red    { background:var(--red-dim);   color:var(--red); }
+  .pill.orange { background:var(--orange-dim);color:var(--orange); }
+  .pill.gray   { background:var(--s3);        color:var(--t2); }
+  .pill.blue   { background:var(--blue-dim);  color:var(--blue); }
+  .pill.gold   { background:var(--gold-dim);  color:var(--gold); }
+
+  /* ââ Fields ââ */
+  .field { margin-bottom:14px; }
+  .field label { display:block; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:var(--t2); margin-bottom:8px; }
+  .field input, .field select, .field textarea {
+    width:100%; border:1px solid var(--border); background:var(--s3);
+    border-radius:var(--r3); padding:13px 15px; outline:none;
+    transition:border-color .15s, box-shadow .15s; color:var(--t1);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim); }
+  .field select option { background:var(--s2); color:var(--t1); }
+  .field textarea { min-height:72px; resize:vertical; }
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+  /* ââ Chips ââ */
+  .chip-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:2px; }
+  .chip { border:1px solid var(--border); background:var(--s3); border-radius:999px; padding:8px 14px; font-size:12px; font-weight:700; color:var(--t2); transition:all .15s; }
+  .chip.active { background:var(--blue-dim); color:var(--blue); border-color:rgba(79,142,247,.3); transform:scale(1.03); }
+  .chip.sm { padding:6px 12px; font-size:11px; }
+
+  /* ââ City ââ */
+  .city-input-wrap  { position:relative; }
+  .city-dropdown    { position:absolute; top:calc(100%+6px); left:0; right:0; background:var(--s2); border:1px solid var(--border); border-radius:var(--r2); box-shadow:var(--sh-float); z-index:200; max-height:240px; overflow-y:auto; animation:fadeSlideUp .2s ease; }
+  .city-option      { padding:13px 16px; font-size:14px; border-bottom:1px solid var(--border2); cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--t1); transition:background .1s; }
+  .city-option:last-child { border-bottom:none; }
+  .city-option:active { background:var(--s3); }
+  .city-section-head{ padding:8px 16px 4px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--t3); background:var(--s3); }
+
+  /* ââ Quick quote ââ */
+  .quote-box {
+    background: linear-gradient(135deg, var(--s2) 0%, #181824 100%);
+    border-radius:var(--r1); padding:18px; margin-bottom:14px;
+    border:1px solid rgba(79,142,247,.15);
+    box-shadow: 0 0 0 1px rgba(79,142,247,.06), var(--sh-card);
+  }
+  .qq-suggested       { text-align:center; padding:14px 10px 12px; border-bottom:1px solid var(--border2); }
+  .qq-suggested-label { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1.4px; color:var(--t3); margin-bottom:6px; }
+  .qq-suggested-price { font-family:"IBM Plex Mono",monospace; font-size:42px; font-weight:700; color:var(--t1); line-height:1; letter-spacing:-2px; animation:countUp .4s ease both; }
+  .qq-dec-badge       { display:inline-flex; align-items:center; gap:5px; padding:5px 14px; border-radius:999px; font-size:11px; font-weight:800; margin-top:10px; }
+  .qq-dec-badge.take  { background:var(--green-dim); color:var(--green); }
+  .qq-dec-badge.raise { background:var(--amber-dim); color:var(--amber); }
+  .qq-dec-badge.low   { background:var(--red-dim);   color:var(--red); }
+  .qq-apply-row       { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:12px; }
+  .qq-apply-btn       { border:none; border-radius:var(--r3); padding:10px 4px; font-size:11px; font-weight:800; cursor:pointer; line-height:1.3; transition:all .15s; }
+  .qq-apply-btn:active{ opacity:.75; transform:scale(.95); }
+  .qq-apply-btn.suggested { background:var(--green-dim); color:var(--green); border:1px solid rgba(34,197,94,.2); }
+  .qq-apply-btn.premium   { background:var(--orange-dim);color:var(--orange);border:1px solid rgba(255,125,59,.2); }
+  .qq-apply-btn.custom    { background:var(--s3); color:var(--t2); border:1px solid var(--border); }
+  .qq-apply-btn.active-sel{ outline:1.5px solid currentColor; outline-offset:2px; }
+
+  /* ââ Src / pay grids ââ */
+  .src-grid { display:flex; flex-wrap:wrap; gap:7px; margin-top:4px; }
+  .src-btn  { border:1px solid var(--border); background:var(--s3); border-radius:var(--r3); padding:9px 12px; font-size:12px; font-weight:700; color:var(--t2); transition:all .15s; display:flex; align-items:center; gap:5px; }
+  .src-btn.active { background:var(--blue-dim); color:var(--blue); border-color:rgba(79,142,247,.3); transform:scale(1.03); }
+  .pay-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:4px; }
+  .pay-btn  { border:1px solid var(--border); border-radius:var(--r2); padding:11px 4px; background:var(--s3); display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; font-weight:700; color:var(--t2); transition:all .15s; }
+  .pay-btn.active { background:var(--blue-dim); color:var(--blue); border-color:rgba(79,142,247,.3); transform:scale(1.03); }
+  .pay-btn .pay-icon { font-size:18px; }
+
+  /* ââ Sticky save ââ */
+  .sticky-save {
+    position:sticky; bottom:0; left:0; right:0;
+    background:linear-gradient(180deg, rgba(10,10,15,.0) 0%, #0a0a0f 12px);
+    padding:0 16px 0; padding-bottom:calc(0px + env(safe-area-inset-bottom));
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    z-index:50; padding-top:0;
+  }
+  .sticky-save::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:var(--border);
+  }
+
+  /* ââ Buttons ââ */
+  .btn { border:none; border-radius:var(--r3); padding:15px 18px; font-weight:700; font-size:14px; transition:all .15s; letter-spacing:-.1px; }
+  .btn:active { opacity:.8; transform:scale(.97); }
+  .btn.primary   { background:linear-gradient(135deg,#5a97ff,#3d7ef5); color:#fff; box-shadow:0 4px 16px rgba(79,142,247,.3); }
+  .btn.secondary { background:var(--s3); color:var(--t2); border:1px solid var(--border); }
+  .btn.sm  { padding:9px 14px; font-size:12px; border-radius:var(--r4); }
+  .btn.xs  { padding:6px 10px; font-size:11px; border-radius:7px; font-weight:700; }
+  .btn.danger  { background:var(--red-dim);   color:var(--red); }
+  .btn.success { background:var(--green-dim); color:var(--green); }
+  .btn.blue    { background:var(--blue-dim);  color:var(--blue); }
+  .btn.orange  { background:var(--orange-dim);color:var(--orange); }
+  .btn.gold    { background:var(--gold-dim);  color:var(--gold); }
+
+  /* ââ Form groups ââ */
+  .form-group { background:var(--s1); border-radius:var(--r1); padding:16px 18px; margin-bottom:10px; box-shadow:var(--sh-card); border:1px solid var(--border); }
+  .form-group-title { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1.4px; color:var(--t2); margin-bottom:14px; }
+
+  /* ââ Success strip ââ */
+  .success-strip { background:var(--green-dim); border:1px solid rgba(34,197,94,.2); border-radius:var(--r2); padding:14px 16px; margin-bottom:14px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; animation:scaleIn .3s ease; }
+  .success-strip-title { font-size:12px; font-weight:700; color:var(--green); width:100%; margin-bottom:4px; }
+
+  /* ââ Bottom nav ââ */
+  .bottom-nav {
+    display:flex; background:linear-gradient(180deg,#0f0f17 0%,#0a0a0f 100%);
+    border-top:1px solid var(--border);
+    padding-bottom:env(safe-area-inset-bottom); flex-shrink:0;
+    box-shadow:0 -8px 40px rgba(0,0,0,.6), 0 -1px 0 rgba(79,142,247,.08);
+  }
+  .nav-btn {
+    flex:1; border:none; background:none; padding:10px 2px 9px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:3px; color:var(--t3); font-size:7.5px; font-weight:800;
+    text-transform:uppercase; letter-spacing:.6px; position:relative; transition:color .15s;
+  }
+  .nav-btn.active { color:var(--blue); }
+  .nav-btn.active::after {
+    content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:24px; height:2px;
+    background:linear-gradient(90deg,var(--blue),#7ab4ff);
+    border-radius:0 0 4px 4px;
+    box-shadow:0 0 8px var(--blue-glow);
+  }
+  .nav-btn .ico { font-size:19px; line-height:1; transition:transform .15s; }
+  .nav-btn.active .ico { transform:scale(1.1); filter:drop-shadow(0 0 4px var(--blue-glow)); }
+  .nav-btn[data-id="add"] { color:var(--t2); }
+  .nav-btn[data-id="add"].active { color:var(--orange); }
+  .nav-btn[data-id="add"].active::after { background:linear-gradient(90deg,var(--orange),#ffa060); box-shadow:0 0 8px var(--orange-glow); }
+  .nav-btn[data-id="add"].active .ico { filter:drop-shadow(0 0 4px var(--orange-glow)); }
+
+  /* ââ Settings / expenses ââ */
+  .settings-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 20px; border-bottom:1px solid var(--border2); }
+  .settings-row:last-child { border-bottom:none; }
+  .settings-inp { border:1px solid var(--border); border-radius:var(--r4); padding:10px 13px; font-size:15px; outline:none; background:var(--s3); color:var(--t1); transition:border-color .15s; }
+  .settings-inp:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim); }
+  .expense-row { display:grid; grid-template-columns:1fr 90px auto auto; gap:8px; align-items:center; padding:11px 20px; border-bottom:1px solid var(--border2); }
+  .expense-row:last-child { border-bottom:none; }
+  .expense-row input { border:1px solid var(--border); border-radius:var(--r4); padding:9px 12px; font-size:15px; outline:none; background:var(--s3); color:var(--t1); width:100%; }
+
+  /* ââ Empty state ââ */
+  .empty { padding:60px 20px; text-align:center; }
+  .empty-icon  { font-size:40px; margin-bottom:14px; opacity:.7; }
+  .empty-title { font-size:15px; font-weight:700; margin-bottom:6px; color:var(--t1); }
+  .empty-sub   { font-size:13px; color:var(--t3); line-height:1.6; }
+
+  /* ââ Tax box ââ */
+  .tax-box { background:var(--gold-dim); border:1px solid rgba(200,164,74,.2); border-radius:var(--r3); padding:13px 16px; margin-top:12px; }
+  .tax-box .tax-lbl  { color:var(--gold); font-weight:800; font-size:9px; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+  .tax-box .tax-amt  { font-family:"IBM Plex Mono",monospace; font-size:18px; font-weight:700; color:var(--gold); }
+  .tax-box .tax-hint { font-size:11px; color:rgba(200,164,74,.6); margin-top:4px; }
+  .inline-note { font-size:11px; color:var(--t3); line-height:1.6; margin-bottom:14px; }
+
+  /* ââ Auth ââ */
+  .auth-field { margin-bottom:14px; }
+  .auth-label { display:block; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:var(--t3); margin-bottom:8px; }
+  .auth-inp2 { width:100%; background:var(--s2); border:1px solid var(--border); border-radius:var(--r2); padding:16px 18px; color:var(--t1); font-size:17px; outline:none; transition:border-color .15s, box-shadow .15s; }
+  .auth-inp2::placeholder { color:var(--t3); }
+  .auth-inp2:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim); }
+  .auth-btn-main  { width:100%; background:linear-gradient(135deg,#5a97ff,#3d7ef5); color:#fff; border:none; border-radius:var(--r2); padding:17px; font-size:16px; font-weight:700; margin-bottom:10px; box-shadow:0 4px 20px rgba(79,142,247,.3); transition:all .15s; }
+  .auth-btn-main:active { opacity:.85; transform:scale(.98); }
+  .auth-btn-google { width:100%; background:var(--s2); color:var(--t1); border:1px solid var(--border); border-radius:var(--r2); padding:15px; font-size:15px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:18px; transition:all .15s; }
+  .auth-btn-google:active { transform:scale(.98); }
+
+  /* ââ Nav logo ââ */
+  .nav-logo-ico { display:block; border-radius:5px; }
+  .nav-btn.active .nav-logo-ico { box-shadow:0 0 0 1.5px rgba(255,125,59,.4); border-radius:6px; filter:brightness(1.1); }
+
+  /* ââ Responsive ââ */
+  @media(min-width:600px){
+    .app{max-width:480px;margin:0 auto;box-shadow:0 0 80px rgba(0,0,0,.9)}
+    html,body,#root{background:#05050a}
+  }
+  @media(max-width:360px){
+    .pay-grid{grid-template-columns:repeat(2,1fr)!important}
+    .field-row{grid-template-columns:1fr!important}
+    .kpi-grid{grid-template-columns:1fr 1fr!important}
+    .mini-grid{grid-template-columns:1fr 1fr!important}
+    .page{padding:16px 14px calc(110px + env(safe-area-inset-bottom))}
+  }
+  @media(min-height:812px){
+    .page{padding:24px 18px calc(130px + env(safe-area-inset-bottom))}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+'use strict';
+window.onerror = function(msg, url, line, col, err) {
+  document.getElementById("root").innerHTML = '<pre style="color:red;padding:20px;font-size:14px;white-space:pre-wrap;">ERROR at line '+line+':\n'+msg+'\n\n'+(err&&err.stack||'')+'</pre>';
+};
+const html = htm.bind(React.createElement);
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+// ââ Firebase config âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const FB_CFG = {
+  apiKey:            atob("QUl6YVN5QTdxOHpyOUlJeWd1LTJXZWRzOFZPMlo5eHk5ZEs1MUhF"),
+  authDomain:        "wheel-rush-expense.firebaseapp.com",
+  projectId:         "wheel-rush-expense",
+  storageBucket:     "wheel-rush-expense.firebasestorage.app",
+  messagingSenderId: "400580006654",
+  appId:             "1:400580006654:web:b8e435c2807b51af244baf"
+};
+let _app, _db, _auth;
+(function initFB() {
+  try {
+    _app  = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FB_CFG);
+    _db   = firebase.firestore();
+    _auth = firebase.auth();
+  } catch(e) { console.warn("Firebase init:", e); }
+})();
+const invCol     = () => _db ? _db.collection("wr2_inventory") : null;
+const jobCol     = () => _db ? _db.collection("wr2_jobs")      : null;
+const expCol     = () => _db ? _db.collection("wr2_expenses")  : null;
+const settingDoc = () => _db ? _db.collection("wr2_settings").doc("main") : null;
+async function fbSet(col, id, data) {
+  if (!col) return;
+  const clean = {};
+  Object.keys(data).forEach(k => {
+    const v = data[k];
+    if (v !== null && v !== undefined && typeof v !== "object") clean[k] = v;
+    else if (typeof v === "boolean") clean[k] = v;
+  });
+  clean.id = String(id);
+  try { await col.doc(String(id)).set(clean); } catch(e) { console.warn("fbSet:", e); }
+}
+async function fbDel(col, id) {
+  if (!col) return;
+  try { await col.doc(String(id)).delete(); } catch(e) {}
+}
+function fbListen(col, cb) {
+  if (!col) { cb([]); return () => {}; }
+  return col.onSnapshot(s => cb(s.docs.map(d => ({...d.data(), id: d.id}))), () => cb([]));
+}
+async function fbBatch(ops) {
+  if (!_db) return;
+  try {
+    const b = _db.batch();
+    ops.forEach(op => {
+      if (op.type === "set") b.set(op.ref, op.data);
+      else if (op.type === "delete") b.delete(op.ref);
+    });
+    await b.commit();
+  } catch(e) { console.warn("fbBatch:", e); }
+}
+
+// ââ Storage helpers âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const KEYS = {
+  jobs: "wr2-jobs-v2", settings: "wr2-settings-v2",
+  inventory: "wr2-inventory-v2", expenses: "wr2-expenses-v1",
+  sizes: "wr2-recent-sizes-v1", cities: "wr2-recent-cities-v1",
+};
+const load    = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch { return fb; } };
+const persist = (k, v)  => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+// ââ Constants ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const LOGO_SRC = "data:image/png;base64,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";
+const TODAY    = () => new Date().toLocaleDateString("en-CA", {timeZone:"America/New_York"});
+const uid      = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const r2       = n  => Math.round((Number(n||0) + Number.EPSILON) * 100) / 100;
+const money    = n  => new Intl.NumberFormat("en-US", {style:"currency", currency:"USD"}).format(Number(n||0));
+const clamp    = (n,lo,hi) => Math.min(hi, Math.max(lo, n));
+const SERVICE_OPTIONS = ["Tire Repair","Tire Replacement","Tire Installation","Lug Nut Removal","Valve Stem Service","Roadside Assistance","Other"];
+const PAYMENT_OPTIONS = [{label:"Cash",icon:"ðµ"},{label:"Zelle",icon:"ð£"},{label:"Card",icon:"ð³"},{label:"Cash App",icon:"ð¢"},{label:"Venmo",icon:"ð"},{label:"Check",icon:"âï¸"}];
+const SOURCE_QUICK    = [{label:"Google",icon:"ð"},{label:"Google Maps",icon:"ðº"},{label:"TikTok",icon:"ðµ"},{label:"ChatGPT",icon:"ð¤"},{label:"Referral",icon:"ð¤"},{label:"Returning Customer",icon:"ð"},{label:"Roadside Flag",icon:"ð"}];
+const FLAGS           = [["emergency","ð¨ Emergency",20],["lateNight","ð Late Night",20],["highway","ð£ Highway",15],["weekend","ð Weekend",10]];
+const TOP_CITIES      = ["Miami","Fort Lauderdale","Hollywood","Miramar","Hialeah","Aventura","Doral","Pembroke Pines","Coral Springs","Davie"];
+const DEFAULT_TIRE_SIZES = ["245/40R18","225/65R17","225/60R18","215/55R16","255/50R17","225/55R18","235/40R19","245/50R20","275/35R21","275/40R22","275/50R22","195/60R16"];
+const LOW_STOCK       = 2;
+const DEFAULT_INVENTORY = [
+  {id:'inv001',size:'195/55R15',qty:1,cost:0,notes:''},{id:'inv002',size:'185/55R16',qty:1,cost:0,notes:''},{id:'inv003',size:'195/60R16',qty:3,cost:0,notes:''},{id:'inv004',size:'205/55R16',qty:1,cost:0,notes:''},{id:'inv005',size:'205/60R16',qty:1,cost:0,notes:''},{id:'inv006',size:'215/55R16',qty:4,cost:0,notes:''},{id:'inv007',size:'215/65R16',qty:1,cost:0,notes:''},{id:'inv008',size:'225/50R16',qty:1,cost:0,notes:''},{id:'inv009',size:'235/65R16',qty:1,cost:0,notes:''},{id:'inv010',size:'205/40R17',qty:1,cost:0,notes:''},{id:'inv011',size:'215/45R17',qty:1,cost:0,notes:''},{id:'inv012',size:'225/60R17',qty:1,cost:0,notes:''},{id:'inv013',size:'225/65R17',qty:5,cost:0,notes:''},{id:'inv014',size:'235/55R17',qty:1,cost:0,notes:''},{id:'inv015',size:'245/55R17',qty:1,cost:0,notes:''},{id:'inv016',size:'245/65R17',qty:1,cost:0,notes:''},{id:'inv017',size:'255/50R17',qty:3,cost:0,notes:''},{id:'inv018',size:'255/65R17',qty:1,cost:0,notes:''},{id:'inv019',size:'265/70R17',qty:1,cost:0,notes:''},{id:'inv020',size:'215/40R18',qty:1,cost:0,notes:''},{id:'inv021',size:'225/50R18',qty:2,cost:0,notes:''},{id:'inv022',size:'225/55R18',qty:3,cost:0,notes:''},{id:'inv023',size:'225/60R18',qty:5,cost:0,notes:''},{id:'inv024',size:'245/40R18',qty:6,cost:0,notes:''},{id:'inv025',size:'255/55R18',qty:1,cost:0,notes:''},{id:'inv026',size:'255/60R18',qty:1,cost:0,notes:''},{id:'inv027',size:'225/35R19',qty:1,cost:0,notes:''},{id:'inv028',size:'225/40R19',qty:1,cost:0,notes:''},{id:'inv029',size:'235/40R19',qty:3,cost:0,notes:''},{id:'inv030',size:'235/45R19',qty:1,cost:0,notes:''},{id:'inv031',size:'235/50R19',qty:1,cost:0,notes:''},{id:'inv032',size:'235/55R19',qty:1,cost:0,notes:''},{id:'inv033',size:'285/40R19',qty:2,cost:0,notes:''},{id:'inv034',size:'235/50R20',qty:1,cost:0,notes:''},{id:'inv035',size:'245/35R20',qty:1,cost:0,notes:''},{id:'inv036',size:'245/50R20',qty:3,cost:0,notes:''},{id:'inv037',size:'255/50R20',qty:1,cost:0,notes:''},{id:'inv038',size:'275/45R20',qty:1,cost:0,notes:''},{id:'inv039',size:'285/45R20',qty:1,cost:0,notes:''},{id:'inv040',size:'295/30R20',qty:1,cost:0,notes:''},{id:'inv041',size:'315/55R20',qty:1,cost:0,notes:''},{id:'inv042',size:'255/35R21',qty:2,cost:0,notes:''},{id:'inv043',size:'255/40R21',qty:2,cost:0,notes:''},{id:'inv044',size:'275/35R21',qty:3,cost:0,notes:''},{id:'inv045',size:'295/35R21',qty:1,cost:0,notes:''},{id:'inv046',size:'325/30R21',qty:2,cost:0,notes:''},{id:'inv047',size:'275/40R22',qty:3,cost:0,notes:''},{id:'inv048',size:'275/50R22',qty:3,cost:0,notes:''},{id:'inv049',size:'285/40R22',qty:1,cost:0,notes:''},{id:'inv050',size:'285/45R22',qty:2,cost:0,notes:''},{id:'inv051',size:'315/35R22',qty:2,cost:0,notes:''},{id:'inv052',size:'325/30R23',qty:1,cost:0,notes:''},
+];
+const DEFAULT_SETTINGS = {
+  businessName:"Wheel Rush Mobile Tire Repair", owner1Name:"Owner 1", owner2Name:"Owner 2",
+  owner1Active:true, owner2Active:true, profitSplit1:50, profitSplit2:50,
+  weeklyGoal:1200, taxRate:25, repairTarget:90, replacementTarget:110,
+  skipThreshold:70, riskyMiles:25, costPerMile:0.65,
+  googleReviewUrl:"https://g.page/r/CfMRJkXrNBO5EBM/review",
+  expenses:[
+    {id:"e1",name:"Van Insurance",amount:434,active:true},{id:"e2",name:"Marketing",amount:599,active:true},
+    {id:"e3",name:"Google PPC",amount:750,active:true},{id:"e4",name:"Phone Bill",amount:250,active:true},
+    {id:"e5",name:"Storage",amount:160,active:true},{id:"e6",name:"Equipment Payment",amount:232.37,active:true},
+  ],
+};
+const EMPTY_JOB = () => ({
+  id:"", date:TODAY(), service:"Tire Repair", area:"Miami", payment:"Cash",
+  status:"Completed", source:"Google Search", customerName:"", customerPhone:"",
+  tireSize:"", qty:1, revenue:"", tireCost:"", miscCost:"", miles:"", note:"",
+  emergency:false, lateNight:false, highway:false, weekend:false,
+});
+
+// ââ Business logic âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const jobDirectCost  = (j,s) => r2(Number(j.miles||0)*Number(s.costPerMile||0.65)+Number(j.tireCost||0)+Number(j.miscCost||0));
+const jobGrossProfit = (j,s) => r2(Number(j.revenue||0)-jobDirectCost(j,s));
+const weeklyFixed    = s => r2((Array.isArray(s.expenses)?s.expenses:[]).filter(e=>e.active).reduce((t,e)=>t+Number(e.amount||0),0)*12/52);
+const monthlyFixed   = s => (Array.isArray(s.expenses)?s.expenses:[]).filter(e=>e.active).reduce((t,e)=>t+Number(e.amount||0),0);
+function premiums(j) {
+  let p = 0;
+  if (j.emergency) p+=20; if (j.lateNight) p+=20;
+  if (j.highway) p+=15; if (j.weekend) p+=10;
+  if (Number(j.miles||0)>25) p+=20;
+  return p;
+}
+function suggestedPrice(j,s) {
+  const direct = jobDirectCost(j,s);
+  const isRepl = /replacement|installation/i.test(j.service||"");
+  const target = isRepl ? Number(s.replacementTarget||110) : Number(s.repairTarget||90);
+  return Math.ceil((direct+target+premiums(j))/5)*5;
+}
+function getWeekStart(d) {
+  const dt = new Date(d+"T12:00:00"), day = dt.getDay();
+  dt.setDate(dt.getDate()-(day>=5?day-5:day+2));
+  return dt.toLocaleDateString("en-CA",{timeZone:"America/New_York"});
+}
+function weekLabel(s) {
+  const d = new Date(s+"T12:00:00"), e = new Date(d);
+  e.setDate(e.getDate()+6);
+  const f = dt => dt.toLocaleDateString("en-US",{timeZone:"America/New_York",month:"short",day:"numeric"});
+  return f(d)+" â "+f(e)+", "+e.toLocaleDateString("en-US",{timeZone:"America/New_York",year:"numeric"}).split("/")[2];
+}
+function nextFriday() {
+  const now = new Date();
+  const dayStr = now.toLocaleDateString("en-US",{timeZone:"America/New_York",weekday:"short"});
+  const dm = {Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+  const day = dm[dayStr.slice(0,3)];
+  const fri = new Date(now); fri.setDate(fri.getDate()+(day===5?7:(5-day+7)%7));
+  return fri.toLocaleDateString("en-US",{timeZone:"America/New_York",weekday:"short",month:"short",day:"numeric"});
+}
+function groupByWeek(jobs) {
+  const map = {};
+  [...(jobs||[])].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id))
+    .forEach(j => { const k=getWeekStart(j.date); if(!map[k]) map[k]=[]; map[k].push(j); });
+  return Object.entries(map).sort((a,b)=>b[0].localeCompare(a[0]));
+}
+function weekSummary(weekJobs,s) {
+  const jobs = Array.isArray(weekJobs)?weekJobs:[];
+  const revenue     = r2(jobs.reduce((t,j)=>t+Number(j.revenue||0),0));
+  const directCosts = r2(jobs.reduce((t,j)=>t+jobDirectCost(j,s),0));
+  const grossProfit = r2(revenue-directCosts);
+  const fixed       = weeklyFixed(s);
+  const net         = r2(grossProfit-fixed);
+  return {revenue,directCosts,grossProfit,fixed,net};
+}
+function dedupeInventory(items) {
+  const seen = {};
+  (items||[]).filter(i=>(i.size||"").trim()).forEach(i => {
+    const key = i.size.toLowerCase().replace(/\s+/g,"");
+    if (!seen[key]) { seen[key]={...i}; }
+    else { seen[key].qty = Math.max(seen[key].qty, Number(i.qty||0)); if (!seen[key].cost && i.cost) seen[key].cost = i.cost; }
+  });
+  return Object.values(seen);
+}
+function sanitizeJob(j) {
+  return {
+    id: String(j.id||uid()), date: String(j.date||""), service: String(j.service||""),
+    area: String(j.area||""), payment: String(j.payment||""), status: String(j.status||"Completed"),
+    source: String(j.source||""), customerName: String(j.customerName||""),
+    customerPhone: String(j.customerPhone||""), tireSize: String(j.tireSize||""),
+    qty: Number(j.qty||1), revenue: Number(j.revenue||0), tireCost: Number(j.tireCost||0),
+    miscCost: Number(j.miscCost||0), miles: Number(j.miles||0), note: String(j.note||""),
+    emergency: !!j.emergency, lateNight: !!j.lateNight, highway: !!j.highway, weekend: !!j.weekend,
+  };
+}
+function sanitizeInvItem(i) {
+  return {id:String(i.id||uid()),size:String(i.size||""),qty:Math.max(0,Number(i.qty||0)),cost:Number(i.cost||0),notes:String(i.notes||"")};
+}
+const SVC_PHRASES = {"Tire Repair":"flat tire repair","Tire Replacement":"tire replacement","Tire Installation":"tire installation","Lug Nut Removal":"lug nut removal","Valve Stem Service":"valve stem service","Roadside Assistance":"roadside assistance"};
+function buildReviewMsg(url,customerName,service,city) {
+  const name=(customerName||"").trim(), greet=name?"Hi "+name+",":"Hi,";
+  const svc=SVC_PHRASES[service]||(service?service.toLowerCase():"tire service");
+  const cityStr=(city||"").trim()||"your area";
+  return greet+" thanks again for choosing Wheel Rush. If you have a minute, please leave a review here:\n\n"+url+"\n\nPlease mention the "+svc+" we did and that we helped you in "+cityStr+".";
+}
+function openReviewSMS(phone,url,customerName,service,city) {
+  if (!url) { alert("Set your Google Review URL in Settings first."); return; }
+  const msg = encodeURIComponent(buildReviewMsg(url,customerName,service,city));
+  window.open((phone?"sms:"+phone:"sms:")+"?body="+msg);
+}
+function generateInvoicePDF(job,settings) {
+  const jsPDF = (window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
+  if (!jsPDF) { alert("PDF library not loaded."); return null; }
+  const doc = new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  const W=210,M=18;
+  const NAVY=[0,20,60],ORANGE=[240,120,0],OFFWHITE=[240,240,220],NEAR_BLK=[20,20,20],GRAY=[120,120,130],LGRAY=[220,220,225],WHITE=[255,255,255];
+  doc.setFillColor(...NAVY);doc.rect(0,0,W,42,"F");
+  doc.setFillColor(...ORANGE);doc.rect(0,42,W,3,"F");
+  try{doc.addImage(LOGO_SRC,"PNG",M,7,24,24);}catch{}
+  doc.setFont("helvetica","bold");doc.setFontSize(18);doc.setTextColor(...WHITE);doc.text("Wheel Rush",M+30,19);
+  doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(180,200,220);doc.text("Mobile Tire Repair  Â·  Miami, FL  Â·  305-897-7030",M+30,27);
+  doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...ORANGE);doc.text("INVOICE",W-M,19,{align:"right"});
+  const invNum="WR-"+(job.date||"").replace(/-/g,"")+"-"+(job.id||"").slice(-4).toUpperCase();
+  doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(180,200,220);doc.text("#"+invNum,W-M,27,{align:"right"});
+  let y=52;
+  doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(...ORANGE);doc.text("BILL TO",M,y);
+  doc.setFont("helvetica","bold");doc.setFontSize(13);doc.setTextColor(...NEAR_BLK);doc.text((job.customerName||"Valued Customer").trim(),M,y+7);
+  if(job.customerPhone){doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(...GRAY);doc.text(job.customerPhone,M,y+14);}
+  const dbX=128,dbW=66;
+  doc.setFillColor(...OFFWHITE);doc.roundedRect(dbX,y-5,dbW,34,3,3,"F");
+  const details=[["Date",job.date||""],["Location",(job.area||"â")],["Payment",(job.payment||"â")],["Status",job.status==="Pending"?"PENDING":"PAID"]];
+  let dy=y+1;
+  details.forEach(([lbl,val])=>{doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(...GRAY);doc.text(lbl,dbX+6,dy);doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...(lbl==="Status"?(val==="PAID"?[0,120,60]:[200,30,30]):NAVY));doc.text(val,dbX+dbW-4,dy,{align:"right"});dy+=7.5;});
+  y+=38;doc.setDrawColor(...LGRAY);doc.setLineWidth(0.3);doc.line(M,y,W-M,y);y+=8;
+  doc.setFillColor(...NAVY);doc.roundedRect(M,y-4,W-M*2,11,2,2,"F");
+  doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...WHITE);
+  doc.text("SERVICE DESCRIPTION",M+4,y+3);doc.text("QTY",148,y+3,{align:"center"});doc.text("AMOUNT",W-M-2,y+3,{align:"right"});y+=14;
+  doc.setFillColor(...OFFWHITE);doc.rect(M,y-4,W-M*2,job.tireSize?20:14,"F");
+  doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...NEAR_BLK);doc.text(job.service||"Tire Service",M+4,y+2);
+  if(job.tireSize){doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(...GRAY);doc.text("Tire Size: "+job.tireSize,M+4,y+9);}
+  doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...NAVY);doc.text(String(Number(job.qty||1)),148,y+2,{align:"center"});doc.text(money(Number(job.revenue||0)),W-M-2,y+2,{align:"right"});
+  y+=(job.tireSize?24:18);
+  if((job.note||"").trim()){doc.setFont("helvetica","italic");doc.setFontSize(9);doc.setTextColor(...GRAY);const nl=doc.splitTextToSize("Note: "+job.note,W-M*2-8);doc.text(nl,M+4,y);y+=nl.length*5+4;}
+  y+=4;doc.setDrawColor(...LGRAY);doc.line(M,y,W-M,y);y+=10;
+  const tx=W-M-72,tw=72;
+  doc.setFillColor(...NAVY);doc.roundedRect(tx,y-4,tw,20,3,3,"F");
+  doc.setFillColor(...ORANGE);doc.roundedRect(tx,y-4,4,20,2,2,"F");
+  doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(180,200,220);doc.text("TOTAL DUE",tx+10,y+4);
+  doc.setFontSize(16);doc.setTextColor(...WHITE);doc.text(money(Number(job.revenue||0)),W-M-4,y+9,{align:"right"});
+  const fy=272;
+  doc.setFillColor(...NAVY);doc.rect(0,fy,W,25,"F");doc.setFillColor(...ORANGE);doc.rect(0,fy,W,2,"F");
+  doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(...WHITE);doc.text("Thank you for choosing Wheel Rush!",W/2,fy+10,{align:"center"});
+  doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(180,200,220);doc.text("Mobile Tire Repair  Â·  We Come to You  Â·  305-897-7030",W/2,fy+17,{align:"center"});
+  return doc;
+}
+function sendInvoice(job,settings) {
+  const doc = generateInvoicePDF(job,settings); if (!doc) return;
+  const name=(job.customerName||"Job").replace(/\s+/g,"-");
+  doc.save("WheelRush-Invoice-"+(job.date||"").replace(/-/g,"")+"-"+name+".pdf");
+}
+function migrateOldJobs() {
+  const OLD=["wr-jobs-v5","wr-upgraded-jobs-v1","wr2-jobs-v1","wheelrush_jobs"];
+  const cur=load(KEYS.jobs,[]);const ids=new Set(cur.map(j=>String(j.id)));
+  let mg=[...cur],cnt=0;
+  OLD.forEach(k=>{try{const o=load(k,[]);if(Array.isArray(o))o.forEach(j=>{if(!ids.has(String(j.id))){mg.push({...j,id:String(j.id||Date.now()),source:j.source||"Google Search",tireCost:j.tireCost||j.cost||0,miscCost:j.miscCost||0});ids.add(String(j.id));cnt++;}});}catch{}});
+  if(cnt>0)persist(KEYS.jobs,mg);
+  return mg;
+}
+
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ââ COMPONENTS âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+
+function EmptyState({icon,title,sub,action,branded}) {
+  return html`<div class="empty page-enter">
+    ${branded!==false&&html`<img src=${LOGO_SRC} alt="" style=${{width:96,height:96,objectFit:"contain",opacity:.09,marginBottom:12,display:"block",margin:"0 auto 12px"}} onError=${e=>e.target.style.display="none"}/>`}
+    <div class="empty-icon" style=${{opacity:branded===false?1:0.7}}>${icon}</div>
+    <div class="empty-title">${title}</div>
+    ${sub && html`<div class="empty-sub">${sub}</div>`}
+    ${action && html`<div style=${{marginTop:18}}>${action}</div>`}
+  </div>`;
+}
+
+// ââ Animated Progress Ring ââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function ProgressRing({size,stroke,pct,color,children}) {
+  const radius = (size-stroke)/2;
+  const circ = 2*Math.PI*radius;
+  const offset = circ - (clamp(pct,0,100)/100)*circ;
+  return html`<div class="progress-ring" style=${{width:size,height:size}}>
+    <svg width=${size} height=${size}>
+      <circle class="progress-ring-bg" cx=${size/2} cy=${size/2} r=${radius} stroke-width=${stroke}/>
+      <circle class="progress-ring-fill" cx=${size/2} cy=${size/2} r=${radius} stroke-width=${stroke}
+        stroke=${color} style=${{strokeDasharray:circ,strokeDashoffset:offset,color:color}}/>
+    </svg>
+    <div class="progress-ring-label">${children}</div>
+  </div>`;
+}
+
+// ââ CityInput âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const CITY_LIST=["Miami","Miami Beach","North Miami","North Miami Beach","Miami Gardens","Hialeah","Hialeah Gardens","Opa-locka","Aventura","Sunny Isles Beach","Bal Harbour","Bay Harbor Islands","Surfside","El Portal","Biscayne Park","Golden Beach","Key Biscayne","Doral","Sweetwater","West Miami","Virginia Gardens","Medley","Miami Springs","Coral Gables","South Miami","Pinecrest","Palmetto Bay","Cutler Bay","Homestead","Florida City","Kendall","West Kendall","Tamiami","Fontainebleau","Westchester","Olympia Heights","Richmond Heights","Country Walk","Three Lakes","Naranja","Princeton","Goulds","Fort Lauderdale","Hollywood","Pembroke Pines","Miramar","Davie","Plantation","Sunrise","Weston","Tamarac","Coral Springs","Parkland","Coconut Creek","Margate","North Lauderdale","Lauderhill","Lauderdale Lakes","Wilton Manors","Oakland Park","Pompano Beach","Deerfield Beach","Lighthouse Point","Dania Beach","Hallandale Beach","Cooper City","Southwest Ranches","Hillsboro Beach","Sea Ranch Lakes","Lazy Lake","Pembroke Park","West Park","Lauderdale-by-the-Sea","Other"];
+function CityInput({value,onChange}) {
+  const [q,setQ]=useState(value||"");
+  const [open,setOpen]=useState(false);
+  const inputRef=useRef(null);
+  const recentCities=useMemo(()=>load(KEYS.cities,[]).slice(0,6),[]);
+  useEffect(()=>setQ(value||""),[value]);
+  const matches=useMemo(()=>{if(!q.trim())return[];const lq=q.toLowerCase();return CITY_LIST.filter(c=>c.toLowerCase().includes(lq)).slice(0,12);},[q]);
+  const pick=c=>{onChange(c);setQ(c);setOpen(false);const r=load(KEYS.cities,[]).filter(x=>x!==c);persist(KEYS.cities,[c,...r].slice(0,8));if(inputRef.current)inputRef.current.blur();};
+  return html`<div class="city-input-wrap">
+    <input ref=${inputRef} value=${q}
+      onChange=${e=>{setQ(e.target.value);onChange(e.target.value);setOpen(true);}}
+      onFocus=${()=>setOpen(true)}
+      onBlur=${()=>setTimeout(()=>setOpen(false),200)}
+      placeholder="Type a cityâ¦"
+      style=${{width:"100%",border:"1px solid var(--border)",background:"var(--s3)",color:"var(--t1)",borderRadius:"var(--r3)",padding:"13px 15px",outline:"none",fontSize:16}}
+    />
+    ${!open&&!q&&html`<div class="chip-row" style=${{marginTop:8}}>
+      ${TOP_CITIES.slice(0,6).map(c=>html`<button key=${c} type="button" class=${"chip city sm"+(value===c?" active":"")} onClick=${()=>pick(c)}>${c}</button>`)}
+    </div>`}
+    ${open&&html`<div class="city-dropdown">
+      ${!q&&recentCities.length>0&&html`<div>
+        <div class="city-section-head">Recent</div>
+        ${recentCities.map(c=>html`<div key=${c} class="city-option" onMouseDown=${()=>pick(c)}><span>ð</span>${c}</div>`)}
+        <div class="city-section-head">Quick picks</div>
+        ${TOP_CITIES.map(c=>html`<div key=${c} class="city-option" onMouseDown=${()=>pick(c)}><span>ð</span>${c}</div>`)}
+      </div>`}
+      ${q&&matches.map(c=>html`<div key=${c} class="city-option" onMouseDown=${()=>pick(c)}><span>ð</span>${c}</div>`)}
+      ${q&&matches.length===0&&html`<div class="city-option" style=${{color:"#999"}} onMouseDown=${()=>pick(q)}>Use "<strong>${q}</strong>" â</div>`}
+    </div>`}
+  </div>`;
+}
+
+// ââ QuickQuote ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function QuickQuote({form,settings,onApply,onFormChange,priceMode,setPriceMode}) {
+  const customRef=useRef(null);
+  const hasInputs=Number(form.miles||0)>0||Number(form.tireCost||0)>0||Number(form.miscCost||0)>0;
+  const directCost=jobDirectCost(form,settings);
+  const suggested=suggestedPrice(form,settings);
+  const isRepl=/replacement|installation/i.test(form.service||"");
+  const premiumPrice=Math.ceil((directCost+(isRepl?130:105)+premiums(form))/5)*5;
+  const prem=premiums(form);
+  const skip=Number(settings.skipThreshold||70);
+  const dispPrice=priceMode==="custom"?Number(form.revenue||0):(priceMode==="premium"?premiumPrice:suggested);
+  const profit=r2(dispPrice-directCost);
+  const decLabel=profit<skip?"Too Low":profit>=skip+40?"Strong Margin":"Take It";
+  const decCls=profit<skip?"low":"take";
+  const handleMode=(mode,price)=>{if(setPriceMode)setPriceMode(mode);onApply(price===""?"":String(price));if(mode==="custom")setTimeout(()=>customRef.current&&customRef.current.focus(),80);};
+  const inpSt={background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.18)",borderRadius:8,padding:"8px 10px",color:"#fff",fontSize:15,outline:"none",width:"100%",fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:600,textAlign:"center"};
+  const lbl={fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:".6px",color:"var(--t2)",marginBottom:5,textAlign:"center"};
+  return html`<div class="quote-box card-anim">
+    <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8,marginBottom:14}}>
+      <div><div style=${lbl}>Miles</div><input type="number" min="0" inputMode="decimal" placeholder="0" value=${form.miles||""} onChange=${e=>onFormChange("miles",e.target.value)} style=${inpSt}/></div>
+      <div><div style=${lbl}>Tire $</div><input type="number" min="0" inputMode="decimal" placeholder="0" value=${form.tireCost||""} onChange=${e=>onFormChange("tireCost",e.target.value)} style=${inpSt}/></div>
+      <div><div style=${lbl}>Misc $</div><input type="number" min="0" inputMode="decimal" placeholder="0" value=${form.miscCost||""} onChange=${e=>onFormChange("miscCost",e.target.value)} style=${inpSt}/></div>
+      <div><div style=${lbl}>Qty</div><input type="number" min="1" inputMode="numeric" placeholder="1" value=${form.qty||""} onChange=${e=>onFormChange("qty",e.target.value)} style=${inpSt}/></div>
+    </div>
+    ${!hasInputs?html`<div style=${{textAlign:"center",padding:"8px 0"}}>
+      <div style=${{fontSize:13,color:"var(--t2)",fontWeight:600}}>Enter job details above</div>
+      <div style=${{fontSize:11,color:"var(--t3)",marginTop:4}}>Miles Â· Tire cost Â· Misc â auto-calculates</div>
+    </div>`:html`<div>
+      <div class="qq-suggested">
+        <div class="qq-suggested-label">${priceMode==="custom"?"Custom Price":priceMode==="premium"?"Premium Price":"Suggested Price"}</div>
+        <div class="qq-suggested-price">${money(dispPrice)}</div>
+        <div style=${{display:"flex",justifyContent:"center",gap:16,marginTop:8,marginBottom:8}}>
+          <div style=${{textAlign:"center"}}><div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:2}}>Cost</div><div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:15,fontWeight:700,color:"var(--t2)"}}>${money(directCost)}</div></div>
+          <div style=${{width:1,background:"var(--border)"}}/>
+          <div style=${{textAlign:"center"}}><div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:2}}>Profit</div><div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:15,fontWeight:700,color:profit>=skip?"#4ade80":"#ef4444"}}>${money(profit)}</div></div>
+          ${prem>0&&html`<div style=${{width:1,background:"var(--border)"}}/><div style=${{textAlign:"center"}}><div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:2}}>Surcharge</div><div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:15,fontWeight:700,color:"#fb923c"}}>+${money(prem)}</div></div>`}
+        </div>
+        <span class=${"qq-dec-badge "+decCls}>${decLabel}</span>
+      </div>
+      <div class="qq-apply-row">
+        <button class=${"qq-apply-btn suggested press-scale"+(priceMode==="suggested"?" active-sel":"")} onClick=${()=>handleMode("suggested",suggested)}>${priceMode==="suggested"?"â ":""}${money(suggested)}<br/><span style=${{fontSize:10,opacity:.8}}>Suggested</span></button>
+        <button class=${"qq-apply-btn premium press-scale"+(priceMode==="premium"?" active-sel":"")} onClick=${()=>handleMode("premium",premiumPrice)}>${priceMode==="premium"?"â ":""}${money(premiumPrice)}<br/><span style=${{fontSize:10,opacity:.8}}>Premium</span></button>
+        <button class=${"qq-apply-btn custom press-scale"+(priceMode==="custom"?" active-sel":"")} onClick=${()=>handleMode("custom","")}>${priceMode==="custom"?"â ":""}Custom<br/><span style=${{fontSize:10,opacity:.8}}>Enter â</span></button>
+      </div>
+      ${priceMode==="custom"&&html`<div style=${{padding:"10px 10px 4px"}}>
+        <div style=${{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:".6px",color:"var(--t2)",marginBottom:6,textAlign:"center"}}>Custom Price ($)</div>
+        <input ref=${customRef} type="number" min="0" inputMode="decimal" placeholder="0.00" value=${form.revenue||""} onChange=${e=>onFormChange("revenue",e.target.value)} style=${{background:"rgba(255,255,255,.12)",border:"2px solid rgba(255,255,255,.3)",borderRadius:10,padding:"12px",color:"#fff",fontSize:22,outline:"none",width:"100%",fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,textAlign:"center"}}/>
+        <div style=${{fontSize:10,color:"var(--t3)",textAlign:"center",marginTop:5}}>Profit: ${money(r2(Number(form.revenue||0)-directCost))}</div>
+      </div>`}
+    </div>`}
+  </div>`;
+}
+
+// ââ Auth screen âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function AuthScreen({onAuth}) {
+  const [email,setEmail]=useState("");const [pass,setPass]=useState("");
+  const [mode,setMode]=useState("login");const [err,setErr]=useState("");const [busy,setBusy]=useState(false);
+  const submit=async()=>{
+    if(!email||!pass){setErr("Enter your email and password.");return;}
+    setBusy(true);setErr("");
+    try{const c=mode==="login"?await _auth.signInWithEmailAndPassword(email,pass):await _auth.createUserWithEmailAndPassword(email,pass);onAuth(c.user);}
+    catch(e){setErr(e.message||"Auth failed.");}finally{setBusy(false);}
+  };
+  const google=async()=>{try{const c=await _auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());onAuth(c.user);}catch(e){setErr(e.message);}};
+  return html`<div style=${{height:"100%",display:"flex",flexDirection:"column",background:"#0a0a0a",padding:"0 24px",paddingTop:"env(safe-area-inset-top)"}}>
+    <div style=${{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",paddingBottom:16}}>
+      <img src=${LOGO_SRC} alt="Wheel Rush" onError=${e=>e.target.style.display="none"} style=${{width:80,height:80,objectFit:"contain",borderRadius:18,marginBottom:20,boxShadow:"0 4px 20px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06)",animation:"scaleIn .5s ease"}}/>
+      <div class="shimmer-text" style=${{fontSize:26,fontWeight:700,marginBottom:4}}>Wheel Rush</div>
+      <div style=${{color:"#555",fontSize:13,fontWeight:600}}>Mobile Tire Repair Â· Miami</div>
+    </div>
+    <div style=${{paddingBottom:"calc(32px + env(safe-area-inset-bottom))"}}>
+      ${err&&html`<div style=${{background:"var(--red-dim)",border:"1px solid rgba(239,68,68,.3)",color:"#f87171",padding:"12px 16px",borderRadius:12,fontSize:13,fontWeight:600,marginBottom:16,animation:"fadeSlideUp .3s ease"}}>${err}</div>`}
+      <div class="auth-field"><label class="auth-label">Email</label><input class="auth-inp2" type="email" placeholder="you@email.com" value=${email} onChange=${e=>setEmail(e.target.value)} autoCapitalize="off"/></div>
+      <div class="auth-field" style=${{marginBottom:20}}><label class="auth-label">Password</label><input class="auth-inp2" type="password" placeholder="â¢â¢â¢â¢â¢â¢â¢â¢" value=${pass} onChange=${e=>setPass(e.target.value)} onKeyDown=${e=>e.key==="Enter"&&submit()}/></div>
+      <button class="auth-btn-main press-scale" onClick=${submit} disabled=${busy}>${busy?"Workingâ¦":mode==="login"?"Sign In":"Create Account"}</button>
+      <button class="auth-btn-google press-scale" onClick=${google}>
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+        Continue with Google
+      </button>
+      <div style=${{textAlign:"center"}}><button style=${{background:"none",border:"none",color:"#444",fontSize:13,cursor:"pointer",padding:"8px"}} onClick=${()=>{setMode(m=>m==="login"?"signup":"login");setErr("");}}>
+        ${mode==="login"?"New here? Create account":"Have an account? Sign in"}
+      </button></div>
+    </div>
+  </div>`;
+}
+
+function Header({syncStatus,onSignOut}) {
+  const isLive=syncStatus==="connected",isSyncing=syncStatus==="syncing";
+  return html`<div class="header-compact">
+    <div style=${{display:"flex",alignItems:"center",gap:10}}>
+      <img src=${LOGO_SRC} alt="WR" style=${{width:32,height:32,objectFit:"contain",borderRadius:9,flexShrink:0,boxShadow:"0 2px 10px rgba(0,0,0,.5), 0 0 0 1px rgba(79,142,247,.15)"}} onError=${e=>e.target.style.display="none"}/>
+      <div><h1>Wheel Rush</h1><p>Mobile Tire Repair Â· Miami</p></div>
+    </div>
+    <div style=${{display:"flex",alignItems:"center",gap:10}}>
+      <span class=${isSyncing?"syncing":""} style=${{fontSize:9,fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:isLive?"var(--green)":"var(--t3)",textShadow:isLive?"0 0 8px rgba(34,197,94,.4)":"none"}}>
+        ${isLive?"â Live":isSyncing?"â Sync":"â Local"}
+      </span>
+      ${onSignOut&&html`<button onClick=${()=>onSignOut()} style=${{background:"var(--s3)",border:"1px solid var(--border)",color:"var(--t3)",fontSize:10,cursor:"pointer",padding:"5px 10px",borderRadius:7,fontWeight:700}}>Out</button>`}
+    </div>
+  </div>`;
+}
+
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ââ PRO DASHBOARD (Redesigned) âââââââââââââââââââââââââââââââââââââââââââââââ
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
+  // QuickQuote state (lives here so it's on Dashboard)
+  const [qqForm,setQqForm]=useState({service:"Tire Repair",miles:"",tireCost:"",miscCost:"",qty:1,revenue:"",emergency:false,lateNight:false,highway:false,weekend:false});
+  const [qqMode,setQqMode]=useState("suggested");
+  const qqChange=(k,v)=>setQqForm(p=>({...p,[k]:v}));
+  const qqApply=price=>setQqForm(p=>({...p,revenue:price}));
+  const safeJobs=Array.isArray(jobs)?jobs:[];
+  const today=TODAY(), thisWeek=getWeekStart(today);
+  const weekJobs=useMemo(()=>safeJobs.filter(j=>getWeekStart(j.date)===thisWeek),[safeJobs,thisWeek]);
+  const todayJobs=useMemo(()=>safeJobs.filter(j=>j.date===today),[safeJobs,today]);
+  const totals=useMemo(()=>weekSummary(weekJobs,settings),[weekJobs,settings]);
+  const avgProfit=weekJobs.length?r2(totals.grossProfit/weekJobs.length):0;
+  const goalPct=clamp((totals.grossProfit/(settings.weeklyGoal||1))*100,0,100);
+  const jobsNeeded=avgProfit>0?Math.max(0,Math.ceil(((settings.weeklyGoal||0)-totals.grossProfit)/avgProfit)):"â";
+  const fixed=weeklyFixed(settings);
+  const sources=useMemo(()=>{const m={};safeJobs.forEach(j=>{const s=j.source||"Other";m[s]=(m[s]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]);},[safeJobs]);
+  const maxSrc=sources.length?sources[0][1]:1;
+  const recent=useMemo(()=>[...safeJobs].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).slice(0,5),[safeJobs]);
+  const top5Tires=useMemo(()=>{const counts={};safeJobs.forEach(j=>{if(j.tireSize){counts[j.tireSize]=(counts[j.tireSize]||0)+Number(j.qty||1);}});return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([size,sold],i)=>({id:"bs"+i,size,sold}));},[safeJobs]);
+  const pendingJobs=useMemo(()=>safeJobs.filter(j=>j.status==="Pending"),[safeJobs]);
+  const pendingTotal=pendingJobs.reduce((s,j)=>s+Number(j.revenue||0),0);
+
+  // Week-over-week comparison
+  const lastWeekStart=useMemo(()=>{const d=new Date(thisWeek+"T12:00:00");d.setDate(d.getDate()-7);return d.toLocaleDateString("en-CA",{timeZone:"America/New_York"});},[thisWeek]);
+  const lastWeekJobs=useMemo(()=>safeJobs.filter(j=>getWeekStart(j.date)===lastWeekStart),[safeJobs,lastWeekStart]);
+  const lastWeekGross=lastWeekJobs.reduce((s,j)=>s+jobGrossProfit(j,settings),0);
+  const wowChange=lastWeekGross>0?Math.round(((totals.grossProfit-lastWeekGross)/lastWeekGross)*100):0;
+
+  const ringColor=goalPct>=100?"var(--green)":goalPct>=60?"var(--blue)":"var(--amber)";
+
+  return html`<div class="screen"><div class="page page-enter">
+    <div class="pro-hero card-anim">
+      <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18}}>
+        <div style=${{flex:1}}>
+          <div style=${{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+            <div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1.6px",color:"var(--blue)"}}>This Week</div>
+            ${wowChange!==0&&html`<div style=${{fontSize:10,fontWeight:700,color:wowChange>0?"var(--green)":"var(--red)",background:wowChange>0?"var(--green-dim)":"var(--red-dim)",padding:"2px 8px",borderRadius:999}}>
+              ${wowChange>0?"+":""}${wowChange}%
+            </div>`}
+          </div>
+          <div class="revenue-ticker">
+            <span class="currency">$</span>${Math.floor(totals.grossProfit).toLocaleString()}
+          </div>
+          <div style=${{fontSize:11,color:"var(--t3)",marginTop:8,fontWeight:500}}>
+            gross profit Â· ${weekJobs.length} job${weekJobs.length!==1?"s":""} Â· ${money(totals.revenue)} rev
+          </div>
+        </div>
+        <${ProgressRing} size=${88} stroke=${6} pct=${goalPct} color=${ringColor}>
+          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:18,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${Math.round(goalPct)}%</div>
+          <div style=${{fontSize:8,fontWeight:800,textTransform:"uppercase",letterSpacing:".5px",color:"var(--t3)",marginTop:1}}>Goal</div>
+        <//>
+      </div>
+      <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,padding:"14px 0 6px",borderTop:"1px solid var(--border)"}}>
+        <div style=${{textAlign:"center"}}>
+          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:17,fontWeight:700,color:"var(--green)",letterSpacing:"-1px"}}>${money(totals.net)}</div>
+          <div style=${{fontSize:9,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginTop:3}}>Take-Home</div>
+        </div>
+        <div style=${{textAlign:"center"}}>
+          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:17,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(fixed)}</div>
+          <div style=${{fontSize:9,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginTop:3}}>Fixed/Wk</div>
+        </div>
+        <div style=${{textAlign:"center"}}>
+          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:17,fontWeight:700,color:"var(--blue)",letterSpacing:"-1px"}}>${typeof jobsNeeded==="number"?jobsNeeded:"â"}</div>
+          <div style=${{fontSize:9,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginTop:3}}>Jobs Left</div>
+        </div>
+      </div>
+      ${goalPct>=100&&html`<div style=${{textAlign:"center",marginTop:12,animation:"scaleIn .4s ease"}}>
+        <span style=${{background:"var(--green-dim)",color:"var(--green)",padding:"6px 16px",borderRadius:999,fontSize:12,fontWeight:800,border:"1px solid rgba(34,197,94,.25)"}}>ð¯ Weekly Goal Achieved!</span>
+      </div>`}
+    </div>
+
+    <div class="card-anim" style=${{marginBottom:16}}>
+      <button class="cta-btn press-scale" onClick=${()=>setTab("add")}>
+        <span style=${{fontSize:18}}>ï¼</span><span>New Job</span>
+      </button>
+    </div>
+
+    <div class="card-anim">
+      <div class="section-label" style=${{marginTop:0,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <span>Quick Quote</span>
+        ${Number(qqForm.revenue||0)>0&&html`<button class="btn primary sm press-scale" style=${{fontSize:11,padding:"4px 12px"}} onClick=${()=>{if(onStartJob)onStartJob(qqForm);setQqForm({service:"Tire Repair",miles:"",tireCost:"",miscCost:"",qty:1,revenue:"",emergency:false,lateNight:false,highway:false,weekend:false});setQqMode("suggested");}}>Start Job â</button>`}
+      </div>
+      <div style=${{marginBottom:4}}>
+        <div style=${{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap",padding:"0 1px"}}>
+          ${["Tire Repair","Tire Replacement","Tire Installation"].map(s=>html`<button key=${s} class=${"chip press-scale"+(qqForm.service===s?" active":"")} onClick=${()=>qqChange("service",s)} style=${{fontSize:11,padding:"5px 10px"}}>${s.replace("Tire ","")}</button>`)}
+        </div>
+        <div style=${{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap",padding:"0 1px"}}>
+          ${FLAGS.map(([k,label])=>html`<button key=${k} class=${"chip press-scale"+(qqForm[k]?" active":"")} onClick=${()=>qqChange(k,!qqForm[k])} style=${{fontSize:10,padding:"4px 8px"}}>${label}</button>`)}
+        </div>
+      </div>
+      <${QuickQuote} form=${qqForm} settings=${settings} onApply=${qqApply} onFormChange=${qqChange} priceMode=${qqMode} setPriceMode=${setQqMode}/>
+    </div>
+
+    ${todayJobs.length>0&&html`<div class="card-anim">
+      <div class="section-label" style=${{marginTop:0}}>Today</div>
+      <div class="mini-grid">
+        <div class="mini-box"><strong>${todayJobs.length}</strong><span>Jobs</span></div>
+        <div class="mini-box"><strong>${money(todayJobs.reduce((s,j)=>s+Number(j.revenue||0),0))}</strong><span>Revenue</span></div>
+        <div class="mini-box"><strong style=${{color:"var(--green)"}}>${money(todayJobs.reduce((s,j)=>s+jobGrossProfit(j,settings),0))}</strong><span>Profit</span></div>
+        <div class="mini-box"><strong>${todayJobs.filter(j=>j.status==="Completed").length}</strong><span>Done</span></div>
+      </div>
+    </div>`}
+
+    ${pendingJobs.length>0&&html`<div class="pending-banner card-anim press-scale" onClick=${()=>setTab("history")}>
+      <div><div class="pending-banner-title">â³ ${pendingJobs.length} Pending</div><div class="pending-banner-sub">${money(pendingTotal)} to collect</div></div>
+      <span style=${{fontSize:12,fontWeight:700,color:"var(--gold)"}}>Collect â</span>
+    </div>`}
+
+    <div class="card card-anim">
+      <div class="card-pad">
+        <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div class="kpi-label">Weekly Target</div>
+            <div style=${{display:"flex",alignItems:"baseline",gap:6,marginTop:4}}>
+              <span style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:20,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(totals.grossProfit)}</span>
+              <span style=${{fontSize:12,color:"var(--t3)"}}>/ ${money(settings.weeklyGoal)}</span>
+            </div>
+          </div>
+          <div style=${{fontSize:11,color:"var(--t3)"}}>${nextFriday()}</div>
+        </div>
+        <div class="goal-track" style=${{marginTop:12,marginBottom:6}}>
+          <div class=${"goal-fill "+(goalPct>=100?"full":goalPct>=50?"mid":"low")} style=${{width:goalPct+"%"}}/>
+        </div>
+      </div>
+    </div>
+
+    ${top5Tires.length>0&&html`<div class="card-anim">
+      <div class="section-label">Best Sellers</div>
+      <div class="card">
+        ${top5Tires.map((t,i)=>html`<div key=${t.id} class="card-row">
+          <div style=${{display:"flex",alignItems:"center",gap:12}}>
+            <div style=${{width:26,height:26,borderRadius:8,flexShrink:0,background:i===0?"var(--blue-dim)":"var(--s3)",color:i===0?"var(--blue)":"var(--t3)",border:i===0?"1px solid rgba(79,142,247,.25)":"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800}}>${i+1}</div>
+            <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:14,color:"var(--t1)",letterSpacing:"-.3px"}}>${t.size}</div>
+          </div>
+          <div><span style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:12,color:"var(--t2)",fontWeight:700}}>${t.sold} sold</span></div>
+        </div>`)}
+      </div>
+    </div>`}
+
+    ${sources.length>0&&html`<div class="card-anim">
+      <div class="section-label">Lead Sources</div>
+      <div class="card"><div class="card-pad">
+        ${sources.slice(0,6).map(([srcName,count])=>html`<div class="source-bar" key=${srcName}>
+          <div style=${{fontSize:12,fontWeight:600,color:"var(--t2)",width:130,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>${srcName}</div>
+          <div class="source-bar-track"><div class="source-bar-fill" style=${{width:((count/maxSrc)*100)+"%"}}/></div>
+          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:11,color:"var(--t3)",width:20,textAlign:"right",flexShrink:0,fontWeight:700}}>${count}</div>
+        </div>`)}
+      </div></div>
+    </div>`}
+
+    <div class="section-label card-anim">Recent Jobs</div>
+    ${recent.length>0?html`<div class="stack">${recent.map((job,idx)=>{
+      const profit=jobGrossProfit(job,settings);
+      const pg=profit>=70,po=profit>=40&&profit<70;
+      return html`<div class="job-row card-anim press-scale" key=${job.id} style=${{cursor:"pointer",animationDelay:(0.05*idx)+"s"}} onClick=${()=>onRepeat(job)}>
+        <div class="job-icon">ð</div>
+        <div class="job-main">
+          <div class="job-title">${job.service}</div>
+          <div class="job-meta">${job.area} Â· ${job.date}${job.tireSize?" Â· "+job.tireSize:""}</div>
+          <div style=${{marginTop:7,display:"flex",gap:6}}>
+            <span class=${"pill "+(pg?"green":po?"orange":"red")}>${money(profit)}</span>
+            ${job.status==="Pending"&&html`<span class="pill gold">Pending</span>`}
+          </div>
+        </div>
+        <div class="job-right">
+          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:18,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(job.revenue)}</div>
+          <div style=${{fontSize:10,color:"var(--t3)",marginTop:3}}>${job.payment}</div>
+        </div>
+      </div>`;
+    })}</div>`:html`<${EmptyState} icon="ð" title="No jobs yet" sub="Tap New Job above to get started." action=${html`<button class="btn primary press-scale" onClick=${()=>setTab("add")}>New Job</button>`}/>`}
+  </div></div>`;
+}
+
+// ââ AddJob (BUG 1 FIXED: no more <> fragments) ââââââââââââââââââââââââââââââ
+function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit,saving}) {
+  const [form,setForm]=useState(EMPTY_JOB());const [error,setError]=useState("");const [saved,setSaved]=useState(null);const [tick,setTick]=useState(0);const [editingId,setEditingId]=useState(null);const [priceMode,setPriceMode]=useState("suggested");
+  const isEditing=!!editingId;
+  const recentSizes=useMemo(()=>[...new Set([...load(KEYS.sizes,[]),...DEFAULT_TIRE_SIZES])].slice(0,8),[tick]);
+  const lastJob=useMemo(()=>[...(jobs||[])].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).find(j=>j.id!==editingId)||null,[jobs,editingId]);
+  useEffect(()=>{
+    if(editJob&&editJob.id){setForm({...EMPTY_JOB(),...editJob,revenue:String(editJob.revenue||""),tireCost:String(editJob.tireCost||""),miscCost:String(editJob.miscCost||""),miles:String(editJob.miles||"")});setEditingId(editJob.id);setSaved(null);setError("");setPriceMode("suggested");if(onClearEdit)onClearEdit();return;}
+    if(prefill){setForm({...EMPTY_JOB(),service:prefill.service||"Tire Repair",area:prefill.area||"Miami",payment:prefill.payment||"Cash",source:prefill.source||"Google Search",tireSize:prefill.tireSize||"",qty:prefill.qty||1,tireCost:String(prefill.tireCost||""),miscCost:String(prefill.miscCost||""),miles:String(prefill.miles||""),emergency:!!prefill.emergency,lateNight:!!prefill.lateNight,highway:!!prefill.highway,weekend:!!prefill.weekend,customerName:prefill.customerName||"",customerPhone:prefill.customerPhone||""});setPriceMode("suggested");if(onClearPrefill)onClearPrefill();}
+  },[prefill,editJob]);
+  const setF=(k,v)=>{setForm(p=>({...p,[k]:v}));setError("");};
+  const useLastJob=()=>{if(!lastJob)return;setForm({...EMPTY_JOB(),service:lastJob.service,area:lastJob.area,payment:lastJob.payment,source:lastJob.source,tireSize:lastJob.tireSize,tireCost:String(lastJob.tireCost||""),miscCost:String(lastJob.miscCost||""),miles:String(lastJob.miles||""),emergency:lastJob.emergency,lateNight:lastJob.lateNight,highway:lastJob.highway,weekend:lastJob.weekend});};
+  const doSave=async(andAdd=false)=>{
+    const rev=Number(form.revenue||0);if(!rev){setError("Enter the job price.");return;}
+    if(form.tireSize){try{const p=load(KEYS.sizes,[]);persist(KEYS.sizes,[form.tireSize,...p.filter(s=>s!==form.tireSize)].slice(0,10));}catch{}}
+    const entry=sanitizeJob({...form,id:editingId||uid(),qty:Number(form.qty||1),revenue:r2(rev),tireCost:r2(form.tireCost),miscCost:r2(form.miscCost),miles:r2(form.miles)});
+    await onSave(entry,isEditing?false:andAdd);setTick(t=>t+1);
+    if(isEditing){setEditingId(null);setForm(EMPTY_JOB());setError("");setPriceMode("suggested");}
+    else{setSaved(entry);if(andAdd){setForm(EMPTY_JOB());setError("");setSaved(null);setPriceMode("suggested");}}
+  };
+  const cancelEdit=()=>{setEditingId(null);setPriceMode("suggested");setForm(EMPTY_JOB());setError("");setSaved(null);};
+  const requestReview=()=>openReviewSMS(form.customerPhone,(settings.googleReviewUrl||"").trim(),form.customerName,form.service,form.area);
+  return html`<div class="screen" style=${{paddingBottom:0}}>
+    <div class="page-enter" style=${{padding:"14px 14px 0"}}>
+      ${isEditing&&html`<div style=${{background:"var(--gold-dim)",border:"1px solid rgba(192,149,74,.3)",borderRadius:12,padding:"12px 16px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center",animation:"fadeSlideUp .3s ease"}}>
+        <span style=${{fontSize:13,fontWeight:700,color:"var(--gold)"}}>âï¸ Editing â ${form.date}</span>
+        <button class="btn secondary sm press-scale" onClick=${cancelEdit}>Cancel</button>
+      </div>`}
+      <div style=${{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+        ${lastJob&&!isEditing&&html`<button type="button" class="btn secondary sm press-scale" onClick=${useLastJob}>â© Last Job</button>`}
+        ${!isEditing&&html`<button type="button" class="btn secondary sm press-scale" onClick=${()=>{setForm(EMPTY_JOB());setSaved(null);setError("");setPriceMode("suggested");}}>â Clear</button>`}
+      </div>
+      ${error&&html`<div style=${{background:"var(--red-dim)",border:"1px solid rgba(239,68,68,.3)",borderRadius:12,padding:"12px 16px",fontSize:13,color:"var(--red)",marginBottom:14,fontWeight:600,animation:"fadeSlideUp .3s ease"}}>${error}</div>`}
+      ${saved&&!isEditing&&html`<div class="success-strip">
+        <div class="success-strip-title">â ${money(saved.revenue)} Â· ${money(jobGrossProfit(saved,settings))} profit</div>
+        <button class="btn primary sm press-scale" onClick=${()=>sendInvoice(saved,settings)}>ð§¾ Invoice</button>
+        ${saved.status==="Completed"&&html`<button class="btn success sm press-scale" onClick=${requestReview}>â­ Review</button>`}
+        <button class="btn secondary sm press-scale" onClick=${()=>{setForm({...saved,id:"",revenue:String(saved.revenue)});setSaved(null);}}>ð Dup</button>
+      </div>`}
+      <${QuickQuote} form=${form} settings=${settings} onApply=${v=>setF("revenue",v)} onFormChange=${setF} priceMode=${priceMode} setPriceMode=${setPriceMode}/>
+      <div class="form-group card-anim">
+        <div class="form-group-title">Pricing & Costs</div>
+        <div class="field-row">
+          <div class="field"><label>Job Price ($)</label><input type="number" min="0" inputMode="decimal" value=${form.revenue} onChange=${e=>setF("revenue",e.target.value)} placeholder=${String(suggestedPrice(form,settings))} style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:18,padding:"14px"}}/></div>
+          <div class="field"><label>Tire Cost ($)</label><input type="number" min="0" inputMode="decimal" value=${form.tireCost} onChange=${e=>setF("tireCost",e.target.value)} placeholder="0"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Misc Cost ($)</label><input type="number" min="0" inputMode="decimal" value=${form.miscCost} onChange=${e=>setF("miscCost",e.target.value)} placeholder="plugs, stemsâ¦"/></div>
+          <div class="field"><label>Qty</label><input type="number" min="1" value=${form.qty} onChange=${e=>setF("qty",e.target.value)}/></div>
+        </div>
+        <div class="field"><label>Conditions</label><div class="chip-row">${FLAGS.map(([key,label,amt])=>html`<button type="button" key=${key} class=${"chip"+(form[key]?" active":"")} onClick=${()=>setF(key,!form[key])}>${label+(form[key]?" +$"+amt:"")}</button>`)}</div></div>
+      </div>
+      <div class="form-group card-anim">
+        <div class="form-group-title">Job Details</div>
+        <div class="field"><label>Service</label><select value=${form.service} onChange=${e=>setF("service",e.target.value)} style=${{width:"100%",border:"1px solid var(--border)",background:"var(--s3)",color:"var(--t1)",borderRadius:"var(--r3)",padding:"13px 15px",outline:"none",fontSize:16}}>${SERVICE_OPTIONS.map(s=>html`<option key=${s}>${s}</option>`)}</select></div>
+        <div class="field-row"><div class="field"><label>Date</label><input type="date" value=${form.date} onChange=${e=>setF("date",e.target.value)}/></div><div class="field"><label>Status</label><select value=${form.status} onChange=${e=>setF("status",e.target.value)}><option>Completed</option><option>Pending</option></select></div></div>
+        <div class="field"><label>Lead Source</label><div class="src-grid">${SOURCE_QUICK.map(s=>html`<button key=${s.label} type="button" class=${"src-btn press-scale"+(form.source===s.label?" active":"")} onClick=${()=>setF("source",s.label)}>${s.icon+" "+s.label}</button>`)}</div></div>
+      </div>
+      <div class="form-group card-anim">
+        <div class="form-group-title">Location & Travel</div>
+        <div class="field"><label>City / Area</label><${CityInput} value=${form.area} onChange=${v=>setF("area",v)}/></div>
+        <div class="field"><label>Miles Driven</label><input type="number" min="0" inputMode="decimal" value=${form.miles} onChange=${e=>setF("miles",e.target.value)} placeholder="0"/></div>
+      </div>
+      <div class="form-group card-anim">
+        <div class="form-group-title">Tire Size & Payment</div>
+        <div class="field"><label>Tire Size</label><input value=${form.tireSize} onChange=${e=>setF("tireSize",e.target.value)} placeholder="225/55R17"/><div class="chip-row" style=${{marginTop:8}}>${recentSizes.map(sz=>html`<button type="button" key=${sz} class=${"chip sm"+(form.tireSize===sz?" active":"")} onClick=${()=>setF("tireSize",sz)}>${sz}</button>`)}</div></div>
+        <div class="field"><label>Payment Method</label><div class="pay-grid">${PAYMENT_OPTIONS.map(p=>html`<button key=${p.label} type="button" class=${"pay-btn press-scale"+(form.payment===p.label?" active":"")} onClick=${()=>setF("payment",p.label)}><span class="pay-icon">${p.icon}</span>${p.label}</button>`)}</div></div>
+      </div>
+      <div class="form-group card-anim">
+        <div class="form-group-title">Customer (optional)</div>
+        <div class="field-row"><div class="field"><label>Name</label><input value=${form.customerName} onChange=${e=>setF("customerName",e.target.value)} placeholder="Customer name"/></div><div class="field"><label>Phone</label><input type="tel" value=${form.customerPhone} onChange=${e=>setF("customerPhone",e.target.value)} placeholder="(305)â¦"/></div></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea value=${form.note} onChange=${e=>setF("note",e.target.value)} placeholder="Parking garage, roadside, no spare, etc."/></div>
+      ${form.status==="Completed"&&html`<button class="btn blue press-scale" style=${{width:"100%",marginBottom:10}} onClick=${requestReview}>â­ Send Review${form.customerPhone?" via SMS":""}</button>`}
+      <div style=${{height:90}}/>
+    </div>
+
+    <div class="sticky-save">
+      ${isEditing
+        ?[html`<button key="cancel" class="btn secondary press-scale" onClick=${cancelEdit}>Cancel</button>`,html`<button key="save" class="btn primary press-scale" onClick=${()=>doSave(false)} disabled=${saving}>${saving?"Savingâ¦":"Update Job â"}</button>`]
+        :[html`<button key="addmore" class="btn secondary press-scale" onClick=${()=>doSave(true)} disabled=${saving}>Save + Add</button>`,html`<button key="save" class="btn primary press-scale" onClick=${()=>doSave(false)} disabled=${saving}>${saving?"Savingâ¦":"Save Job â"}</button>`]}
+    </div>
+  </div>`;
+}
+
+// ââ History (BUG 3 FIXED: .page div structure) âââââââââââââââââââââââââââââââ
+function History({jobs,settings,onRepeat,onDelete,onEdit}) {
+  const safeJobs=Array.isArray(jobs)?jobs:[];
+  const [filter,setFilter]=useState("All");const [search,setSearch]=useState("");const [view,setView]=useState("weeks");
+  const cities=useMemo(()=>Array.from(new Set(safeJobs.map(j=>j.area))),[safeJobs]);
+  const filtered=useMemo(()=>{
+    let j=safeJobs;
+    if(filter==="Repair")j=j.filter(x=>/repair/i.test(x.service));
+    else if(filter==="Replacement")j=j.filter(x=>/replacement|installation/i.test(x.service));
+    else if(filter==="Pending")j=j.filter(x=>x.status==="Pending");
+    else if(filter!=="All")j=j.filter(x=>x.area===filter);
+    if(search.trim()){const q=search.toLowerCase();j=j.filter(x=>(x.customerName||"").toLowerCase().includes(q)||(x.customerPhone||"").includes(q)||(x.tireSize||"").toLowerCase().includes(q)||(x.area||"").toLowerCase().includes(q)||(x.note||"").toLowerCase().includes(q));}
+    return [...j].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
+  },[safeJobs,filter,search]);
+  const weekGroups=useMemo(()=>groupByWeek(filtered),[filtered]);
+  const handleDelete=id=>{if(!window.confirm("Delete this job?"))return;onDelete(id);};
+  const markPaid=job=>{if(onEdit)onEdit({...job,status:"Completed",_markPaidOnly:true});};
+  const JobRow=({job})=>{
+    const profit=jobGrossProfit(job,settings);const profitCls=profit>=70?"green":profit>=40?"orange":"red";
+    const sendReview=()=>openReviewSMS(job.customerPhone,(settings.googleReviewUrl||"").trim(),job.customerName,job.service,job.area);
+    return html`<div class="card-anim" style=${{background:"var(--s1)",borderRadius:"var(--r2)",overflow:"hidden",border:"1px solid var(--border)",boxShadow:"var(--sh-card)"}}>
+      <div style=${{padding:"15px 17px",display:"flex",alignItems:"flex-start",gap:12}}>
+        <div class="job-icon">ð</div>
+        <div style=${{flex:1,minWidth:0}}>
+          <div class="job-title">${job.service}</div>
+          <div class="job-meta">${job.area} Â· ${job.date}${job.tireSize?" Â· "+job.tireSize:""}</div>
+          ${(job.customerName||job.customerPhone)&&html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:1}}>ð¤ ${job.customerName||""}${job.customerPhone?" Â· "+job.customerPhone:""}</div>`}
+          <div style=${{marginTop:7,display:"flex",gap:6,flexWrap:"wrap"}}><span class=${"pill "+profitCls}>${money(profit)}</span>${job.status==="Pending"&&html`<span class="pill gold">Pending</span>`}</div>
+        </div>
+        <div style=${{textAlign:"right",flexShrink:0}}>
+          <div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontSize:18,fontWeight:700,color:"var(--t1)",letterSpacing:"-1px"}}>${money(job.revenue)}</div>
+          <div style=${{fontSize:10,color:"var(--t3)",marginTop:2}}>${job.payment}</div>
+        </div>
+      </div>
+      <div style=${{padding:"10px 17px 12px",borderTop:"1px solid var(--border2)",display:"flex",gap:6,flexWrap:"wrap",justifyContent:"flex-end"}}>
+        ${onEdit&&html`<button class="btn secondary xs press-scale" onClick=${()=>onEdit(job)}>âï¸</button>`}
+        <button class="btn secondary xs press-scale" onClick=${()=>onRepeat(job)}>ð</button>
+        <button class="btn blue xs press-scale" onClick=${()=>sendInvoice(job,settings)}>ð§¾</button>
+        <button class="btn secondary xs press-scale" onClick=${sendReview}>â­</button>
+        ${job.status==="Pending"&&html`<button class="btn success xs press-scale" onClick=${()=>markPaid(job)}>â Paid</button>`}
+        <button class="btn danger xs press-scale" onClick=${()=>handleDelete(job.id)}>Ã</button>
+      </div>
+    </div>`;
+  };
+  // BUG 3 FIX: .page div now correctly wraps ALL content
+  return html`<div class="screen"><div class="page page-enter">
+    <div style=${{marginBottom:12}}>
+      <input value=${search} onChange=${e=>setSearch(e.target.value)} placeholder="Search jobs, tires, customersâ¦" style=${{width:"100%",background:"var(--s2)",border:"1px solid var(--border)",borderRadius:14,padding:"14px 18px",outline:"none",fontSize:15,color:"var(--t1)"}}/>
+    </div>
+    <div class="chip-row" style=${{marginBottom:10}}>
+      ${["All","Repair","Replacement","Pending"].concat(cities).slice(0,9).map(c=>html`<button key=${c} class=${"chip"+(filter===c?" active":"")} onClick=${()=>setFilter(c)}>${c}</button>`)}
+    </div>
+    <div style=${{display:"flex",gap:8,marginBottom:14}}>
+      <button class=${"chip sm"+(view==="weeks"?" active":"")} onClick=${()=>setView("weeks")}>By Week</button>
+      <button class=${"chip sm"+(view==="list"?" active":"")} onClick=${()=>setView("list")}>All Jobs</button>
+      <span style=${{marginLeft:"auto",fontFamily:"\"IBM Plex Mono\",monospace",fontSize:12,color:"#999",alignSelf:"center"}}>${filtered.length} jobs</span>
+    </div>
+    ${filtered.length===0?html`<${EmptyState} icon="ð" title="No jobs found" sub=${search?"Try different search.":"No jobs match."}/>`:view==="weeks"?html`<div>
+      ${weekGroups.map(([wk,wkJobs])=>{const t=weekSummary(wkJobs,settings);return html`<div key=${wk} style=${{marginBottom:20}}>
+        <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0"}}><div><div style=${{fontWeight:700,fontSize:13}}>${weekLabel(wk)}</div><div class="sub">${wkJobs.length} jobs Â· ${money(t.revenue)} rev</div></div><div class=${"value "+(t.net>=0?"green":"red")}>${money(t.net)}</div></div>
+        <div class="stack">${wkJobs.map(job=>html`<${JobRow} key=${job.id} job=${job}/>`)}</div>
+      </div>`;})}
+    </div>`:html`<div class="stack">${filtered.map(job=>html`<${JobRow} key=${job.id} job=${job}/>`)}</div>`}
+  </div></div>`;
+}
+
+// ââ Expenses ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function Expenses({expenses,setExpenses}) {
+  const safe=Array.isArray(expenses)?expenses:[];
+  const [form,setForm]=useState({date:TODAY(),category:"Fuel",amount:"",note:""});
+  const CATS=["Fuel","Oil/Fluids","Equipment Repair","Supplies","Food","Tolls/Parking","Other"];
+  const setF=(k,v)=>setForm(p=>({...p,[k]:v}));
+  const add=()=>{const amt=Number(form.amount||0);if(!amt){alert("Enter an amount.");return;}setExpenses(prev=>[{...form,id:uid(),amount:amt},...prev]);setForm({date:TODAY(),category:"Fuel",amount:"",note:""});};
+  const remove=id=>{if(!window.confirm("Delete?"))return;setExpenses(prev=>prev.filter(e=>e.id!==id));};
+  const total=safe.reduce((s,e)=>s+Number(e.amount||0),0);
+  const thisWeek=getWeekStart(TODAY());
+  const weekTotal=safe.filter(e=>getWeekStart(e.date||TODAY())===thisWeek).reduce((s,e)=>s+Number(e.amount||0),0);
+  return html`<div class="screen"><div class="page page-enter">
+    <div class="section-label" style=${{marginTop:0}}>Variable Expenses</div>
+    <div class="mini-grid card-anim">
+      <div class="mini-box"><strong>${money(weekTotal)}</strong><span>This Week</span></div>
+      <div class="mini-box"><strong>${money(total)}</strong><span>All Time</span></div>
+      <div class="mini-box"><strong>${safe.length}</strong><span>Receipts</span></div>
+      <div class="mini-box"><strong>${safe.length?money(total/safe.length):"â"}</strong><span>Avg</span></div>
+    </div>
+    <div class="card card-anim" style=${{marginBottom:14}}><div class="card-pad">
+      <div class="field-row"><div class="field" style=${{marginBottom:8}}><label>Date</label><input type="date" value=${form.date} onChange=${e=>setF("date",e.target.value)}/></div><div class="field" style=${{marginBottom:8}}><label>Amount ($)</label><input type="number" min="0" inputMode="decimal" value=${form.amount} onChange=${e=>setF("amount",e.target.value)} placeholder="0.00" style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700}}/></div></div>
+      <div class="field" style=${{marginBottom:8}}><label>Category</label><select value=${form.category} onChange=${e=>setF("category",e.target.value)}>${CATS.map(c=>html`<option key=${c}>${c}</option>`)}</select></div>
+      <div class="field" style=${{marginBottom:10}}><label>Note</label><input value=${form.note} onChange=${e=>setF("note",e.target.value)} placeholder="BP station, etc."/></div>
+      <button class="btn primary press-scale" style=${{width:"100%"}} onClick=${add}>+ Log Expense</button>
+    </div></div>
+    ${safe.length===0?html`<${EmptyState} icon="ð§¾" title="No expenses logged" sub="Track fuel, supplies, repairs."/>`:html`<div class="stack">${[...safe].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(exp=>html`<div class="job-row card-anim" key=${exp.id}><div class="job-icon" style=${{fontSize:16}}>ð§¾</div><div class="job-main"><div class="job-title">${exp.category}</div><div class="job-meta">${exp.date}${exp.note?" Â· "+exp.note:""}</div></div><div class="job-right"><div class="value red">${money(exp.amount)}</div><button class="btn danger sm press-scale" style=${{marginTop:8}} onClick=${()=>remove(exp.id)}>Ã</button></div></div>`)}</div>`}
+  </div></div>`;
+}
+
+// ââ Payouts âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function Payouts({jobs,settings}) {
+  const safeJobs=Array.isArray(jobs)?jobs:[];
+  const weeks=useMemo(()=>groupByWeek(safeJobs),[safeJobs]);
+  if(!weeks.length)return html`<div class="screen"><div class="page page-enter"><${EmptyState} icon="ð°" title="No payout history" sub="Log jobs to see weekly payout breakdowns."/></div></div>`;
+  return html`<div class="screen"><div class="page page-enter">
+    <div class="section-label" style=${{marginTop:0}}>Weekly Payouts</div>
+    ${weeks.map(([wk,wkJobs])=>{
+      const t=weekSummary(wkJobs,settings);
+      const ao1=settings.owner1Active!==false,ao2=settings.owner2Active!==false;
+      const st=(ao1?Number(settings.profitSplit1||50):0)+(ao2?Number(settings.profitSplit2||50):0)||100;
+      const o1=t.net>0&&ao1?r2(t.net*(Number(settings.profitSplit1||50)/st)):0;
+      const o2=t.net>0&&ao2?r2(t.net*(Number(settings.profitSplit2||50)/st)):0;
+      const tax=t.net>0&&settings.taxRate>0?r2(t.net*(Number(settings.taxRate)/100)):0;
+      return html`<div class="card card-anim" key=${wk} style=${{marginBottom:14}}>
+        <div class="card-pad"><div style=${{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><div style=${{fontWeight:700,fontSize:14}}>${weekLabel(wk)}</div><div class="sub">${wkJobs.length} jobs</div></div><div class=${"value big "+(t.net>=0?"green":"red")}>${money(t.net)}</div></div></div>
+        <div class="card-row"><div class="label">Revenue</div><div class="value">${money(t.revenue)}</div></div>
+        <div class="card-row"><div class="label">Direct Costs</div><div class="value red">${money(t.directCosts)}</div></div>
+        <div class="card-row"><div class="label">Gross Profit</div><div class="value">${money(t.grossProfit)}</div></div>
+        <div class="card-row"><div class="label">Weekly Fixed</div><div class="value red">${money(t.fixed)}</div></div>
+        ${[{name:settings.owner1Name||"Owner 1",pct:settings.profitSplit1,amt:o1,active:ao1},{name:settings.owner2Name||"Owner 2",pct:settings.profitSplit2,amt:o2,active:ao2}].map((o,i)=>html`<div key=${i} class="card-row" style=${{background:"var(--s2)",opacity:o.active?1:0.4}}><div><div class="label">${o.name}</div><div class="sub">${o.pct}% split</div></div><div class=${"value "+(o.active&&o.amt>0?"green":"")}>${o.active?money(o.amt):"â"}</div></div>`)}
+        ${tax>0&&html`<div class="card-pad"><div class="tax-box" style=${{marginTop:0}}><div class="tax-lbl">ð° Tax Reserve (${settings.taxRate}%)</div><div class="tax-amt">${money(tax)}</div><div class="tax-hint">~${money(tax/2)} per owner</div></div></div>`}
+      </div>`;
+    })}
+  </div></div>`;
+}
+
+// ââ Inventory (minimal â keeping existing logic, adding animations) âââââââââââ
+function Inventory({inventory,setInventory,jobs}) {
+  const inv=Array.isArray(inventory)?inventory:[];const jobsArr=Array.isArray(jobs)?jobs:[];
+  const [search,setSearch]=useState('');const [editId,setEditId]=useState(null);
+  const pendingRef=useRef([]);
+  const top5=useMemo(()=>{const stats={};jobsArr.forEach(j=>{const s=(j.tireSize||'').trim();if(!s)return;if(!stats[s])stats[s]={size:s,jobs:0,qtySold:0,profit:0};stats[s].jobs+=1;stats[s].qtySold+=Number(j.qty||1);stats[s].profit+=jobGrossProfit(j,{costPerMile:0.65});});return Object.values(stats).sort((a,b)=>b.jobs!==a.jobs?b.jobs-a.jobs:b.profit-a.profit).slice(0,5);},[jobsArr]);
+  const bestSellers=top5.map(t=>t.size);
+  const fbWrite=(item)=>{if(!_db||!item.size.trim())return;fbSet(invCol(),item.id,{id:item.id,size:item.size,qty:item.qty,cost:item.cost,notes:item.notes});};
+  const saveLocal=(next)=>{persist(KEYS.inventory,next);};
+  const saveInv=(next,changedId,deleted)=>{saveLocal(next);if(!_db)return;if(deleted){fbDel(invCol(),deleted);pendingRef.current=pendingRef.current.filter(r=>r.id!==deleted);}else if(changedId){const item=next.find(i=>i.id===changedId);if(item&&item.size.trim()){fbWrite(item);pendingRef.current=pendingRef.current.filter(r=>r.id!==changedId);}}};
+  const update=(id,patch)=>{setInventory(prev=>{const next=prev.map(i=>i.id===id?sanitizeInvItem({...i,...patch}):i);saveInv(next,id);const item=next.find(i=>i.id===id);if(item&&item.size.trim())pendingRef.current=pendingRef.current.filter(r=>r.id!==id);else pendingRef.current=pendingRef.current.map(r=>r.id===id?{...r,...patch}:r);return next;});};
+  const add=()=>{const id=uid();const newItem={id,size:'',qty:0,cost:0,notes:''};pendingRef.current=[newItem,...pendingRef.current];setInventory(prev=>{const next=[newItem,...prev];saveLocal(next);return next;});setEditId(id);};
+  const remove=id=>{if(!window.confirm('Remove?'))return;pendingRef.current=pendingRef.current.filter(r=>r.id!==id);setInventory(prev=>{const next=prev.filter(i=>i.id!==id);saveInv(next,null,id);return next;});setEditId(null);};
+  const step=(id,delta)=>{setInventory(prev=>{const next=prev.map(i=>i.id===id?sanitizeInvItem({...i,qty:Math.max(0,(Number(i.qty)||0)+delta)}):i);saveInv(next,id);return next;});};
+  const deduped=useMemo(()=>dedupeInventory(inv.filter(i=>i.size.trim())),[inv]);
+  const totalQty=deduped.reduce((s,i)=>s+Number(i.qty||0),0);
+  const totalValue=deduped.reduce((s,i)=>s+Number(i.qty||0)*Number(i.cost||0),0);
+  const lowStock=deduped.filter(i=>Number(i.qty||0)>0&&Number(i.qty||0)<=LOW_STOCK);
+  const outOfStock=deduped.filter(i=>Number(i.qty||0)===0);
+  const filtered=search.trim()?inv.filter(i=>(i.size||'').toLowerCase().includes(search.toLowerCase())):inv;
+  const sorted=[...filtered].sort((a,b)=>{const aBlank=!(a.size||'').trim(),bBlank=!(b.size||'').trim();if(aBlank&&!bBlank)return -1;if(!aBlank&&bBlank)return 1;const aBest=bestSellers.indexOf(a.size||''),bBest=bestSellers.indexOf(b.size||'');if(aBest!==-1&&bBest===-1)return -1;if(aBest===-1&&bBest!==-1)return 1;if(aBest!==-1&&bBest!==-1)return aBest-bBest;return(a.size||'').localeCompare(b.size||'');});
+  return html`<div class="screen"><div class="page page-enter">
+    <div class="kpi-grid three card-anim">
+      <div class="kpi"><div class="kpi-label">Total Tires</div><div class="kpi-value">${totalQty}</div><div class="kpi-sub">${deduped.length} sizes</div></div>
+      <div class="kpi"><div class="kpi-label">Stock Value</div><div class="kpi-value" style=${{fontSize:16}}>${money(totalValue)}</div><div class="kpi-sub">at cost</div></div>
+      <div class="kpi"><div class="kpi-label">Attention</div><div class="kpi-value" style=${{fontSize:20,color:outOfStock.length>0?"var(--amber)":"var(--t3)"}}>${outOfStock.length+lowStock.length}</div><div class="kpi-sub">need reorder</div></div>
+    </div>
+    <div style=${{display:"flex",gap:8,marginBottom:12}}>
+      <input value=${search} onChange=${e=>setSearch(e.target.value)} placeholder="Search by tire sizeâ¦" style=${{flex:1,background:"var(--s2)",border:"1px solid var(--border)",borderRadius:12,padding:"13px 16px",fontSize:15,outline:"none",color:"var(--t1)"}}/>
+      <button class="btn primary press-scale" style=${{flexShrink:0,padding:"13px 20px",fontSize:14,borderRadius:12}} onClick=${add}>+ Add</button>
+    </div>
+    ${sorted.length===0?html`<${EmptyState} icon="ð" title="No inventory" sub="Tap + Add to add a tire size."/>`:html`<div class="card card-anim">
+      ${sorted.map((item,idx)=>{const isEditing=editId===item.id;const qty=Number(item.qty||0);const isLow=qty>0&&qty<=LOW_STOCK,isOut=qty===0;const isPending=!(item.size||'').trim();
+        return html`<div key=${item.id} style=${{borderBottom:idx<sorted.length-1?"1px solid var(--border2)":"none"}}>
+          <div style=${{display:"flex",alignItems:"center",padding:"14px 18px",gap:12,cursor:"pointer"}} onClick=${()=>setEditId(isEditing?null:item.id)}>
+            <div style=${{flex:1,minWidth:0}}><div style=${{fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:15,color:isPending?"var(--gold)":"var(--t1)",letterSpacing:"-.3px"}}>${isPending?html`<span style=${{fontSize:13,fontWeight:600}}>Enter size â</span>`:item.size}</div>${item.cost>0&&html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:2}}>Cost ${money(item.cost)}</div>`}</div>
+            ${bestSellers.includes(item.size||'')&&!isPending&&html`<span style=${{fontSize:9,fontWeight:800,background:"var(--gold-dim)",color:"var(--gold)",borderRadius:999,padding:"3px 10px"}}>BEST</span>`}
+            ${isOut&&!isPending&&html`<span style=${{fontSize:9,fontWeight:800,color:"var(--t3)",background:"var(--s3)",borderRadius:999,padding:"3px 10px"}}>OUT</span>`}
+            ${isLow&&!isOut&&html`<span style=${{fontSize:9,fontWeight:800,color:"var(--amber)",background:"var(--amber-dim)",borderRadius:999,padding:"3px 10px"}}>LOW</span>`}
+            <div style=${{display:"flex",alignItems:"center",gap:0,background:"var(--s3)",borderRadius:10,overflow:"hidden",flexShrink:0}} onClick=${e=>e.stopPropagation()}>
+              <button onClick=${()=>step(item.id,-1)} style=${{background:"none",border:"none",width:36,height:36,fontSize:18,fontWeight:700,color:"var(--t2)",lineHeight:1}}>â</button>
+              <div style=${{width:32,textAlign:"center",fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,fontSize:15,color:isOut?"var(--t3)":isLow?"var(--amber)":"var(--t1)"}}>${qty}</div>
+              <button onClick=${()=>step(item.id,1)} style=${{background:"none",border:"none",width:36,height:36,fontSize:18,fontWeight:700,color:"var(--t2)",lineHeight:1}}>+</button>
+            </div>
+          </div>
+          ${isEditing&&html`<div style=${{padding:"0 18px 16px",display:"grid",gridTemplateColumns:"1fr 1fr auto",gap:10,alignItems:"end",background:"var(--s2)",borderTop:"1px solid var(--border2)",animation:"fadeSlideUp .2s ease"}}>
+            <div><div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Size</div><input autoFocus=${isPending} value=${item.size} onChange=${e=>update(item.id,{size:e.target.value})} placeholder="225/55R17" style=${{border:"1px solid var(--border)",borderRadius:10,padding:"11px 13px",fontSize:15,fontFamily:"\"IBM Plex Mono\",monospace",fontWeight:700,outline:"none",width:"100%",background:"var(--s1)",color:"var(--t1)"}}/></div>
+            <div><div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:6}}>Cost ($)</div><input value=${item.cost||""} type="number" min="0" onChange=${e=>update(item.id,{cost:Number(e.target.value||0)})} placeholder="0" style=${{border:"1px solid var(--border)",borderRadius:10,padding:"11px 13px",fontSize:14,outline:"none",width:"100%",background:"var(--s1)",color:"var(--t1)"}}/></div>
+            <button class="btn danger sm" style=${{alignSelf:"end",height:44}} onClick=${()=>remove(item.id)}>Ã</button>
+          </div>`}
+        </div>`;})}
+    </div>`}
+  </div></div>`;
+}
+
+// ââ Settings (compact) ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function Settings({settings,setSettings,jobs,setJobs,inventory,setInventory,expenses,onResetInventory}) {
+  const upd=(k,v)=>setSettings(p=>({...p,[k]:v}));
+  const updExp=(id,patch)=>setSettings(p=>({...p,expenses:(Array.isArray(p.expenses)?p.expenses:[]).map(e=>e.id===id?{...e,...patch}:e)}));
+  const addExp=()=>setSettings(p=>({...p,expenses:[...(Array.isArray(p.expenses)?p.expenses:[]),{id:uid(),name:"New Expense",amount:0,active:true}]}));
+  const delExp=id=>setSettings(p=>({...p,expenses:(Array.isArray(p.expenses)?p.expenses:[]).filter(e=>e.id!==id)}));
+  const exportCSV=()=>{const headers=["Date","Service","Area","Source","Revenue","Tire Cost","Misc Cost","Miles","Direct Cost","Gross Profit","Payment","Tire Size","Qty","Customer","Phone","Notes"];const rows=[...(jobs||[])].sort((a,b)=>a.date.localeCompare(b.date)).map(j=>{const dc=jobDirectCost(j,settings),gp=jobGrossProfit(j,settings);return[j.date,j.service,j.area,j.source||"",Number(j.revenue||0).toFixed(2),Number(j.tireCost||0).toFixed(2),Number(j.miscCost||0).toFixed(2),Number(j.miles||0).toFixed(1),dc.toFixed(2),gp.toFixed(2),j.payment,j.tireSize||"",j.qty||1,j.customerName||"",j.customerPhone||"",(j.note||"").replace(/,/g," ")].map(v=>'"'+v+'"').join(",");});const csv=[headers.join(",")].concat(rows).join("\n");const blob=new Blob([csv],{type:"text/csv"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="wheel-rush-"+TODAY()+".csv";a.click();URL.revokeObjectURL(url);};
+  const exportData=()=>{const d={jobs,settings,inventory,expenses,exportedAt:new Date().toISOString(),version:"6"};const blob=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="wheel-rush-backup-"+TODAY()+".json";a.click();URL.revokeObjectURL(url);};
+  const importData=()=>{const inp=document.createElement("input");inp.type="file";inp.accept=".json";inp.onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(Array.isArray(data.jobs))setJobs(data.jobs);if(data.settings&&typeof data.settings==="object")setSettings({...DEFAULT_SETTINGS,...data.settings});alert("Import complete.");}catch{alert("Could not import.");}};inp.click();};
+  const resetInventory=()=>{if(!window.confirm("Reset inventory to 52-size list?"))return;const fresh=DEFAULT_INVENTORY.map(i=>({...i}));setInventory(fresh);persist(KEYS.inventory,fresh);if(onResetInventory)onResetInventory(fresh);alert("â Done!");};
+  const clearAll=()=>{if(!window.confirm("Clear ALL data? Cannot be undone."))return;Object.values(KEYS).forEach(k=>localStorage.removeItem(k));window.location.reload();};
+  const monthly=monthlyFixed(settings),weekly=weeklyFixed(settings);
+  return html`<div class="screen"><div class="page page-enter">
+    <div class="section-label" style=${{marginTop:0}}>Owners & Split</div>
+    <div class="card card-anim">
+      ${[{nk:"owner1Name",pk:"profitSplit1",ak:"owner1Active",lbl:"Owner 1"},{nk:"owner2Name",pk:"profitSplit2",ak:"owner2Active",lbl:"Owner 2"}].map(({nk,pk,ak,lbl})=>{const active=settings[ak]!==false;return html`<div key=${nk} class="settings-row" style=${{opacity:active?1:0.55}}><div style=${{flex:1}}><div style=${{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><div class="label">${lbl}</div><button onClick=${()=>upd(ak,!active)} style=${{border:"none",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,cursor:"pointer",background:active?"var(--t1)":"var(--s3)",color:active?"var(--bg)":"var(--t3)"}}>${active?"ON":"OFF"}</button></div><input class="settings-inp" style=${{width:"100%"}} value=${settings[nk]} onChange=${e=>upd(nk,e.target.value)} disabled=${!active}/></div><div style=${{flexShrink:0,marginLeft:12}}><div class="label" style=${{marginBottom:6}}>Split %</div><input type="number" class="settings-inp" style=${{width:80}} value=${settings[pk]} onChange=${e=>upd(pk,Number(e.target.value||0))} disabled=${!active}/></div></div>`;})}
+    </div>
+    <div class="section-label">Goals & Pricing</div>
+    <div class="card card-anim">
+      <div class="settings-row"><div class="label">Weekly Goal</div><input type="number" class="settings-inp" style=${{width:110}} value=${settings.weeklyGoal||""} onChange=${e=>upd("weeklyGoal",Number(e.target.value||0))}/></div>
+      <div class="settings-row"><div class="label">Tax Rate %</div><input type="number" class="settings-inp" style=${{width:80}} value=${settings.taxRate||""} onChange=${e=>upd("taxRate",Number(e.target.value||0))}/></div>
+      <div class="settings-row"><div class="label">Repair Target $</div><input type="number" class="settings-inp" style=${{width:90}} value=${settings.repairTarget||""} onChange=${e=>upd("repairTarget",Number(e.target.value||0))}/></div>
+      <div class="settings-row"><div class="label">Replacement Target $</div><input type="number" class="settings-inp" style=${{width:90}} value=${settings.replacementTarget||""} onChange=${e=>upd("replacementTarget",Number(e.target.value||0))}/></div>
+      <div class="settings-row"><div class="label">Cost Per Mile $</div><input type="number" step="0.01" class="settings-inp" style=${{width:90}} value=${settings.costPerMile||""} onChange=${e=>upd("costPerMile",Number(e.target.value||0))}/></div>
+    </div>
+    <div class="section-label">Google Review Link</div>
+    <div class="card card-anim"><div class="card-pad"><input class="settings-inp" style=${{width:"100%"}} value=${settings.googleReviewUrl||""} onChange=${e=>upd("googleReviewUrl",e.target.value)} placeholder="https://g.page/r/â¦/review"/></div></div>
+    <div class="section-label">Monthly Fixed Expenses</div>
+    <div class="card card-anim">
+      ${(Array.isArray(settings.expenses)?settings.expenses:[]).map(exp=>html`<div class="expense-row" key=${exp.id}><input value=${exp.name} onChange=${e=>updExp(exp.id,{name:e.target.value})}/><input type="number" value=${exp.amount} onChange=${e=>updExp(exp.id,{amount:Number(e.target.value||0)})}/><button class=${"btn sm "+(exp.active?"success":"secondary")} onClick=${()=>updExp(exp.id,{active:!exp.active})}>${exp.active?"On":"Off"}</button><button class="btn danger sm" onClick=${()=>delExp(exp.id)}>Ã</button></div>`)}
+      <div class="card-row"><button class="btn secondary sm press-scale" onClick=${addExp}>+ Add</button><div style=${{textAlign:"right"}}><div class="value">${money(monthly)}/mo</div><div class="sub">${money(weekly)}/wk</div></div></div>
+    </div>
+    <div class="section-label">Data</div>
+    <div class="card card-anim">
+      <div class="card-row"><div class="label">Export CSV</div><button class="btn secondary sm press-scale" onClick=${exportCSV}>CSV</button></div>
+      <div class="card-row"><div class="label">Full Backup</div><button class="btn secondary sm press-scale" onClick=${exportData}>JSON</button></div>
+      <div class="card-row"><div class="label">Import</div><button class="btn secondary sm press-scale" onClick=${importData}>Import</button></div>
+      <div class="card-row"><div class="label">Reset Inventory</div><button class="btn orange sm press-scale" onClick=${resetInventory}>Reset</button></div>
+      <div class="card-row"><div class="label" style=${{color:"var(--red)"}}>Reset Everything</div><button class="btn danger sm" onClick=${clearAll}>Reset</button></div>
+    </div>
+    <div style=${{padding:"8px 0 4px",textAlign:"center",fontSize:11,color:"var(--t3)"}}>Wheel Rush Pro v10 Â· Firebase Sync</div>
+  </div></div>`;
+}
+
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// âââ ROOT APP COMPONENT âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function App() {
+  // ââ Auth state âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  const [user,setUser]=useState(null);
+  const [authReady,setAuthReady]=useState(false);
+  const [syncStatus,setSyncStatus]=useState("local");
+
+  // ââ Core data state ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  const [jobs,setJobs]=useState(()=>load(KEYS.jobs,[]));
+  const [settings,setSettings]=useState(()=>{const loaded={...DEFAULT_SETTINGS,...load(KEYS.settings,{})};if(typeof loaded.expenses==="string"){try{loaded.expenses=JSON.parse(loaded.expenses);}catch(e){loaded.expenses=[];}}if(!Array.isArray(loaded.expenses))loaded.expenses=[];return loaded;});
+  const [inventory,setInventory]=useState(()=>load(KEYS.inventory,DEFAULT_INVENTORY.map(i=>({...i}))));
+  const [expenses,setExpenses]=useState(()=>load(KEYS.expenses,[]));
+
+  // ââ UI state âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  const [tab,setTab]=useState("dashboard");
+  const [saving,setSaving]=useState(false);
+  const [prefill,setPrefill]=useState(null);
+  const [editJob,setEditJob]=useState(null);
+
+  // ââ Refs for Firebase listeners ââââââââââââââââââââââââââââââââââââââââââ
+  const unsubJobs=useRef(null);
+  const unsubInv=useRef(null);
+  const unsubExp=useRef(null);
+  const unsubSettings=useRef(null);
+  const pendingRef=useRef([]);
+
+  // ââ Auth listener ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  useEffect(()=>{
+    if(!_auth)return setAuthReady(true);
+    const unsub=_auth.onAuthStateChanged(u=>{setUser(u||null);setAuthReady(true);});
+    return ()=>unsub();
+  },[]);
+
+  // ââ Firebase listeners (when user is logged in) ââââââââââââââââââââââââââ
+  useEffect(()=>{
+    if(!user){
+      setSyncStatus("local");
+      [unsubJobs,unsubInv,unsubExp,unsubSettings].forEach(r=>{if(r.current){r.current();r.current=null;}});
+      return;
+    }
+    setSyncStatus("syncing");
+
+    // Jobs listener
+    unsubJobs.current=fbListen(jobCol(),docs=>{
+      setJobs(docs);persist(KEYS.jobs,docs);setSyncStatus("connected");
+    });
+
+    // Inventory listener
+    unsubInv.current=fbListen(invCol(),docs=>{
+      if(docs.length>0){
+        const pending=pendingRef.current||[];
+        const merged=[...docs];
+        pending.forEach(p=>{if(!merged.find(m=>m.id===p.id))merged.push(p);});
+        const deduped=dedupeInventory(merged);
+        setInventory(deduped);persist(KEYS.inventory,deduped);
+      }
+    });
+
+    // Expenses listener
+    unsubExp.current=fbListen(expCol(),docs=>{
+      setExpenses(docs);persist(KEYS.expenses,docs);
+    });
+
+    // Settings listener
+    if(settingDoc()){
+      unsubSettings.current=settingDoc().onSnapshot(snap=>{
+        if(snap.exists){
+          const d=snap.data();Object.keys(d).forEach(k=>{if(typeof d[k]==="string"){try{const p=JSON.parse(d[k]);if(Array.isArray(p))d[k]=p;}catch(e){}}});
+          setSettings(prev=>{const merged={...DEFAULT_SETTINGS,...prev,...d};persist(KEYS.settings,merged);return merged;});
+        }
+      },()=>{});
+    }
+
+    return ()=>{
+      [unsubJobs,unsubInv,unsubExp,unsubSettings].forEach(r=>{if(r.current){r.current();r.current=null;}});
+    };
+  },[user]);
+
+  // ââ Persist settings on change âââââââââââââââââââââââââââââââââââââââââââ
+  useEffect(()=>{
+    persist(KEYS.settings,settings);
+    if(user&&settingDoc()){
+      const t=setTimeout(()=>{
+        const clean={};Object.keys(settings).forEach(k=>{const v=settings[k];if(v!==null&&v!==undefined)clean[k]=v;});
+        settingDoc().set(clean).catch(()=>{});
+      },1000);
+      return ()=>clearTimeout(t);
+    }
+  },[settings,user]);
+
+  // ââ Persist jobs locally (offline fallback) ââââââââââââââââââââââââââââââ
+  useEffect(()=>{persist(KEYS.jobs,jobs);},[jobs]);
+  useEffect(()=>{persist(KEYS.inventory,inventory);},[inventory]);
+
+  // ââ Save job handler âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  const saveJob=useCallback(async(job,addAnother)=>{
+    setSaving(true);
+    try{
+      const id=job.id||uid();
+      const full={...job,id};
+      // Update recent sizes
+      if(full.tireSize){const sizes=load(KEYS.sizes,[]);const updated=[full.tireSize,...sizes.filter(s=>s!==full.tireSize)].slice(0,12);persist(KEYS.sizes,updated);}
+      // Update recent cities
+      if(full.area){const cities=load(KEYS.cities,[]);const updated=[full.area,...cities.filter(c=>c!==full.area)].slice(0,12);persist(KEYS.cities,updated);}
+      // Deduct inventory
+      if(/replacement|installation/i.test(full.service)&&full.tireSize){
+        const qty=Number(full.qty||1);
+        setInventory(prev=>{
+          const next=prev.map(i=>i.size===full.tireSize?{...i,qty:Math.max(0,(Number(i.qty)||0)-qty)}:i);
+          persist(KEYS.inventory,next);
+          if(user)next.forEach(x=>fbSet(invCol(),x.id,{id:x.id,size:x.size||"",qty:Number(x.qty||0),cost:Number(x.cost||0),notes:x.notes||""}));
+          return next;
+        });
+      }
+      // Save to state + Firebase
+      setJobs(prev=>{
+        const exists=prev.find(j=>j.id===id);
+        const next=exists?prev.map(j=>j.id===id?full:j):[full,...prev];
+        persist(KEYS.jobs,next);
+        return next;
+      });
+      if(user){
+        await fbSet(jobCol(),id,{
+          id,date:String(full.date||""),service:String(full.service||""),area:String(full.area||""),
+          source:String(full.source||""),payment:String(full.payment||""),status:String(full.status||"Completed"),
+          customerName:String(full.customerName||""),customerPhone:String(full.customerPhone||""),
+          tireSize:String(full.tireSize||""),qty:Number(full.qty||1),
+          revenue:Number(full.revenue||0),tireCost:Number(full.tireCost||0),
+          miscCost:Number(full.miscCost||0),miles:Number(full.miles||0),
+          note:String(full.note||""),
+          emergency:!!full.emergency,lateNight:!!full.lateNight,
+          highway:!!full.highway,weekend:!!full.weekend
+        });
+      }
+      if(!addAnother){setTab("dashboard");setEditJob(null);}
+    }catch(e){console.warn("saveJob:",e);}
+    finally{setSaving(false);}
+  },[user]);
+
+  // ââ Expense wrapper (BUG 3+5+6 FIX) âââââââââââââââââââââââââââââââââââââ
+  const handleSetExpenses=useCallback(updater=>{
+    setExpenses(prev=>{
+      const next=typeof updater==="function"?updater(prev):updater;
+      persist(KEYS.expenses,next);
+      if(user){
+        const nextIds=new Set(next.map(x=>x.id));
+        // Delete removed expenses from Firebase
+        prev.forEach(x=>{if(!nextIds.has(x.id))fbDel(expCol(),x.id);});
+        // Upsert current expenses
+        next.forEach(x=>fbSet(expCol(),x.id,{
+          id:String(x.id||""),date:String(x.date||""),
+          category:String(x.category||""),amount:Number(x.amount||0),
+          note:String(x.note||"")
+        }));
+      }
+      return next;
+    });
+  },[user]);
+
+  // ââ Inventory save handler âââââââââââââââââââââââââââââââââââââââââââââââ
+  const handleSetInventory=useCallback(updater=>{
+    setInventory(prev=>{
+      const next=typeof updater==="function"?updater(prev):updater;
+      persist(KEYS.inventory,next);
+      if(user)next.forEach(x=>fbSet(invCol(),x.id,{id:x.id,size:x.size||"",qty:Number(x.qty||0),cost:Number(x.cost||0),notes:x.notes||""}));
+      return next;
+    });
+  },[user]);
+
+  // ââ Reset inventory (for Settings) âââââââââââââââââââââââââââââââââââââââ
+  const resetInventoryFb=useCallback(fresh=>{
+    pendingRef.current=[];
+    if(user&&invCol()){fresh.forEach(x=>fbSet(invCol(),x.id,{id:x.id,size:x.size||"",qty:Number(x.qty||0),cost:Number(x.cost||0),notes:x.notes||""}));}
+  },[user]);
+
+  // ââ Repeat / edit job helper âââââââââââââââââââââââââââââââââââââââââââââ
+  const handleRepeat=useCallback(job=>{setPrefill(job);setTab("add");},[]);
+  const handleEdit=useCallback(job=>{setEditJob(job);setTab("add");},[]);
+  const handleStartJob=useCallback(qqForm=>{setPrefill({...EMPTY_JOB(),...qqForm});setTab("add");},[]);
+
+  // ââ Sign out âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  const signOut=useCallback(()=>{if(_auth)_auth.signOut().then(()=>{setUser(null);setSyncStatus("local");}).catch(()=>{});},[]);
+
+  // ââ Delete job âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  const deleteJob=useCallback(id=>{
+    setJobs(prev=>{const next=prev.filter(j=>j.id!==id);persist(KEYS.jobs,next);return next;});
+    if(user)fbDel(jobCol(),id);
+  },[user]);
+
+  // ââ Mark job status ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  const markJob=useCallback((id,status)=>{
+    setJobs(prev=>{
+      const next=prev.map(j=>j.id===id?{...j,status}:j);
+      persist(KEYS.jobs,next);
+      const job=next.find(j=>j.id===id);
+      if(user&&job)fbSet(jobCol(),id,{...job,status});
+      return next;
+    });
+  },[user]);
+
+  // ââ Loading state ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  if(!authReady)return html`<div style=${{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--bg)"}}>
+    <div class="shimmer-text" style=${{fontSize:24,fontWeight:700}}>Wheel Rush</div>
+  </div>`;
+
+  // ââ Auth screen ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  if(!user)return html`<${AuthScreen} onAuth=${u=>setUser(u)}/>`;
+
+  // ââ Tab routing ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  const TABS=[
+    {id:"dashboard",icon:"â¡",label:"Home"},
+    {id:"add",icon:"ï¼",label:"Add"},
+    {id:"history",icon:"ð",label:"Jobs"},
+    {id:"payouts",icon:"ð°",label:"Pay"},
+    {id:"expenses",icon:"ð",label:"Costs"},
+    {id:"inventory",icon:"ð",label:"Stock"},
+    {id:"settings",icon:"âï¸",label:"Setup"},
+  ];
+
+  let content=null;
+  switch(tab){
+    case "dashboard":
+      content=html`<${Dashboard} jobs=${jobs} settings=${settings} setTab=${setTab} onRepeat=${handleRepeat} inventory=${inventory} onStartJob=${handleStartJob}/>`;
+      break;
+    case "add":
+      content=html`<${AddJob} onSave=${saveJob} settings=${settings} jobs=${jobs} prefill=${prefill} onClearPrefill=${()=>setPrefill(null)} editJob=${editJob} onClearEdit=${()=>setEditJob(null)} saving=${saving}/>`;
+      break;
+    case "history":
+      content=html`<${History} jobs=${jobs} settings=${settings} onEdit=${handleEdit} onDelete=${deleteJob} onRepeat=${handleRepeat}/>`;
+      break;
+    case "payouts":
+      content=html`<${Payouts} jobs=${jobs} settings=${settings}/>`;
+      break;
+    case "expenses":
+      content=html`<${Expenses} expenses=${expenses} setExpenses=${handleSetExpenses}/>`;
+      break;
+    case "inventory":
+      content=html`<${Inventory} inventory=${inventory} setInventory=${handleSetInventory} jobs=${jobs}/>`;
+      break;
+    case "settings":
+      content=html`<${Settings} settings=${settings} setSettings=${setSettings} jobs=${jobs} setJobs=${setJobs} inventory=${inventory} setInventory=${handleSetInventory} expenses=${expenses} onResetInventory=${resetInventoryFb}/>`;
+      break;
+  }
+
+  return html`<div style=${{display:"flex",flexDirection:"column",height:"100vh",background:"var(--bg)",overflow:"hidden"}}>
+    <${Header} syncStatus=${syncStatus} onSignOut=${signOut}/>
+    <div style=${{flex:1,overflow:"auto",WebkitOverflowScrolling:"touch"}}>${content}</div>
+    <nav class="bottom-nav">
+      ${TABS.map(t=>html`<button key=${t.id} class=${"nav-btn"+(tab===t.id?" active":"")} data-id=${t.id} onClick=${()=>setTab(t.id)}>
+        ${t.id==="dashboard"?html`<img src=${LOGO_SRC} alt="" class="nav-logo-ico" style=${{width:22,height:22,objectFit:"contain",borderRadius:5,opacity:tab==="dashboard"?1:0.5,transition:"opacity .15s"}} onError=${e=>{e.target.style.display="none"}}/>`:html`<span class="ico">${t.icon}</span>`}
+        <span>${t.label}</span>
+      </button>`)}
+    </nav>
+  </div>`;
+}
+
+// ââ Mount ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+ReactDOM.render(html`<${App}/>`, document.getElementById("root"));
+</script>
+</body>
+</html>
