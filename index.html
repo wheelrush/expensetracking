@@ -348,6 +348,47 @@
   @media(min-width:600px){.app{max-width:480px;margin:0 auto;box-shadow:0 0 80px rgba(0,0,0,.9)}html,body,#root{background:#05050a}}
   @media(max-width:360px){.pay-grid{grid-template-columns:repeat(2,1fr)!important}.field-row{grid-template-columns:1fr!important}.kpi-grid{grid-template-columns:1fr 1fr!important}.mini-grid{grid-template-columns:1fr 1fr!important}.page{padding:16px 14px calc(110px + env(safe-area-inset-bottom))}}
   @media(min-height:812px){.page{padding:24px 18px calc(130px + env(safe-area-inset-bottom))}}
+  /* ── Toast system ─────────────────────────────────────── */
+  .toast-stack {
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom:calc(80px + env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; gap:8px;
+    z-index:9999; pointer-events:none;
+    width:min(360px, calc(100vw - 32px));
+  }
+  .toast {
+    pointer-events:auto;
+    background:rgba(18,23,34,.96);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,.08);
+    color:var(--t1);
+    border-radius:14px;
+    padding:12px 16px;
+    font-size:13px; font-weight:600;
+    box-shadow:0 12px 40px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.02) inset;
+    display:flex; align-items:center; gap:10px;
+    animation:toastIn .28s cubic-bezier(.2,.9,.3,1.2) both;
+    letter-spacing:-.1px;
+  }
+  .toast.leaving { animation:toastOut .24s ease-in both; }
+  .toast-icon { font-size:16px; flex-shrink:0; }
+  .toast.success { border-left:3px solid var(--green); }
+  .toast.warn    { border-left:3px solid var(--amber); }
+  .toast.error   { border-left:3px solid var(--red); }
+  .toast.info    { border-left:3px solid var(--blue); }
+  @keyframes toastIn  { from{opacity:0;transform:translateY(12px) scale(.96)} to{opacity:1;transform:translateY(0) scale(1)} }
+  @keyframes toastOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-8px)} }
+
+  /* ── Smooth number transitions ─────────────────────────── */
+  .num-anim {
+    display:inline-block;
+    transition:color .2s ease;
+  }
+  .num-anim.flash-up   { animation:numFlashUp .5s ease; }
+  .num-anim.flash-down { animation:numFlashDown .5s ease; }
+  @keyframes numFlashUp   { 0%{color:var(--green);transform:scale(1.06)} 100%{color:inherit;transform:scale(1)} }
+  @keyframes numFlashDown { 0%{color:var(--red);transform:scale(.95)}    100%{color:inherit;transform:scale(1)} }
+
 </style>
 </head>
 <body>
@@ -609,6 +650,10 @@ const EMPTY_JOB = () => ({
   status:"Completed", source:"Google", customerName:"", customerPhone:"",
   tireSize:"", qty:1, revenue:"", tireCost:"", miscCost:"", miles:"", note:"",
   emergency:false, lateNight:false, highway:false, weekend:false,
+  tireSource:"Inventory",        // "Inventory" | "Bought for this job" | "Customer supplied"
+  tireBrand:"", tireModel:"", tireVendor:"",
+  saveToInventory:false,         // for "Bought for this job"
+  inventoryItemId:"",            // selected inventory row id (for Inventory source)
 });
 
 const jobDirectCost  = (j,s) => r2(Number(j.miles||0)*Number(s.costPerMile||0.65)+Number(j.tireCost||0)+Number(j.miscCost||0));
@@ -689,6 +734,8 @@ function dedupeInventory(items) {
   return Object.values(seen);
 }
 function sanitizeJob(j) {
+  const src = String(j.tireSource||"Inventory");
+  const validSrc = ["Inventory","Bought for this job","Customer supplied"].includes(src) ? src : "Inventory";
   return {
     id: String(j.id||uid()), date: String(j.date||TODAY()), service: String(j.service||"Flat Tire Repair"),
     vehicleType: String(j.vehicleType||"Car"),
@@ -698,6 +745,12 @@ function sanitizeJob(j) {
     qty: Number(j.qty||1), revenue: Number(j.revenue||0), tireCost: Number(j.tireCost||0),
     miscCost: Number(j.miscCost||0), miles: Number(j.miles||0), note: String(j.note||""),
     emergency: !!j.emergency, lateNight: !!j.lateNight, highway: !!j.highway, weekend: !!j.weekend,
+    tireSource: validSrc,
+    tireBrand: String(j.tireBrand||""),
+    tireModel: String(j.tireModel||""),
+    tireVendor: String(j.tireVendor||""),
+    saveToInventory: !!j.saveToInventory,
+    inventoryItemId: String(j.inventoryItemId||""),
   };
 }
 function sanitizeInvItem(i) {
@@ -996,6 +1049,11 @@ function QuickQuote({form,settings,onApply,onFormChange,priceMode,setPriceMode})
   const profit=r2(dispPrice-directCost);
   const decLabel=profit<skip?"Too Low":profit>=skip+40?"Strong Margin":"Take It";
   const decCls=profit<skip?"low":"take";
+  // Calculation breakdown pieces
+  const basePrice = Number(svcRule.basePrice||90);
+  const travelCost = Math.round(Number(form.miles||0) * Number(settings.costPerMile||0.65) * 100) / 100;
+  const tireCost = Number(form.tireCost||0);
+  const miscCost = Number(form.miscCost||0);
   const handleMode=(mode,price)=>{if(setPriceMode)setPriceMode(mode);onApply(price===""?"":String(price));if(mode==="custom")setTimeout(()=>customRef.current&&customRef.current.focus(),80);};
   const inpSt={background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.18)",borderRadius:8,padding:"8px 10px",color:"#fff",fontSize:15,outline:"none",width:"100%",fontFamily:'"IBM Plex Mono",monospace',fontWeight:600,textAlign:"center"};
   const lbl={fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:".6px",color:"var(--t2)",marginBottom:5,textAlign:"center"};
@@ -1019,6 +1077,9 @@ function QuickQuote({form,settings,onApply,onFormChange,priceMode,setPriceMode})
           <div style=${{textAlign:"center"}}><div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:2}}>Profit</div><div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:15,fontWeight:700,color:profit>=skip?"#4ade80":"#ef4444"}}>${money(profit)}</div></div>
           ${prem>0&&html`<div style=${{width:1,background:"var(--border)"}}/><div style=${{textAlign:"center"}}><div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:2}}>Surcharge</div><div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:15,fontWeight:700,color:"#fb923c"}}>+${money(prem)}</div></div>`}
         </div>
+        ${priceMode!=="custom"&&html`<div style=${{fontSize:10,color:"var(--t3)",textAlign:"center",marginBottom:8,fontFamily:'"IBM Plex Mono",monospace',letterSpacing:".2px"}}>
+          ${"Base "+money(basePrice)}${travelCost>0?" + Travel "+money(travelCost):""}${tireCost>0?" + Tire "+money(tireCost):""}${miscCost>0?" + Misc "+money(miscCost):""}${vehicleAdd>0?" + Vehicle "+money(vehicleAdd):""}${prem>0?" + Surcharge "+money(prem):""}
+        </div>`}
         <span class=${"qq-dec-badge "+decCls}>${decLabel}</span>
       </div>
       <div class="qq-apply-row">
@@ -1219,7 +1280,7 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
 }
 
 // ── AddJob ────────────────────────────────────────────────────────────────────
-function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit,saving,onSwitchToInventory}) {
+function AddJob({onSave,settings,jobs,inventory,prefill,onClearPrefill,editJob,onClearEdit,saving,onSwitchToInventory}) {
   const [form,setForm]=useState(EMPTY_JOB());
   const [error,setError]=useState("");const [saved,setSaved]=useState(null);const [tick,setTick]=useState(0);
   const [editingId,setEditingId]=useState(null);const [priceMode,setPriceMode]=useState("suggested");
@@ -1316,47 +1377,143 @@ function AddJob({onSave,settings,jobs,prefill,onClearPrefill,editJob,onClearEdit
         </div>
       </div>`}
       <${QuickQuote} form=${form} settings=${settings} onApply=${v=>setF("revenue",v)} onFormChange=${setF} priceMode=${priceMode} setPriceMode=${setPriceMode}/>
+
+      <!-- ── SECTION 1: JOB SETUP ───────────────────────────────────── -->
       <div class="form-group card-anim">
-        <div class="form-group-title">Pricing &amp; Costs</div>
-        <div class="field-row">
-          <div class="field"><label>Job Price ($)</label><input type="number" min="0" inputMode="decimal" value=${form.revenue} onChange=${e=>setF("revenue",e.target.value)} placeholder=${String(suggestedPrice(form,settings))} style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:18,padding:"14px"}}/></div>
-          <div class="field"><label>Tire Cost ($)</label><input type="number" min="0" inputMode="decimal" value=${form.tireCost} onChange=${e=>setF("tireCost",e.target.value)} placeholder="0"/></div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>Misc Cost ($)</label><input type="number" min="0" inputMode="decimal" value=${form.miscCost} onChange=${e=>setF("miscCost",e.target.value)} placeholder="plugs, stems…"/></div>
-          <div class="field"><label>Qty</label><input type="number" min="1" value=${form.qty} onChange=${e=>setF("qty",e.target.value)}/></div>
-        </div>
-        <div class="field"><label>Conditions</label><div class="chip-row">${FLAGS.map(([key,label,amt])=>html`<button type="button" key=${key} class=${"chip"+(form[key]?" active":"")} onClick=${()=>setF(key,!form[key])}>${label+(form[key]?" +$"+amt:"")}</button>`)}</div></div>
-      </div>
-      <div class="form-group card-anim">
-        <div class="form-group-title">Job Details</div>
-        <div class="field"><label>Service</label><select value=${form.service} onChange=${e=>setF("service",e.target.value)} style=${{width:"100%",border:"1px solid var(--border)",background:"var(--s3)",color:"var(--t1)",borderRadius:"var(--r3)",padding:"13px 15px",outline:"none",fontSize:16}}>${SERVICE_OPTIONS.filter(s=>{const sp=(settings.servicePricing||{})[s]||DEFAULT_SERVICE_PRICING[s];return s==="Other"||!sp||sp.enabled!==false;}).map(s=>html`<option key=${s}>${s}</option>`)}</select></div>
+        <div class="form-group-title">Job Setup</div>
+        <div class="field"><label>Service</label><div class="chip-row">${SERVICE_OPTIONS.filter(s=>{const sp=(settings.servicePricing||{})[s]||DEFAULT_SERVICE_PRICING[s];return s==="Other"||!sp||sp.enabled!==false;}).map(s=>html`<button type="button" key=${s} class=${"chip sm"+(form.service===s?" active":"")} onClick=${()=>setF("service",s)}>${s}</button>`)}</div></div>
         <div class="field"><label>Vehicle Type</label><div class="chip-row">${VEHICLE_TYPES.map(v=>{const addOn=getVehicleAddOn(v,settings);return html`<button key=${v} type="button" class=${"chip"+(form.vehicleType===v?" active":"")} onClick=${()=>setF("vehicleType",v)}>${v}${addOn>0?" +$"+addOn:""}</button>`;})}</div></div>
+        <div class="field"><label>Conditions</label><div class="chip-row">${FLAGS.map(([key,label,amt])=>html`<button type="button" key=${key} class=${"chip"+(form[key]?" active":"")} onClick=${()=>setF(key,!form[key])}>${label+(form[key]?" +$"+amt:"")}</button>`)}</div></div>
         <div class="field-row"><div class="field"><label>Date</label><input type="date" value=${form.date} onChange=${e=>setF("date",e.target.value)}/></div><div class="field"><label>Status</label><select value=${form.status} onChange=${e=>setF("status",e.target.value)}><option>Completed</option><option>Pending</option></select></div></div>
         <div class="field"><label>Lead Source</label><div class="src-grid">${SOURCE_QUICK.map(s=>html`<button key=${s.label} type="button" class=${"src-btn press-scale"+(form.source===s.label?" active":"")} onClick=${()=>setF("source",s.label)}>${s.icon+" "+s.label}</button>`)}</div></div>
       </div>
+
+      <!-- ── SECTION 2: LOCATION ────────────────────────────────────── -->
       <div class="form-group card-anim">
-        <div class="form-group-title">Location &amp; Travel</div>
+        <div class="form-group-title">Location</div>
         <div class="field"><label>City / Area</label><${CityInput} value=${form.area} onChange=${v=>setF("area",v)}/></div>
-        <div class="field"><label>Miles Driven</label><input type="number" min="0" inputMode="decimal" value=${form.miles} onChange=${e=>setF("miles",e.target.value)} placeholder="0"/></div>
-      </div>
-      <div class="form-group card-anim">
-        <div class="form-group-title">Tire Size &amp; Payment</div>
         <div class="field"><label>Tire Size</label><input value=${form.tireSize} onChange=${e=>setF("tireSize",e.target.value)} placeholder="225/55R17"/><div class="chip-row" style=${{marginTop:8}}>${recentSizes.map(sz=>html`<button type="button" key=${sz} class=${"chip sm"+(form.tireSize===sz?" active":"")} onClick=${()=>setF("tireSize",sz)}>${sz}</button>`)}</div></div>
-        <div class="field"><label>Payment Method</label><div class="pay-grid">${PAYMENT_OPTIONS.map(p=>html`<button key=${p.label} type="button" class=${"pay-btn press-scale"+(form.payment===p.label?" active":"")} onClick=${()=>setF("payment",p.label)}><span class="pay-icon">${p.icon}</span>${p.label}</button>`)}</div></div>
       </div>
+
+      ${/replacement|installation/i.test(form.service||"") && html`<div class="form-group card-anim">
+        <div class="form-group-title">Tire Source</div>
+        <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
+          ${[
+            {key:"Inventory",       label:"Inventory",   icon:"📦"},
+            {key:"Bought for this job", label:"Bought",  icon:"🛒"},
+            {key:"Customer supplied",   label:"Customer", icon:"👤"},
+          ].map(opt => {
+            const active = (form.tireSource||"Inventory") === opt.key;
+            return html`<button key=${opt.key} type="button" class="press-scale"
+              onClick=${()=>{
+                const changes = {tireSource: opt.key};
+                // When switching to Customer supplied, default tire cost to 0
+                if (opt.key === "Customer supplied") changes.tireCost = "0";
+                setForm(p=>({...p, ...changes}));
+                setError("");
+              }}
+              style=${{
+                padding:"11px 8px", borderRadius:10,
+                border: active ? "1.5px solid var(--blue)" : "1px solid var(--border)",
+                background: active ? "var(--blue-dim)" : "var(--s2)",
+                color: active ? "var(--blue)" : "var(--t2)",
+                fontSize:12, fontWeight:700, cursor:"pointer",
+                display:"flex",flexDirection:"column",alignItems:"center",gap:4,
+                fontFamily:'"IBM Plex Sans",sans-serif'
+              }}>
+              <span style=${{fontSize:18}}>${opt.icon}</span>${opt.label}
+            </button>`;
+          })}
+        </div>
+
+        ${/* INVENTORY: picker of matching sizes */ ""}
+        ${form.tireSource==="Inventory" && html`<div>
+          ${(()=>{
+            const safeInv = Array.isArray(inventory) ? inventory : [];
+            const norm = normalizeTireSize(form.tireSize||"");
+            const matches = norm
+              ? safeInv.filter(i => normalizeTireSize(i.size||"") === norm && Number(i.qty||0)>0)
+              : [];
+            if (!form.tireSize) {
+              return html`<div style=${{fontSize:12,color:"var(--t3)",padding:"2px 2px 6px"}}>Enter tire size above to see matching stock.</div>`;
+            }
+            if (matches.length === 0) {
+              return html`<div style=${{fontSize:12,color:"var(--amber)",padding:"6px 10px",background:"var(--amber-dim)",borderRadius:10,fontWeight:600}}>⚠ No ${norm||form.tireSize} in stock. Switch to "Bought" or "Customer".</div>`;
+            }
+            return html`<div>
+              <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".6px",color:"var(--t3)",marginBottom:6}}>Matching stock (${matches.length})</div>
+              <div style=${{display:"flex",flexDirection:"column",gap:6}}>
+                ${matches.map(i => {
+                  const sel = form.inventoryItemId === i.id;
+                  const sub = [i.brand,i.model].filter(s=>s&&s.trim()).join(" ") || (i.condition||"New");
+                  return html`<button key=${i.id} type="button" class="press-scale"
+                    onClick=${()=>{
+                      const changes={inventoryItemId:i.id};
+                      // Auto-fill tire cost if not yet set
+                      if(Number(i.cost||0)>0 && (!form.tireCost || Number(form.tireCost)===0)){
+                        changes.tireCost = String(Number(i.cost||0) * Math.max(1,Number(form.qty||1)));
+                      }
+                      if(i.brand && !form.tireBrand) changes.tireBrand = i.brand;
+                      if(i.model && !form.tireModel) changes.tireModel = i.model;
+                      setForm(p=>({...p, ...changes}));
+                    }}
+                    style=${{
+                      display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,
+                      padding:"10px 12px", borderRadius:10,
+                      border: sel ? "1.5px solid var(--blue)" : "1px solid var(--border)",
+                      background: sel ? "var(--blue-dim)" : "var(--s2)",
+                      color:"var(--t1)", fontSize:13, cursor:"pointer", textAlign:"left"
+                    }}>
+                    <div style=${{flex:1,minWidth:0}}>
+                      <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:13}}>${i.size}${i.condition==="Used"?" · Used":""}</div>
+                      ${sub && html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:2}}>${sub}</div>`}
+                    </div>
+                    <div style=${{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+                      <span style=${{fontSize:11,color:"var(--t3)"}}>${Number(i.cost||0)>0?money(i.cost):""}</span>
+                      <span style=${{fontSize:11,fontWeight:800,background:"var(--s3)",borderRadius:999,padding:"3px 9px",color:"var(--t1)"}}>${Number(i.qty||0)} in stock</span>
+                    </div>
+                  </button>`;
+                })}
+              </div>
+            </div>`;
+          })()}
+        </div>`}
+
+        ${/* BOUGHT: vendor/brand/model inputs + save-to-stock toggle */ ""}
+        ${form.tireSource==="Bought for this job" && html`<div>
+          <div class="field-row">
+            <div class="field"><label>Brand (optional)</label><input value=${form.tireBrand||""} onChange=${e=>setF("tireBrand",e.target.value)} placeholder="Michelin"/></div>
+            <div class="field"><label>Model (optional)</label><input value=${form.tireModel||""} onChange=${e=>setF("tireModel",e.target.value)} placeholder="Defender"/></div>
+          </div>
+          <div class="field"><label>Vendor / Store (optional)</label><input value=${form.tireVendor||""} onChange=${e=>setF("tireVendor",e.target.value)} placeholder="Costco, Discount Tire…"/></div>
+          <label style=${{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"var(--s2)",border:"1px solid var(--border)",borderRadius:10,cursor:"pointer",fontSize:13,color:"var(--t1)",fontWeight:600}}>
+            <input type="checkbox" checked=${!!form.saveToInventory} onChange=${e=>setF("saveToInventory",e.target.checked)} style=${{width:18,height:18,accentColor:"var(--blue)"}}/>
+            Save this purchase to inventory
+          </label>
+          <div style=${{fontSize:11,color:"var(--t3)",marginTop:6,padding:"0 2px"}}>Tire cost still counts toward job profit — no stock is deducted.</div>
+        </div>`}
+
+        ${/* CUSTOMER: just a gentle reminder */ ""}
+        ${form.tireSource==="Customer supplied" && html`<div style=${{fontSize:12,color:"var(--t3)",padding:"8px 12px",background:"var(--s2)",border:"1px solid var(--border)",borderRadius:10}}>
+          Customer brought their own tire. Tire cost defaults to $0; no inventory is deducted.
+        </div>`}
+      </div>`}
+
+      <!-- ── SECTION 3: PAYMENT & CUSTOMER ──────────────────────────── -->
       <div class="form-group card-anim">
-        <div class="form-group-title">Customer (optional)</div>
+        <div class="form-group-title">Payment &amp; Customer</div>
+        <div class="field"><label>Payment Method</label><div class="pay-grid">${PAYMENT_OPTIONS.map(p=>html`<button key=${p.label} type="button" class=${"pay-btn press-scale"+(form.payment===p.label?" active":"")} onClick=${()=>setF("payment",p.label)}><span class="pay-icon">${p.icon}</span>${p.label}</button>`)}</div></div>
         <div class="field-row"><div class="field"><label>Name</label><input value=${form.customerName} onChange=${e=>setF("customerName",e.target.value)} placeholder="Customer name"/></div><div class="field"><label>Phone</label><input type="tel" value=${form.customerPhone} onChange=${e=>setF("customerPhone",e.target.value)} placeholder="(305)…"/></div></div>
+        <div class="field"><label>Notes</label><textarea value=${form.note} onChange=${e=>setF("note",e.target.value)} placeholder="Parking garage, roadside, no spare, etc."/></div>
+        ${form.status==="Completed"&&html`<button class="btn blue press-scale" style=${{width:"100%",marginTop:6}} onClick=${requestReview}>⭐ Send Review${form.customerPhone?" via SMS":""}</button>`}
       </div>
-      <div class="field"><label>Notes</label><textarea value=${form.note} onChange=${e=>setF("note",e.target.value)} placeholder="Parking garage, roadside, no spare, etc."/></div>
-      ${form.status==="Completed"&&html`<button class="btn blue press-scale" style=${{width:"100%",marginBottom:10}} onClick=${requestReview}>⭐ Send Review${form.customerPhone?" via SMS":""}</button>`}
+
       <div style=${{height:90}}/>
     </div>
     <div class="sticky-save">
       ${isEditing
         ?[html`<button key="cancel" class="btn secondary press-scale" onClick=${cancelEdit}>Cancel</button>`,html`<button key="update" class="btn primary press-scale" onClick=${()=>doSave(false)} disabled=${saving}>${saving?"Saving…":"Update Job ✓"}</button>`]
-        :[html`<button key="addmore" class="btn secondary press-scale" onClick=${()=>doSave(true)} disabled=${saving}>Save + Add</button>`,html`<button key="save" class="btn primary press-scale" onClick=${()=>doSave(false)} disabled=${saving}>${saving?"Saving…":"Save Job →"}</button>`]}
+        :[html`<button key="addmore" class="btn secondary press-scale" onClick=${()=>doSave(true)} disabled=${saving}>Save &amp; New</button>`,html`<button key="save" class="btn primary press-scale" onClick=${()=>doSave(false)} disabled=${saving}>${saving?"Saving…":"Save Job →"}</button>`]}
     </div>
   </div>`;
 }
@@ -1392,7 +1549,9 @@ function History({jobs,settings,onRepeat,onDelete,onEdit}) {
           <div class="job-title">${job.service||"Tire Service"}</div>
           <div class="job-meta">${job.area||"Miami"} · ${job.date||""}${job.tireSize?" · "+job.tireSize:""}</div>
           ${(job.customerName||job.customerPhone)&&html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:1}}>👤 ${job.customerName||""}${job.customerPhone?" · "+job.customerPhone:""}</div>`}
-          ${job.inventoryDeducted && invUsed && invUsed.size && html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:1}}>📦 Used: ${invUsed.size}${invUsed.qty?" ×"+invUsed.qty:""}</div>`}
+          ${job.inventoryDeducted && invUsed && invUsed.size && html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:1}}>📦 From stock: ${invUsed.size}${invUsed.qty?" ×"+invUsed.qty:""}</div>`}
+          ${!job.inventoryDeducted && job.tireSource==="Bought for this job" && /replacement|installation/i.test(job.service||"") && html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:1}}>🛒 Bought${job.tireVendor?" · "+job.tireVendor:""}${[job.tireBrand,job.tireModel].filter(s=>(s||"").trim()).length?" · "+[job.tireBrand,job.tireModel].filter(s=>(s||"").trim()).join(" "):""}</div>`}
+          ${!job.inventoryDeducted && job.tireSource==="Customer supplied" && /replacement|installation/i.test(job.service||"") && html`<div style=${{fontSize:11,color:"var(--t3)",marginTop:1}}>👤 Customer supplied tire</div>`}
           ${short>0 && html`<div style=${{fontSize:11,color:"var(--amber)",marginTop:1,fontWeight:600}}>⚠ Short: ${short} tire${short===1?"":"s"}</div>`}
           <div style=${{marginTop:7,display:"flex",gap:6,flexWrap:"wrap"}}><span class=${"pill "+profitCls}>${money(profit)}</span>${job.status==="Pending"&&html`<span class="pill gold">Pending</span>`}</div>
         </div>
@@ -1441,8 +1600,8 @@ function Expenses({expenses,setExpenses}) {
   const [form,setForm]=useState({date:TODAY(),category:"Fuel",amount:"",note:""});
   const CATS=["Fuel","Oil/Fluids","Equipment Repair","Supplies","Food","Tolls/Parking","Other"];
   const setF=(k,v)=>setForm(p=>({...p,[k]:v}));
-  const add=()=>{const amt=Number(form.amount||0);if(!amt){alert("Enter an amount.");return;}setExpenses(prev=>Array.isArray(prev)?[{...form,id:uid(),amount:amt},...prev]:[{...form,id:uid(),amount:amt}]);setForm({date:TODAY(),category:"Fuel",amount:"",note:""});};
-  const remove=id=>{if(!window.confirm("Delete?"))return;setExpenses(prev=>(Array.isArray(prev)?prev:[]).filter(e=>e.id!==id));};
+  const add=()=>{const amt=Number(form.amount||0);if(!amt){alert("Enter an amount.");return;}setExpenses(prev=>Array.isArray(prev)?[{...form,id:uid(),amount:amt},...prev]:[{...form,id:uid(),amount:amt}]);setForm({date:TODAY(),category:"Fuel",amount:"",note:""});try{if(window.toast)window.toast("Expense logged ($"+amt.toFixed(2)+")","success");}catch(e){}};
+  const remove=id=>{if(!window.confirm("Delete?"))return;setExpenses(prev=>(Array.isArray(prev)?prev:[]).filter(e=>e.id!==id));try{if(window.toast)window.toast("Expense removed","info");}catch(e){}};
   const total=safe.reduce((s,e)=>s+Number(e.amount||0),0);
   const thisWeek=getWeekStart(TODAY());
   const weekTotal=safe.filter(e=>getWeekStart(e.date||TODAY())===thisWeek).reduce((s,e)=>s+Number(e.amount||0),0);
@@ -1588,6 +1747,7 @@ function Inventory({inventory, setInventory, jobs, user}) {
     setNt(EMPTY_NEW);
     setNtError('');
     setView('list');
+    try { if (window.toast) window.toast("Tire added to stock", "success"); } catch(e){}
   }
 
   // ── existing-row functions ────────────────────────────────────────────────
@@ -1631,6 +1791,7 @@ function Inventory({inventory, setInventory, jobs, user}) {
       return next;
     });
     setEditId(function(cur){ return cur === id ? null : cur; });
+    try { if (window.toast) window.toast("Tire removed", "info"); } catch(e){}
   }
 
   // ── stats ─────────────────────────────────────────────────────────────────
@@ -2062,6 +2223,32 @@ function Settings({settings,setSettings,jobs,setJobs,inventory,setInventory,expe
   </div></div>`;
 }
 
+// ── Toast system ─────────────────────────────────────────────────────────────
+// Usage anywhere: window.toast("Inventory updated", "success")
+// Kinds: "success" | "warn" | "error" | "info"
+function ToastHost() {
+  const [toasts, setToasts] = useState([]);
+  useEffect(() => {
+    window.toast = (msg, kind = "info", ms = 2600) => {
+      const id = Math.random().toString(36).slice(2);
+      setToasts(prev => [...prev, { id, msg: String(msg||""), kind, leaving: false }]);
+      setTimeout(() => {
+        setToasts(prev => prev.map(t => t.id===id ? {...t, leaving:true} : t));
+        setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 240);
+      }, ms);
+    };
+    return () => { try { delete window.toast; } catch {} };
+  }, []);
+  if (toasts.length === 0) return null;
+  const iconFor = k => k==="success"?"✓":k==="warn"?"⚠":k==="error"?"✕":"ℹ";
+  return html`<div class="toast-stack">
+    ${toasts.map(t => html`<div key=${t.id} class=${"toast "+t.kind+(t.leaving?" leaving":"")}>
+      <span class="toast-icon">${iconFor(t.kind)}</span>
+      <span style=${{flex:1,minWidth:0}}>${t.msg}</span>
+    </div>`)}
+  </div>`;
+}
+
 // ── App ───────────────────────────────────────────────────────────────────────
 function App() {
   const [user,setUser]       = useState(null);
@@ -2187,6 +2374,8 @@ function App() {
       // ── Inventory deduction (runs for both new + edit) ─────────────────
       const isTireJob = full.service === "Tire Replacement" || /replacement|installation/i.test(full.service||"");
       const qtyNeeded = Math.max(0, Number(full.qty||0));
+      const tireSource = full.tireSource || "Inventory";
+      const sourceAllowsDeduct = tireSource === "Inventory";
 
       // Find existing job (for edit-replay)
       const prevJob = !isNew ? safeJobs.find(j=>j.id===id) : null;
@@ -2197,13 +2386,17 @@ function App() {
         if (Array.isArray(raw) && raw.length>0) prevDeds = raw;
       }
 
-      // Detect whether a new deduction is actually needed (tire size or qty changed, or new job)
-      const prevSize = prevJob ? String(prevJob.tireSize||"") : "";
-      const prevQty  = prevJob ? Number(prevJob.qty||0) : 0;
-      const sizeChanged = String(full.tireSize||"") !== prevSize;
-      const qtyChanged  = qtyNeeded !== prevQty;
-      const needsRestore = !!prevDeds && (isNew===false) && (sizeChanged || qtyChanged || !isTireJob || !full.tireSize || qtyNeeded<=0);
-      const needsDeduct  = isTireJob && !!full.tireSize && qtyNeeded>0 && (isNew || sizeChanged || qtyChanged);
+      // Detect whether a new deduction is actually needed
+      const prevSize   = prevJob ? String(prevJob.tireSize||"") : "";
+      const prevQty    = prevJob ? Number(prevJob.qty||0) : 0;
+      const prevSource = prevJob ? String(prevJob.tireSource||"Inventory") : "Inventory";
+      const sizeChanged   = String(full.tireSize||"") !== prevSize;
+      const qtyChanged    = qtyNeeded !== prevQty;
+      const sourceChanged = tireSource !== prevSource;
+      // Restore if prior was deducted AND (any material change OR source moved away from Inventory)
+      const needsRestore = !!prevDeds && !isNew && (sizeChanged || qtyChanged || sourceChanged || !isTireJob || !full.tireSize || qtyNeeded<=0 || !sourceAllowsDeduct);
+      // Deduct only when source allows AND conditions are met
+      const needsDeduct  = sourceAllowsDeduct && isTireJob && !!full.tireSize && qtyNeeded>0 && (isNew || sizeChanged || qtyChanged || sourceChanged);
 
       // Build "what inventory looks like after restore" so we can safely check availability
       let workingInv = safeInventory;
@@ -2254,6 +2447,37 @@ function App() {
 
       setJobs(prev=>{const arr=Array.isArray(prev)?prev:[];const exists=arr.find(j=>j.id===id);const next=exists?arr.map(j=>j.id===id?full:j):[full,...arr];persist(KEYS.jobs,next);return next;});
 
+      // ── "Save this purchase to inventory" for Bought-source jobs ─────────
+      if (isNew && tireSource === "Bought for this job" && full.saveToInventory && full.tireSize && qtyNeeded > 0) {
+        try {
+          const perTireCost = qtyNeeded > 0 ? (Number(full.tireCost||0) / qtyNeeded) : 0;
+          const newItem = {
+            id: uid(),
+            size: String(full.tireSize||"").trim(),
+            brand: String(full.tireBrand||"").trim(),
+            model: String(full.tireModel||"").trim(),
+            condition: "New",
+            qty: 0,  // already used on this job; add 0 (vendor record only). User can bump qty if they bought extras.
+            cost: r2(perTireCost),
+            sellPrice: 0,
+            notes: full.tireVendor ? ("From "+full.tireVendor) : "",
+          };
+          setInventory(prev => {
+            const arr = Array.isArray(prev) ? prev : [];
+            const next = [newItem, ...arr];
+            persist(KEYS.inventory, next);
+            return next;
+          });
+          if (user && invCol()) {
+            fbSet(invCol(), newItem.id, {
+              id:String(newItem.id), size:newItem.size, brand:newItem.brand, model:newItem.model,
+              condition:newItem.condition, qty:0, cost:Number(newItem.cost||0),
+              sellPrice:0, notes:newItem.notes,
+            });
+          }
+        } catch(e) { console.warn("saveToInventory:", e); }
+      }
+
       if(user && jobCol()){
         const dedStr = Array.isArray(full.inventoryDeductions) ? JSON.stringify(full.inventoryDeductions) : "";
         const usedStr = full.inventoryUsed ? JSON.stringify(full.inventoryUsed) : "";
@@ -2264,6 +2488,12 @@ function App() {
           tireCost:Number(full.tireCost||0),miscCost:Number(full.miscCost||0),miles:Number(full.miles||0),
           note:String(full.note||""),
           emergency:!!full.emergency,lateNight:!!full.lateNight,highway:!!full.highway,weekend:!!full.weekend,
+          tireSource:String(full.tireSource||"Inventory"),
+          tireBrand:String(full.tireBrand||""),
+          tireModel:String(full.tireModel||""),
+          tireVendor:String(full.tireVendor||""),
+          saveToInventory:!!full.saveToInventory,
+          inventoryItemId:String(full.inventoryItemId||""),
           inventoryDeducted:!!full.inventoryDeducted,
           inventoryDeductions: dedStr,
           inventoryShortfall: Number(full.inventoryShortfall||0),
@@ -2271,6 +2501,21 @@ function App() {
         });
       }
       if(!addAnother){setTab("dashboard");setEditJob(null);}
+
+      // Toast feedback
+      try {
+        if (window.toast) {
+          if (deductions && deductions.length > 0 && shortfall === 0) {
+            window.toast("Job saved · Inventory updated", "success");
+          } else if (deductions && deductions.length > 0 && shortfall > 0) {
+            window.toast("Job saved · Short "+shortfall+" tire"+(shortfall===1?"":"s"), "warn");
+          } else if (shortfall > 0) {
+            window.toast("Job saved · Missing "+shortfall+" tire"+(shortfall===1?"":"s"), "warn");
+          } else {
+            window.toast("Job saved", "success");
+          }
+        }
+      } catch(e){}
     }catch(e){console.warn("saveJob:",e);}
     finally{setSaving(false);}
     return { deductions, shortfall, sizeNormalized, foundAny };
@@ -2313,16 +2558,18 @@ function App() {
   const deleteJob=useCallback(async id=>{
     const safeJobs=Array.isArray(jobs)?jobs:[];
     const targetJob=safeJobs.find(j=>j.id===id);
+    let didRestore = false;
     // Restore inventory (only once per id)
     if(targetJob&&targetJob.inventoryDeducted&&!restoredOnceRef.current.has(id)){
       let deds=targetJob.inventoryDeductions;
       if(typeof deds==="string"){try{deds=JSON.parse(deds);}catch{deds=null;}}
       if(Array.isArray(deds)&&deds.length>0){
-        try{restoreInventoryDeduction(deds,setInventory,user);restoredOnceRef.current.add(id);}catch(e){console.warn("restore:",e);}
+        try{restoreInventoryDeduction(deds,setInventory,user);restoredOnceRef.current.add(id);didRestore=true;}catch(e){console.warn("restore:",e);}
       }
     }
     setJobs(prev=>{const arr=Array.isArray(prev)?prev:[];const next=arr.filter(j=>j.id!==id);persist(KEYS.jobs,next);return next;});
     if(user&&jobCol())await fbDel(jobCol(),id);
+    try { if (window.toast) window.toast(didRestore ? "Job deleted · Inventory restored" : "Job deleted", didRestore ? "success" : "info"); } catch(e){}
   },[user,jobs]);
 
   // ── Loading ───────────────────────────────────────────────────────────────
@@ -2345,7 +2592,7 @@ function App() {
   let content=null;
   switch(tab){
     case "dashboard": content=html`<${Dashboard} jobs=${jobs} settings=${settings} setTab=${setTab} onRepeat=${handleRepeat} inventory=${inventory} onStartJob=${handleStartJob}/>`; break;
-    case "add":       content=html`<${AddJob} onSave=${saveJob} settings=${settings} jobs=${jobs} prefill=${prefill} onClearPrefill=${()=>setPrefill(null)} editJob=${editJob} onClearEdit=${()=>setEditJob(null)} saving=${saving} onSwitchToInventory=${()=>setTab("inventory")}/>`; break;
+    case "add":       content=html`<${AddJob} onSave=${saveJob} settings=${settings} jobs=${jobs} inventory=${inventory} prefill=${prefill} onClearPrefill=${()=>setPrefill(null)} editJob=${editJob} onClearEdit=${()=>setEditJob(null)} saving=${saving} onSwitchToInventory=${()=>setTab("inventory")}/>`; break;
     case "history":   content=html`<${History} jobs=${jobs} settings=${settings} onEdit=${handleEdit} onDelete=${deleteJob} onRepeat=${handleRepeat}/>`; break;
     case "payouts":   content=html`<${Payouts} jobs=${jobs} settings=${settings}/>`; break;
     case "expenses":  content=html`<${Expenses} expenses=${expenses} setExpenses=${handleSetExpenses}/>`; break;
@@ -2365,6 +2612,7 @@ function App() {
         <span>${t.label}</span>
       </button>`)}
     </nav>
+    <${ToastHost}/>
   </div>`;
 }
 
