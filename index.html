@@ -671,6 +671,7 @@ const KEYS = {
   jobs: "wr2-jobs-v2", settings: "wr2-settings-v2",
   inventory: "wr2-inventory-v2", expenses: "wr2-expenses-v1",
   sizes: "wr2-recent-sizes-v1", cities: "wr2-recent-cities-v1",
+  calls: "wr2-calls-v1",  // { "YYYY-MM-DD": count } — local-only daily call log
 };
 const load    = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch { return fb; } };
 const persist = (k, v)  => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
@@ -684,7 +685,7 @@ const uid      = () => (typeof crypto !== "undefined" && crypto.randomUUID)
 const r2       = n  => Math.round((Number(n||0) + Number.EPSILON) * 100) / 100;
 const money    = n  => new Intl.NumberFormat("en-US", {style:"currency", currency:"USD"}).format(Number(n||0));
 const clamp    = (n,lo,hi) => Math.min(hi, Math.max(lo, n));
-const SERVICE_KEYS = ["Flat Tire Repair","Tire Replacement","Mobile Tire Service","Roadside Assistance","Tractor-Trailer Service","Spare Tire Change","Tire Rotation","Jump Start","Fuel Delivery","Lockout Service","Other"];
+const SERVICE_KEYS = ["Flat Tire Repair","Tire Replacement","Tire Installation","Mobile Tire Service","Roadside Assistance","Tractor-Trailer Service","Spare Tire Change","Tire Rotation","Jump Start","Fuel Delivery","Lockout Service","Other"];
 const VEHICLE_TYPES = ["Car","SUV / Truck","Semi-Truck","Tractor-Trailer"];
 const SERVICE_OPTIONS = SERVICE_KEYS.slice();
 const PAYMENT_OPTIONS = [{label:"Cash",icon:"💵"},{label:"Zelle",icon:"🟣"},{label:"Card",icon:"💳"},{label:"Cash App",icon:"🟢"},{label:"Venmo",icon:"💙"},{label:"Check",icon:"✍️"}];
@@ -698,6 +699,7 @@ const DEFAULT_INVENTORY = [
 const DEFAULT_SERVICE_PRICING = {
   "Flat Tire Repair":        {enabled:true, basePrice:90,  minProfit:90},
   "Tire Replacement":        {enabled:true, basePrice:120, minProfit:110},
+  "Tire Installation":       {enabled:true, basePrice:120, minProfit:110},
   "Mobile Tire Service":     {enabled:true, basePrice:150, minProfit:110},
   "Roadside Assistance":     {enabled:true, basePrice:100, minProfit:70},
   "Tractor-Trailer Service": {enabled:true, basePrice:350, minProfit:280},
@@ -785,21 +787,25 @@ function getVehicleAddOn(vehicleType, s) {
 function calculateJobPricing(job, settings) {
   const s = settings || {};
   const j = job || {};
-  const costPerMile = Number(s.costPerMile || 0.65);
+  const costPerMile = Math.max(0, Number(s.costPerMile || 0.65));
 
-  const miles       = Number(j.miles || 0);
-  const tireCost    = Number(j.tireCost || 0);
-  const miscCost    = Number(j.miscCost || 0);
+  // Guard against negatives. Prevents user-typed -5 miles producing a lower price than 0 miles.
+  const miles       = Math.max(0, Number(j.miles || 0));
+  const tireCost    = Math.max(0, Number(j.tireCost || 0));
+  const miscCost    = Math.max(0, Number(j.miscCost || 0));
   const travelCost  = r2(miles * costPerMile);
   const directCost  = r2(tireCost + miscCost + travelCost);
-  const revenue     = Number(j.revenue || 0);
+  const revenue     = Math.max(0, Number(j.revenue || 0));
   const actualProfit= r2(revenue - directCost);
 
   // Target profit: Settings.servicePricing[service].minProfit + vehicle add-on.
-  // Falls back to settings.defaultTargetProfit (or 100) for unknown services.
+  // IMPORTANT: explicit nullish/NaN check, not truthy fallback. A user-set minProfit of 0
+  // is a legitimate value (free service / labor-only) and must NOT collapse to defaultTargetProfit.
   const svcRule    = getServicePricing(j.service, s);
-  const vehicleAdd = getVehicleAddOn(j.vehicleType, s);
-  const baseTarget = (svcRule && Number(svcRule.minProfit)) || Number(s.defaultTargetProfit || 100);
+  const vehicleAdd = Math.max(0, getVehicleAddOn(j.vehicleType, s));
+  const baseTarget = (svcRule && svcRule.minProfit != null && !isNaN(Number(svcRule.minProfit)))
+    ? Number(svcRule.minProfit)
+    : Number(s.defaultTargetProfit || 100);
   const targetProfit = baseTarget + vehicleAdd;
 
   const distanceAdj   = distancePremium(miles);
@@ -1362,6 +1368,38 @@ function Header({syncStatus,onSignOut}) {
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
+// ── CallCounter ───────────────────────────────────────────────────────────
+// Lightweight daily call counter. Stored in localStorage as {"YYYY-MM-DD": n}.
+// Show rate = today's jobs / today's calls × 100.
+function CallCounter({jobsToday}) {
+  const today = TODAY();
+  const [calls, setCalls] = useState(() => {
+    const data = load(KEYS.calls, {});
+    return Number(data[today] || 0);
+  });
+  const update = (delta) => {
+    const next = Math.max(0, calls + delta);
+    setCalls(next);
+    const data = load(KEYS.calls, {});
+    data[today] = next;
+    persist(KEYS.calls, data);
+  };
+  const showRate = calls > 0 ? Math.round((jobsToday / calls) * 100) : 0;
+  return html`<div class="card card-anim" style=${{marginBottom:14,padding:"12px 14px"}}>
+    <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+      <div>
+        <div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1.4px",color:"var(--t3)"}}>Today's Calls</div>
+        <div style=${{fontSize:11,color:"var(--t3)",marginTop:2,fontFamily:'"IBM Plex Mono",monospace'}}>${calls} call${calls===1?"":"s"} · ${jobsToday} booked${calls>0?" · "+showRate+"% show":""}</div>
+      </div>
+      <div style=${{display:"flex",alignItems:"center",gap:6}}>
+        <button class="press-scale" onClick=${()=>update(-1)} disabled=${calls===0} style=${{width:34,height:34,borderRadius:8,border:"1px solid var(--border)",background:"var(--card)",color:calls===0?"var(--t3)":"var(--t1)",fontSize:16,fontWeight:700,cursor:calls===0?"default":"pointer",opacity:calls===0?0.4:1}}>−</button>
+        <div style=${{minWidth:32,textAlign:"center",fontFamily:'"IBM Plex Mono",monospace',fontSize:18,fontWeight:800,color:"var(--t1)"}}>${calls}</div>
+        <button class="press-scale" onClick=${()=>update(1)} style=${{width:34,height:34,borderRadius:8,border:"1px solid var(--blue)",background:"var(--blue)",color:"#fff",fontSize:16,fontWeight:700,cursor:"pointer"}}>+</button>
+      </div>
+    </div>
+  </div>`;
+}
+
 function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
   const [qqForm,setQqForm]=useState({service:"Flat Tire Repair",vehicleType:"Car",miles:"",tireCost:"",miscCost:"",qty:1,revenue:"",emergency:false,lateNight:false,highway:false,weekend:false});
   const [qqMode,setQqMode]=useState("suggested");
@@ -1378,6 +1416,7 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
   const sources=useMemo(()=>{const m={};safeJobs.forEach(j=>{const s=j.source||"Other";m[s]=(m[s]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]);},[safeJobs]);
   const maxSrc=sources.length?sources[0][1]:1;
   const recent=useMemo(()=>[...safeJobs].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).slice(0,5),[safeJobs]);
+  const lastJob = recent.length ? recent[0] : null;
   const top5Tires=useMemo(()=>{const counts={};safeJobs.forEach(j=>{if(j.tireSize){counts[j.tireSize]=(counts[j.tireSize]||0)+Number(j.qty||1);}});return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([size,sold],i)=>({id:"bs"+i,size,sold}));},[safeJobs]);
   const pendingJobs=useMemo(()=>safeJobs.filter(j=>j.status==="Pending"),[safeJobs]);
   const pendingTotal=pendingJobs.reduce((s,j)=>s+Number(j.revenue||0),0);
@@ -1411,7 +1450,12 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
       ${goalPct>=100&&html`<div style=${{textAlign:"center",marginTop:12,animation:"scaleIn .4s ease"}}><span style=${{background:"var(--green-dim)",color:"var(--green)",padding:"6px 16px",borderRadius:999,fontSize:12,fontWeight:800,border:"1px solid rgba(34,197,94,.25)"}}>🎯 Weekly Goal Achieved!</span></div>`}
     </div>
 
-    <div class="card-anim" style=${{marginBottom:16}}><button class="cta-btn press-scale" onClick=${()=>setTab("add")}><span style=${{fontSize:18}}>＋</span><span>New Job</span></button></div>
+    <div class="card-anim" style=${{marginBottom:16,display:"flex",gap:8}}>
+      <button class="cta-btn press-scale" onClick=${()=>setTab("add")} style=${{flex:lastJob?2:1}}><span style=${{fontSize:18}}>＋</span><span>New Job</span></button>
+      ${lastJob && html`<button class="press-scale" onClick=${()=>onRepeat&&onRepeat(lastJob)} style=${{flex:1,background:"var(--card)",color:"var(--t1)",border:"1px solid var(--border)",borderRadius:"var(--r3)",padding:"15px 14px",fontSize:13,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:6,cursor:"pointer"}} title="Clone last job">↻ Repeat</button>`}
+    </div>
+
+    <${CallCounter} jobsToday=${todayJobs.length}/>
     <div class="card-anim">
       <div class="section-label" style=${{marginTop:0,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <span>Quick Quote</span>
@@ -1422,7 +1466,7 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
           ${SERVICE_KEYS.filter(s=>{
             const sp=(settings.servicePricing||{})[s]||DEFAULT_SERVICE_PRICING[s];
             return sp && sp.enabled!==false && s!=="Other";
-          }).slice(0,5).map(s=>html`<button key=${s} type="button" class=${"chip press-scale"+(qqForm.service===s?" active":"")} onClick=${()=>qqChange("service",s)} style=${{fontSize:11,padding:"5px 10px"}}>${s.replace("Mobile Tire Service","Mobile").replace("Flat Tire Repair","Repair").replace("Tire Replacement","Replace").replace("Roadside Assistance","Roadside").replace("Tractor-Trailer Service","T-Trailer").replace("Spare Tire Change","Spare").replace("Tire Rotation","Rotation").replace("Jump Start","Jump").replace("Fuel Delivery","Fuel").replace("Lockout Service","Lockout")}</button>`)}
+          }).slice(0,5).map(s=>html`<button key=${s} type="button" class=${"chip press-scale"+(qqForm.service===s?" active":"")} onClick=${()=>qqChange("service",s)} style=${{fontSize:11,padding:"5px 10px"}}>${s.replace("Mobile Tire Service","Mobile").replace("Flat Tire Repair","Repair").replace("Tire Replacement","Replace").replace("Tire Installation","Install").replace("Roadside Assistance","Roadside").replace("Tractor-Trailer Service","T-Trailer").replace("Spare Tire Change","Spare").replace("Tire Rotation","Rotation").replace("Jump Start","Jump").replace("Fuel Delivery","Fuel").replace("Lockout Service","Lockout")}</button>`)}
         </div>
         <div style=${{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>
           ${VEHICLE_TYPES.map(v=>html`<button key=${v} type="button" class=${"chip press-scale"+(qqForm.vehicleType===v?" active":"")} onClick=${()=>qqChange("vehicleType",v)} style=${{fontSize:11,padding:"5px 10px"}}>${v}</button>`)}
@@ -1475,7 +1519,29 @@ function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
         </div>`)}
       </div></div>
     </div>`}
-    <div class="section-label card-anim">Recent Jobs</div>
+    <div class="section-label card-anim" style=${{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+      <span>Recent Jobs</span>
+      ${weekJobs.length>0 && html`<button class="press-scale" onClick=${async ()=>{
+        // Build a plain-text weekly summary the user can paste into Messages, Slack, etc.
+        const topSvc = (() => {
+          const counts={};
+          weekJobs.forEach(j=>{counts[j.service]=(counts[j.service]||0)+1;});
+          const arr=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+          return arr.length?arr[0][0]+" ("+arr[0][1]+")":"";
+        })();
+        const msg = "Wheel Rush · "+weekLabel(thisWeek)+"\\n"+
+          weekJobs.length+" jobs · "+money(totals.revenue)+" rev · "+money(totals.grossProfit)+" profit"+
+          (topSvc?"\\nTop: "+topSvc:"");
+        try {
+          if (navigator.share) {
+            await navigator.share({text:msg});
+          } else if (navigator.clipboard) {
+            await navigator.clipboard.writeText(msg);
+            if (window.toast) window.toast("Copied to clipboard","success");
+          }
+        } catch(e) {/* user canceled */}
+      }} style=${{background:"var(--s2)",border:"1px solid var(--border)",color:"var(--t1)",borderRadius:6,padding:"4px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>↗ Share Week</button>`}
+    </div>
     ${recent.length>0?html`<div class="stack">${recent.map((job,idx)=>{
       const profit=jobGrossProfit(job,settings);
       const pg=profit>=70,po=profit>=40&&profit<70;
@@ -1501,9 +1567,40 @@ function AddJob({onSave,settings,jobs,inventory,prefill,onClearPrefill,editJob,o
   const [error,setError]=useState("");const [saved,setSaved]=useState(null);const [tick,setTick]=useState(0);
   const [editingId,setEditingId]=useState(null);const [priceMode,setPriceMode]=useState("suggested");
   const [invFeedback,setInvFeedback]=useState(null); // {kind:'deducted'|'partial'|'missing', ...}
+  const [phoneMatch,setPhoneMatch]=useState(null);   // prior job matching current phone
+  const [phoneMatchDismissed,setPhoneMatchDismissed]=useState(false);
   const isEditing=!!editingId;
   const recentSizes=useMemo(()=>[...new Set([...load(KEYS.sizes,[]),...DEFAULT_TIRE_SIZES])].slice(0,8),[tick]);
   const lastJob=useMemo(()=>[...(jobs||[])].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).find(j=>j.id!==editingId)||null,[jobs,editingId]);
+
+  // ── Phone lookup: match last 10 digits of phone against prior jobs ──────
+  // Skips matches against the job currently being edited.
+  useEffect(() => {
+    if (phoneMatchDismissed) return;
+    const raw = String(form.customerPhone||"").replace(/\D/g,"");
+    if (raw.length < 7) { setPhoneMatch(null); return; }
+    const tail = raw.slice(-10);
+    const safeJobs = Array.isArray(jobs) ? jobs : [];
+    const hits = safeJobs
+      .filter(j => j.id !== editingId && j.customerPhone)
+      .filter(j => String(j.customerPhone).replace(/\D/g,"").slice(-10) === tail)
+      .sort((a,b)=>b.date.localeCompare(a.date));
+    setPhoneMatch(hits[0] || null);
+  }, [form.customerPhone, jobs, editingId, phoneMatchDismissed]);
+
+  // Apply prior customer data: name, vehicle, tire size. Preserves current pricing.
+  const applyPhoneMatch = () => {
+    if (!phoneMatch) return;
+    setForm(p => ({
+      ...p,
+      customerName: phoneMatch.customerName || p.customerName,
+      vehicleType:  phoneMatch.vehicleType  || p.vehicleType,
+      tireSize:     phoneMatch.tireSize     || p.tireSize,
+    }));
+    setPhoneMatch(null);
+    setPhoneMatchDismissed(true);
+    try { if(window.toast) window.toast("Customer info filled in", "success"); } catch(e){}
+  };
   useEffect(()=>{
     if(editJob&&editJob.id){
       setForm({...EMPTY_JOB(),...editJob,revenue:String(editJob.revenue||""),tireCost:String(editJob.tireCost||""),miscCost:String(editJob.miscCost||""),miles:String(editJob.miles||"")});
@@ -1639,7 +1736,13 @@ function AddJob({onSave,settings,jobs,inventory,prefill,onClearPrefill,editJob,o
       <!-- ── SECTION 2: LOCATION ────────────────────────────────────── -->
       <div class="form-group card-anim">
         <div class="form-group-title">Location</div>
-        <div class="field"><label>City / Area</label><${CityInput} value=${form.area} onChange=${v=>setF("area",v)}/></div>
+        <div class="field"><label>City / Area</label><${CityInput} value=${form.area} onChange=${v=>setF("area",v)}/>
+          ${form.area && html`<button type="button" class="press-scale" onClick=${()=>{
+            // Opens default maps app on iOS/Android. User can then enter exact address.
+            const q = encodeURIComponent(form.area + ", Florida");
+            window.open("https://maps.google.com/?q=" + q, "_blank");
+          }} style=${{marginTop:8,background:"var(--s2)",color:"var(--t1)",border:"1px solid var(--border)",borderRadius:6,padding:"6px 12px",fontSize:11,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:5}}>📍 Open in Maps</button>`}
+        </div>
         <div class="field"><label>Tire Size</label><input value=${form.tireSize} onChange=${e=>setF("tireSize",e.target.value)} placeholder="225/55R17"/><div class="chip-row" style=${{marginTop:8}}>${recentSizes.map(sz=>html`<button type="button" key=${sz} class=${"chip sm"+(form.tireSize===sz?" active":"")} onClick=${()=>setF("tireSize",sz)}>${sz}</button>`)}</div></div>
       </div>
 
@@ -1829,8 +1932,19 @@ function AddJob({onSave,settings,jobs,inventory,prefill,onClearPrefill,editJob,o
       <div class="form-group card-anim">
         <div class="form-group-title">Payment &amp; Customer</div>
         <div class="field"><label>Payment Method</label><div class="pay-grid">${PAYMENT_OPTIONS.map(p=>html`<button key=${p.label} type="button" class=${"pay-btn press-scale"+(form.payment===p.label?" active":"")} onClick=${()=>setF("payment",p.label)}><span class="pay-icon">${p.icon}</span>${p.label}</button>`)}</div></div>
-        <div class="field-row"><div class="field"><label>Name</label><input value=${form.customerName} onChange=${e=>setF("customerName",e.target.value)} placeholder="Customer name"/></div><div class="field"><label>Phone</label><input type="tel" value=${form.customerPhone} onChange=${e=>setF("customerPhone",e.target.value)} placeholder="(305)…"/></div></div>
+        <div class="field-row"><div class="field"><label>Name</label><input value=${form.customerName} onChange=${e=>setF("customerName",e.target.value)} placeholder="Customer name"/></div><div class="field"><label>Phone</label><input type="tel" value=${form.customerPhone} onChange=${e=>{setF("customerPhone",e.target.value);setPhoneMatchDismissed(false);}} placeholder="(305)…"/></div></div>
+
+        ${phoneMatch && html`<div style=${{background:"var(--blue-dim)",border:"1px solid rgba(79,142,247,.35)",borderRadius:8,padding:"10px 12px",marginTop:6,display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}}>
+          <div style=${{flex:1,minWidth:0}}>
+            <div style=${{fontSize:12,fontWeight:700,color:"var(--blue)"}}>↻ Repeat customer</div>
+            <div style=${{fontSize:11,color:"var(--t2)",marginTop:2}}>${phoneMatch.customerName||"Customer"}${phoneMatch.tireSize?" · "+phoneMatch.tireSize:""}${phoneMatch.vehicleType?" · "+phoneMatch.vehicleType:""} · last on ${phoneMatch.date}</div>
+          </div>
+          <button type="button" class="btn sm press-scale" style=${{background:"var(--blue)",color:"#fff",border:"none",fontSize:11,padding:"6px 10px"}} onClick=${applyPhoneMatch}>Use info</button>
+          <button type="button" class="btn sm press-scale" style=${{background:"transparent",color:"var(--t3)",border:"1px solid var(--border)",fontSize:11,padding:"6px 10px"}} onClick=${()=>{setPhoneMatch(null);setPhoneMatchDismissed(true);}}>✕</button>
+        </div>`}
+
         <div class="field"><label>Notes</label><textarea value=${form.note} onChange=${e=>setF("note",e.target.value)} placeholder="Parking garage, roadside, no spare, etc."/></div>
+
         ${form.status==="Completed"&&html`<button class="btn blue press-scale" style=${{width:"100%",marginTop:6}} onClick=${requestReview}>⭐ Send Review${form.customerPhone?" via SMS":""}</button>`}
       </div>
 
@@ -1928,6 +2042,7 @@ function History({jobs,settings,onRepeat,onDelete,onEdit}) {
             <div class="stack">${wkJobs.map(job=>html`<${JobRow} key=${job.id} job=${job}/>`)}</div>
           </div>`;})}</div>`
         :html`<div class="stack">${filtered.map(job=>html`<${JobRow} key=${job.id} job=${job}/>`)}</div>`}
+
   </div></div>`;
 }
 
@@ -1945,6 +2060,19 @@ function Expenses({expenses,setExpenses,jobs,settings}) {
   const thisWeek=getWeekStart(TODAY());
   const thisMonth=getMonthKey(TODAY());
   const weekTotal=safe.filter(e=>getWeekStart(e.date||TODAY())===thisWeek).reduce((s,e)=>s+Number(e.amount||0),0);
+
+  // ── Category breakdown (this month, sorted by spend) ──────────────────────
+  const byCategory = useMemo(() => {
+    const m = {};
+    safe
+      .filter(e => getMonthKey(e.date||TODAY()) === thisMonth)
+      .forEach(e => {
+        const cat = e.category || "Other";
+        m[cat] = (m[cat] || 0) + Number(e.amount || 0);
+      });
+    return Object.entries(m).sort((a,b) => b[1] - a[1]);
+  }, [safe, thisMonth]);
+  const monthExpTotal = byCategory.reduce((sum, [_, amt]) => sum + amt, 0);
 
   // ── Monthly P&L (moved here from Dashboard) ─────────────────────────────
   const monthJobs=useMemo(()=>safeJobs.filter(j=>getMonthKey(j.date)===thisMonth),[safeJobs,thisMonth]);
@@ -1974,6 +2102,30 @@ function Expenses({expenses,setExpenses,jobs,settings}) {
     });
     return out;
   }, [safeJobs, thisWeek]);
+
+  // ── Day-of-week revenue + profit analysis ──────────────────────────────
+  // Reveals which days of the week are most profitable. No hour data on jobs (only date).
+  // Uses America/New_York (Wheel Rush HQ) so dates classify consistently with the rest of the app.
+  const dowStats = useMemo(() => {
+    const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const buckets = days.map(d => ({day:d, jobs:0, revenue:0, profit:0}));
+    const fmt = new Intl.DateTimeFormat("en-US", {timeZone:"America/New_York", weekday:"short"});
+    const dayMap = {Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6};
+    safeJobs.forEach(j => {
+      try {
+        const dt = new Date(j.date+"T12:00:00Z"); // noon UTC — safely stays on the same calendar day in EST
+        const wd = fmt.format(dt);
+        const idx = dayMap[wd];
+        if (idx >= 0 && idx <= 6) {
+          buckets[idx].jobs    += 1;
+          buckets[idx].revenue += Number(j.revenue||0);
+          buckets[idx].profit  += jobGrossProfit(j, safeSettings);
+        }
+      } catch(e) {}
+    });
+    return buckets;
+  }, [safeJobs, safeSettings]);
+  const dowMaxProfit = Math.max(1, ...dowStats.map(d=>d.profit));
 
   return html`<div class="screen"><div class="page page-enter">
 
@@ -2022,6 +2174,29 @@ function Expenses({expenses,setExpenses,jobs,settings}) {
         </div>
       </div>
     </div>`}
+
+    <!-- ── Day-of-week analysis ──────────────────────────────────── -->
+    ${safeJobs.length >= 5 && html`<div class="card card-anim" style=${{marginBottom:14,padding:"14px 16px"}}>
+      <div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1.4px",color:"var(--t3)",marginBottom:12}}>Best Days · Profit</div>
+      <div style=${{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6,alignItems:"end"}}>
+        ${dowStats.map(d => {
+          const pct = (d.profit / dowMaxProfit) * 100;
+          const isBest = d.profit === dowMaxProfit && d.profit > 0;
+          return html`<div key=${d.day} style=${{textAlign:"center"}}>
+            <div style=${{fontSize:10,fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,color:d.profit>0?"var(--t1)":"var(--t3)",marginBottom:4}}>${d.profit>=1000?"$"+(d.profit/1000).toFixed(1)+"k":d.profit>0?"$"+Math.round(d.profit):"—"}</div>
+            <div style=${{height:60,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+              <div style=${{width:"100%",height:Math.max(2,pct)+"%",background:isBest?"var(--green)":d.profit>0?"var(--blue)":"var(--border)",borderRadius:"3px 3px 0 0",transition:"height .3s"}}/>
+            </div>
+            <div style=${{fontSize:10,color:"var(--t3)",fontWeight:700,marginTop:4}}>${d.day}</div>
+            <div style=${{fontSize:9,color:"var(--t3)",marginTop:1,fontFamily:'"IBM Plex Mono",monospace'}}>${d.jobs}</div>
+          </div>`;
+        })}
+      </div>
+      <div style=${{fontSize:10,color:"var(--t3)",textAlign:"center",marginTop:10,fontWeight:600}}>
+        Profit by day of week · # jobs below
+      </div>
+    </div>`}
+
     <!-- ── Material Costs (auto from jobs) ─────────────────────────── -->
     <div class="section-label" style=${{marginTop:0}}>Material Costs (from jobs)</div>
     <div class="mini-grid card-anim" style=${{marginBottom:14}}>
@@ -2045,6 +2220,26 @@ function Expenses({expenses,setExpenses,jobs,settings}) {
             <div style=${{fontSize:11,color:"var(--t3)",marginTop:2,fontFamily:'"IBM Plex Mono",monospace'}}>${j.date||""} · ${subParts.join(" + ")}</div>
           </div>
           <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:14,color:"var(--orange)",flexShrink:0}}>${money(tire+misc)}</div>
+        </div>`;
+      })}
+    </div>`}
+
+    <!-- ── Category breakdown (variable expenses, this month) ────── -->
+    ${byCategory.length > 0 && html`<div class="card card-anim" style=${{marginBottom:14,padding:"14px 16px"}}>
+      <div style=${{display:"flex",alignItems:"baseline",justifyContent:"space-between",marginBottom:10}}>
+        <div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1.4px",color:"var(--t3)"}}>By Category · ${monthLabel(thisMonth)}</div>
+        <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontSize:13,fontWeight:700,color:"var(--t1)"}}>${money(monthExpTotal)}</div>
+      </div>
+      ${byCategory.map(([cat, amt]) => {
+        const pct = monthExpTotal > 0 ? (amt / monthExpTotal) * 100 : 0;
+        return html`<div key=${cat} style=${{marginBottom:8}}>
+          <div style=${{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:3}}>
+            <span style=${{color:"var(--t1)",fontWeight:600}}>${cat}</span>
+            <span style=${{fontFamily:'"IBM Plex Mono",monospace',color:"var(--t2)",fontWeight:700}}>${money(amt)} <span style=${{color:"var(--t3)",fontSize:10,marginLeft:4}}>${Math.round(pct)}%</span></span>
+          </div>
+          <div style=${{height:5,background:"var(--s2)",borderRadius:3,overflow:"hidden"}}>
+            <div style=${{width:pct+"%",height:"100%",background:"var(--blue)",borderRadius:3,transition:"width .3s"}}/>
+          </div>
         </div>`;
       })}
     </div>`}
@@ -3045,13 +3240,15 @@ function App() {
       const prevSize   = prevJob ? String(prevJob.tireSize||"") : "";
       const prevQty    = prevJob ? Number(prevJob.qty||0) : 0;
       const prevSource = prevJob ? String(prevJob.tireSource||"Inventory") : "Inventory";
+      const prevInvId  = prevJob ? String(prevJob.inventoryItemId||"") : "";
       const sizeChanged   = String(full.tireSize||"") !== prevSize;
       const qtyChanged    = qtyNeeded !== prevQty;
       const sourceChanged = tireSource !== prevSource;
+      const invIdChanged  = String(full.inventoryItemId||"") !== prevInvId;
       // Restore if prior was deducted AND (any material change OR source moved away from Inventory)
-      const needsRestore = !!prevDeds && !isNew && (sizeChanged || qtyChanged || sourceChanged || !isTireJob || !full.tireSize || qtyNeeded<=0 || !sourceAllowsDeduct);
+      const needsRestore = !!prevDeds && !isNew && (sizeChanged || qtyChanged || sourceChanged || invIdChanged || !isTireJob || !full.tireSize || qtyNeeded<=0 || !sourceAllowsDeduct);
       // Deduct only when source allows AND conditions are met
-      const needsDeduct  = sourceAllowsDeduct && isTireJob && !!full.tireSize && qtyNeeded>0 && (isNew || sizeChanged || qtyChanged || sourceChanged);
+      const needsDeduct  = sourceAllowsDeduct && isTireJob && !!full.tireSize && qtyNeeded>0 && (isNew || sizeChanged || qtyChanged || sourceChanged || invIdChanged);
 
       // Build "what inventory looks like after restore" so we can safely check availability
       let workingInv = safeInventory;
