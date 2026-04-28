@@ -1096,6 +1096,9 @@ function dedupeInventory(items) {
   return Object.values(seen);
 }
 function sanitizeJob(j) {
+  // Null/undefined safe — defensive against bad imports, corrupted Firestore docs,
+  // or upstream code that calls sanitize without a guard. Returns a valid empty job.
+  if (j === null || j === undefined || typeof j !== "object") j = {};
   const src = String(j.tireSource||"Inventory");
   const validSrc = ["Inventory","Bought for this job","Customer supplied"].includes(src) ? src : "Inventory";
   return {
@@ -1116,7 +1119,7 @@ function sanitizeJob(j) {
   };
 }
 function sanitizeInvItem(i) {
-  i = i || {};
+  if (i === null || i === undefined || typeof i !== "object") i = {};
   // Accept "new"/"New"/"NEW" and "used"/"Used"/"USED" — canonicalize to "New"/"Used"
   const rawCond = String(i.condition || "").toLowerCase();
   const cond = rawCond === "used" ? "Used" : "New";
@@ -1539,11 +1542,21 @@ function CallCounter({jobsToday}) {
     const data = load(KEYS.calls, {});
     return Number(data[today] || 0);
   });
+  // Flash class triggers when the counter is auto-bumped by a job save (not manual +/−).
+  const [autoFlash, setAutoFlash] = useState(false);
   // Refresh from storage whenever a new job is saved for today (event from saveJob).
   useEffect(() => {
     const handler = () => {
       const data = load(KEYS.calls, {});
-      setCalls(Number(data[today] || 0));
+      const next = Number(data[today] || 0);
+      setCalls(prev => {
+        // Only flash if the value actually went up (defensive — handles refresh race)
+        if (next > prev) {
+          setAutoFlash(true);
+          setTimeout(() => setAutoFlash(false), 700);
+        }
+        return next;
+      });
     };
     window.addEventListener("wr-calls-updated", handler);
     return () => window.removeEventListener("wr-calls-updated", handler);
@@ -1564,7 +1577,7 @@ function CallCounter({jobsToday}) {
       </div>
       <div style=${{display:"flex",alignItems:"center",gap:6}}>
         <button class="press-scale" onClick=${()=>update(-1)} disabled=${calls===0} style=${{width:34,height:34,borderRadius:8,border:"1px solid var(--border)",background:"var(--card)",color:calls===0?"var(--t3)":"var(--t1)",fontSize:16,fontWeight:700,cursor:calls===0?"default":"pointer",opacity:calls===0?0.4:1}}>−</button>
-        <div style=${{minWidth:32,textAlign:"center",fontFamily:'"IBM Plex Mono",monospace',fontSize:18,fontWeight:800,color:"var(--t1)"}}>${calls}</div>
+        <div style=${{minWidth:32,textAlign:"center",fontFamily:'"IBM Plex Mono",monospace',fontSize:18,fontWeight:800,color:autoFlash?"var(--green)":"var(--t1)",transform:autoFlash?"scale(1.15)":"scale(1)",transition:"all .25s cubic-bezier(.34,1.56,.64,1)"}}>${calls}</div>
         <button class="press-scale" onClick=${()=>update(1)} style=${{width:34,height:34,borderRadius:8,border:"1px solid var(--blue)",background:"var(--blue)",color:"#fff",fontSize:16,fontWeight:700,cursor:"pointer"}}>+</button>
       </div>
     </div>
@@ -3496,7 +3509,10 @@ function App() {
     let deductions=null, shortfall=0, sizeNormalized="", foundAny=false;
     try{
       const id=job.id||uid();
-      const isNew=!job.id;
+      // isNew: true when this id isn't already in the jobs array.
+      // Cannot use `!job.id` because the id is always set by sanitizeJob upstream.
+      const safeJobsArr=Array.isArray(jobs)?jobs:[];
+      const isNew = !safeJobsArr.some(j => j.id === id);
 
       // Auto-bump the daily call counter when a NEW job is logged for today.
       // Editing an existing job, or backdating, does not increment.
@@ -3654,14 +3670,17 @@ function App() {
       try {
         haptic(15);
         if (window.toast) {
+          // Auto-bumped a call when isNew && job.date === TODAY() (see top of saveJob)
+          const callBumped = isNew && job.date === TODAY();
+          const callSuffix = callBumped ? " · Call logged" : "";
           if (deductions && deductions.length > 0 && shortfall === 0) {
-            window.toast("Job saved · Inventory updated", "success");
+            window.toast("Job saved · Inventory updated"+callSuffix, "success");
           } else if (deductions && deductions.length > 0 && shortfall > 0) {
-            window.toast("Job saved · Short "+shortfall+" tire"+(shortfall===1?"":"s"), "warn");
+            window.toast("Job saved · Short "+shortfall+" tire"+(shortfall===1?"":"s")+callSuffix, "warn");
           } else if (shortfall > 0) {
-            window.toast("Job saved · Missing "+shortfall+" tire"+(shortfall===1?"":"s"), "warn");
+            window.toast("Job saved · Missing "+shortfall+" tire"+(shortfall===1?"":"s")+callSuffix, "warn");
           } else {
-            window.toast("Job saved", "success");
+            window.toast("Job saved"+callSuffix, "success");
           }
         }
       } catch(e){}
