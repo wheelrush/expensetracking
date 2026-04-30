@@ -758,40 +758,8 @@ function restoreInventoryDeduction(deductions, setInventory, user) {
   });
 }
 
-// ── Inventory CRUD (Firestore + local) ───────────────────────────────────────
-async function saveInventory(item, setInventory, user) {
-  const id = String(item.id || uid());
-  const full = {
-    id,
-    size:      String(item.size      || "").trim(),
-    brand:     String(item.brand     || "").trim(),
-    model:     String(item.model     || "").trim(),
-    condition: String(item.condition || "New"),
-    qty:       Math.max(0, Number(item.qty || 0)),
-    cost:      Number(item.cost      || 0),
-    sellPrice: Number(item.sellPrice || 0),
-    notes:     String(item.notes     || "").trim(),
-  };
-  setInventory(prev => {
-    const arr = Array.isArray(prev) ? prev : [];
-    const exists = arr.some(i => i.id === id);
-    const next = exists ? arr.map(i => i.id === id ? full : i) : [full, ...arr];
-    persist(KEYS.inventory, next);
-    return next;
-  });
-  if (user && invCol()) await fbSet(invCol(), id, full);
-  return full;
-}
-
-async function deleteInventory(id, setInventory, user) {
-  setInventory(prev => {
-    const arr = Array.isArray(prev) ? prev : [];
-    const next = arr.filter(i => i.id !== id);
-    persist(KEYS.inventory, next);
-    return next;
-  });
-  if (user && invCol()) await fbDel(invCol(), id);
-}
+// ── Inventory: deduction restore on edit/delete ──────────────────────────────
+// (Inventory CRUD lives inside the App component via handleSetInventory.)
 
 const KEYS = {
   jobs: "wr2-jobs-v2", settings: "wr2-settings-v2",
@@ -3758,7 +3726,7 @@ function App() {
       }
     }
     setJobs(prev=>{const arr=Array.isArray(prev)?prev:[];const next=arr.filter(j=>j.id!==id);persist(KEYS.jobs,next);return next;});
-    if(user&&jobCol())await fbDel(jobCol(),id);
+    if(_db && user && !isLocalUser(user) && jobCol()) await fbDel(jobCol(),id);
     try { if (window.toast) window.toast(didRestore ? "Job deleted · Inventory restored" : "Job deleted", didRestore ? "success" : "info"); } catch(e){}
   },[user,jobs]);
 
