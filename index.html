@@ -3154,14 +3154,17 @@ function Inventory({inventory, setInventory, jobs, user}) {
   function confirmDeleteAll() {
     if (deleteConfirmText !== 'DELETE') return;
     try {
-      // setInventory([]) triggers handleSetInventory in App, which:
-      //   - persists [] to localStorage
-      //   - issues fbDel to Firestore for every previously-existing row
+      // setInventory([]) → handleSetInventory in App, which detects the wipe
+      // and uses a batched cloud delete (instead of per-row fbDel) so the
+      // Firestore listener only fires once at the end. Without the batch,
+      // intermediate listener fires bounced partial remainders back into
+      // local state and the wipe appeared to fail.
       // Job history, invoices, customers, payouts, expenses are NOT touched.
+      const count = Array.isArray(inventory) ? inventory.length : 0;
       setInventory([]);
       setShowDeleteModal(false);
       setDeleteConfirmText('');
-      try { if (window.toast) window.toast('All stock deleted', 'success'); } catch(_) {}
+      try { if (window.toast) window.toast('All stock deleted (' + count + ' items)', 'success'); } catch(_) {}
     } catch (e) {
       console.warn('deleteAll:', e);
       try { if (window.toast) window.toast('Delete failed: ' + (e.message || 'unknown'), 'error'); } catch(_) {}
@@ -3199,6 +3202,94 @@ function Inventory({inventory, setInventory, jobs, user}) {
     });
     return Object.keys(c).sort(function(a,b){ return c[b] - c[a]; }).slice(0, 5);
   }, [jobsArr]);
+
+  // ── HOT SIZES: top 5 sizes deducted in last 30 days ──────────────────────
+  // Different from `bestSellers` (which is just job-count): this weighs by
+  // actual qty deducted and limits the window to recent activity. Drives the
+  // "tap-to-filter" chip strip at the top of the inventory list. If a size
+  // has had 0 movement in 30 days, it doesn't show up here.
+  //
+  // Source priority for qty:
+  //   1. inventoryDeductions[].deducted (most accurate — reflects actual stock pull)
+  //   2. inventoryUsed.qty (older format)
+  //   3. Job-level qty (fallback when neither marker is present)
+  const hotSizes = useMemo(function() {
+    const cutoffMs = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const counts = {};
+    jobsArr.forEach(function(j) {
+      if (!j) return;
+      const dateStr = j.date || '';
+      if (!dateStr) return;
+      // Job dates are YYYY-MM-DD strings — Date parses these reliably
+      const t = new Date(dateStr).getTime();
+      if (!Number.isFinite(t) || t < cutoffMs) return;
+
+      // Prefer the canonical deduction record over typed tireSize because
+      // inventory deductions are normalized.
+      const deds = Array.isArray(j.inventoryDeductions) ? j.inventoryDeductions : null;
+      if (deds && deds.length > 0) {
+        deds.forEach(function(d) {
+          const sz = normalizeTireSize(d.size || '') || (d.size || '').trim();
+          const q  = Number(d.deducted || 0);
+          if (sz && q > 0) counts[sz] = (counts[sz] || 0) + q;
+        });
+        return;
+      }
+      const used = j.inventoryUsed;
+      if (used && used.size) {
+        const sz = normalizeTireSize(used.size) || String(used.size).trim();
+        const q  = Number(used.qty || 0);
+        if (sz && q > 0) counts[sz] = (counts[sz] || 0) + q;
+        return;
+      }
+      // Fallback: tireSize + qty on the job record
+      const sz = normalizeTireSize(j.tireSize || '') || String(j.tireSize || '').trim();
+      const q  = Math.max(1, Number(j.qty || 1));
+      if (sz) counts[sz] = (counts[sz] || 0) + q;
+    });
+    return Object.keys(counts)
+      .map(function(sz) { return { size: sz, count: counts[sz] }; })
+      .sort(function(a, b) { return b.count - a.count; })
+      .slice(0, 5);
+  }, [jobsArr]);
+
+  // ── Compact view toggle ──────────────────────────────────────────────────
+  // Persists to localStorage so the user's preference survives reloads.
+  // List = current fat cards (default). Compact = dense one-line rows for
+  // power users with lots of inventory.
+  const [compactView, setCompactView] = useState(function() {
+    try {
+      const v = localStorage.getItem('wr2_inv_compact');
+      return v === '1';
+    } catch(_) { return false; }
+  });
+  const toggleCompactView = function() {
+    setCompactView(function(prev) {
+      const next = !prev;
+      try { localStorage.setItem('wr2_inv_compact', next ? '1' : '0'); } catch(_) {}
+      return next;
+    });
+  };
+
+  // ── Margin classification ────────────────────────────────────────────────
+  // Healthy ≥ 40%, Thin 20–39%, Loss < 20% (or unpriced).
+  // Returns { pct, kind } where kind is 'good'|'thin'|'bad'|'none'.
+  function marginInfo(item) {
+    const cost  = Number(item.cost || 0);
+    const sell  = Number(item.sellPrice || 0);
+    if (sell <= 0 || cost <= 0) return { pct: null, kind: 'none' };
+    const pct = ((sell - cost) / sell) * 100;
+    let kind = 'bad';
+    if (pct >= 40) kind = 'good';
+    else if (pct >= 20) kind = 'thin';
+    return { pct: Math.round(pct), kind: kind };
+  }
+  function marginColors(kind) {
+    if (kind === 'good') return { fg: 'var(--green)', bg: 'var(--green-dim)' };
+    if (kind === 'thin') return { fg: 'var(--amber)', bg: 'var(--amber-dim)' };
+    if (kind === 'bad')  return { fg: 'var(--red)',   bg: 'var(--red-dim)'   };
+    return { fg: 'var(--t3)', bg: 'var(--s3)' };
+  }
 
   // ── NEW TIRE SCREEN: save handler ─────────────────────────────────────────
   function ntPatch(k, v) {
@@ -3614,6 +3705,8 @@ function Inventory({inventory, setInventory, jobs, user}) {
     const isUsed = String(item.condition||'').toLowerCase() === 'used';
     const tread  = String(item.treadDepth||'').trim();
     const price  = Number(item.sellPrice||0);
+    const mInfo  = marginInfo(item);
+    const mClr   = marginColors(mInfo.kind);
 
     return html`<div key=${item.id} style=${{borderBottom:idx<total-1?'1px solid var(--border2)':'none'}}>
       <div style=${{display:'flex',alignItems:'center',padding:'12px 18px',gap:12,cursor:'pointer'}}
@@ -3627,6 +3720,7 @@ function Inventory({inventory, setInventory, jobs, user}) {
           </div>
           <div style=${{display:'flex',alignItems:'center',gap:8,marginTop:3,flexWrap:'wrap'}}>
             ${price>0 && html`<span style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:13,color:'var(--t2)'}}>${money(price)} ea</span>`}
+            ${price>0 && mInfo.pct !== null && html`<span title=${'Margin: '+mInfo.pct+'%'} style=${{fontSize:9,fontWeight:800,color:mClr.fg,background:mClr.bg,padding:'2px 7px',borderRadius:999,letterSpacing:'.3px',fontFamily:'"IBM Plex Mono",monospace'}}>${mInfo.pct}%</span>`}
             ${price>0 && html`<span style=${{fontSize:11,color:'var(--t3)'}}>•</span>`}
             <span style=${{fontSize:11,color:'var(--t3)',fontWeight:600}}>Qty: <span style=${{color:isOut?'var(--red)':(isLow?'var(--amber)':'var(--t1)'),fontWeight:800,fontFamily:'"IBM Plex Mono",monospace'}}>${qty}</span></span>
           </div>
@@ -3693,13 +3787,54 @@ function Inventory({inventory, setInventory, jobs, user}) {
       </div>
     </div>`}
 
-    <!-- search + add -->
+    <!-- ── HOT SIZES (last 30 days) ───────────────────────────────────── -->
+    <!-- Pinned strip of the 5 sizes most deducted in the last 30 days.
+         Tap a chip → fills the search bar so user jumps straight to that size.
+         Hidden when no recent movement exists. -->
+    ${hotSizes.length > 0 && html`<div class="card-anim" style=${{marginBottom:12}}>
+      <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8,padding:'0 2px'}}>
+        <div style=${{fontSize:10,fontWeight:800,textTransform:'uppercase',letterSpacing:'1px',color:'var(--t3)',display:'flex',alignItems:'center',gap:6}}>
+          <span style=${{fontSize:11}}>🔥</span> Hot Sizes · 30d
+        </div>
+        <div style=${{fontSize:10,color:'var(--t3)',fontWeight:600}}>tap to filter</div>
+      </div>
+      <div style=${{display:'flex',gap:8,overflowX:'auto',paddingBottom:4,WebkitOverflowScrolling:'touch'}}>
+        ${hotSizes.map(function(h) {
+          const isActive = search === h.size;
+          return html`<button key=${h.size} type="button" class="press-scale"
+            onClick=${function(){ setSearch(isActive ? '' : h.size); }}
+            style=${{
+              flex:'0 0 auto',
+              background: isActive ? 'linear-gradient(135deg,#5a97ff,#3d7ef5)' : 'var(--s2)',
+              border: isActive ? '1px solid var(--blue)' : '1px solid var(--border)',
+              borderRadius: 14,
+              padding: '10px 14px',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              minWidth: 110,
+              boxShadow: isActive ? '0 4px 12px rgba(79,142,247,.3)' : 'none',
+            }}>
+            <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:800,fontSize:13,color:isActive?'#fff':'var(--t1)',letterSpacing:'-.2px'}}>${h.size}</div>
+            <div style=${{fontSize:10,color:isActive?'rgba(255,255,255,.85)':'var(--t3)',fontWeight:700,marginTop:2}}>${h.count} sold</div>
+          </button>`;
+        })}
+      </div>
+    </div>`}
+
+    <!-- search + view toggle + add -->
     <div style=${{display:'flex',gap:8,marginBottom:10}}>
       <input value=${search} onChange=${function(e){ setSearch(e.target.value); }}
         placeholder="Search tire size..."
-        style=${{flex:1,background:'var(--s2)',border:'1px solid var(--border)',borderRadius:12,padding:'13px 16px',fontSize:15,outline:'none',color:'var(--t1)'}}/>
+        style=${{flex:1,minWidth:0,background:'var(--s2)',border:'1px solid var(--border)',borderRadius:12,padding:'13px 16px',fontSize:15,outline:'none',color:'var(--t1)'}}/>
+      <button class="press-scale" onClick=${toggleCompactView}
+        title=${compactView ? 'Switch to list view' : 'Switch to compact view'}
+        style=${{flexShrink:0,padding:'13px 14px',fontSize:14,borderRadius:12,background:'var(--s2)',border:'1px solid var(--border)',color:'var(--t2)',cursor:'pointer',fontWeight:700,minWidth:48,display:'flex',alignItems:'center',justifyContent:'center'}}>
+        ${compactView ? '☰' : '⊟'}
+      </button>
       <button class="btn primary press-scale"
-        style=${{flexShrink:0,padding:'13px 20px',fontSize:14,borderRadius:12}}
+        style=${{flexShrink:0,padding:'13px 18px',fontSize:14,borderRadius:12}}
         onClick=${function(){ setNt(EMPTY_NEW); setNtError(''); setView('new'); }}>+ Add</button>
     </div>
 
@@ -3733,7 +3868,56 @@ function Inventory({inventory, setInventory, jobs, user}) {
     <!-- GROUPED LIST -->
     ${totalFilteredCount===0
       ? html`<${EmptyState} icon="🛞" title="No matching tires" sub=${search? "Try a different search." : "Tap + Add to log a tire."}/>`
-      : html`<div style=${{display:'flex',flexDirection:'column',gap:14}}>
+      : compactView
+        // ── COMPACT VIEW ──────────────────────────────────────────────
+        // Dense one-line per row, ~18px tall + padding. Fits ~20 rows
+        // per phone screen vs ~5 in list view. Grouped by size with a
+        // sticky size header. Tap row to expand the same edit panel.
+        ? html`<div class="card card-anim" style=${{overflow:'hidden'}}>
+            ${grouped.map(function(grp, gi){
+              return html`<div key=${grp.size}>
+                ${gi>0 && html`<div style=${{height:1,background:'var(--border2)'}}/>`}
+                <div style=${{padding:'8px 14px',background:'var(--s2)',borderBottom:'1px solid var(--border2)'}}>
+                  <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:800,fontSize:13,color:'var(--t1)',letterSpacing:'-.2px'}}>${grp.size}</div>
+                </div>
+                ${[...grp.newRows, ...grp.usedRows].map(function(item, idx, all){
+                  const isEditing = editId === item.id;
+                  const qty       = Number(item.qty || 0);
+                  const isOut     = qty === 0;
+                  const isLow     = qty > 0 && qty <= 2;
+                  const isUsed    = String(item.condition || '').toLowerCase() === 'used';
+                  const price     = Number(item.sellPrice || 0);
+                  const cost      = Number(item.cost || 0);
+                  const subline   = [item.brand, item.model].filter(Boolean).join(' ') || (isUsed ? 'Used' : 'New');
+                  const mInfo     = marginInfo(item);
+                  const mClr      = marginColors(mInfo.kind);
+                  return html`<div key=${item.id} style=${{borderBottom:idx<all.length-1?'1px solid var(--border2)':'none'}}>
+                    <div onClick=${function(){ setEditId(isEditing ? null : item.id); }}
+                      style=${{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',cursor:'pointer'}}>
+                      <!-- condition dot -->
+                      <div style=${{width:6,height:6,borderRadius:'50%',background:isUsed?'var(--amber)':'var(--green)',flexShrink:0}}/>
+                      <!-- name -->
+                      <div style=${{flex:1,minWidth:0,fontSize:13,fontWeight:600,color:'var(--t1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>${subline}</div>
+                      <!-- margin pill (compact) -->
+                      ${mInfo.pct !== null && html`<span style=${{fontSize:9,fontWeight:800,color:mClr.fg,background:mClr.bg,padding:'2px 6px',borderRadius:4,letterSpacing:'.2px',fontFamily:'"IBM Plex Mono",monospace',flexShrink:0}}>${mInfo.pct}%</span>`}
+                      <!-- price -->
+                      ${price > 0 && html`<div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:12,color:'var(--t2)',flexShrink:0,minWidth:48,textAlign:'right'}}>${money(price)}</div>`}
+                      <!-- qty pill -->
+                      <div style=${{
+                        background:isOut?'var(--red-dim)':(isLow?'var(--amber-dim)':'var(--s3)'),
+                        color:isOut?'var(--red)':(isLow?'var(--amber)':'var(--t1)'),
+                        fontFamily:'"IBM Plex Mono",monospace', fontWeight:800, fontSize:12,
+                        padding:'3px 9px', borderRadius:6, minWidth:32, textAlign:'center', flexShrink:0,
+                      }}>${qty}</div>
+                    </div>
+                    ${isEditing && renderEditPanel(item)}
+                  </div>`;
+                })}
+              </div>`;
+            })}
+          </div>`
+        // ── LIST VIEW (current default fat cards) ─────────────────────
+        : html`<div style=${{display:'flex',flexDirection:'column',gap:14}}>
           ${grouped.map(function(grp){
             return html`<div key=${grp.size} class="card card-anim" style=${{overflow:'hidden'}}>
               <!-- size header -->
@@ -4089,6 +4273,14 @@ function App() {
   // a rapid second click within one frame can re-enter saveJob before React
   // commits the first setSaving(true). useRef gives synchronous read/write.
   const savingLockRef = useRef(false);
+  // FIX (delete-all bug): the inventory listener originally had a `length > 0`
+  // guard to prevent an empty first-snapshot from clobbering local default
+  // inventory at fresh sign-in. That guard broke Delete All — once the user
+  // wiped the cloud, every intermediate listener fire pushed the partial
+  // remainder back into local state, making rows appear to "come back."
+  // This ref lets us tell first-snapshot from subsequent ones: trust local on
+  // first empty fire only, accept every fire after that (including empty).
+  const inventoryHasLoadedRef = useRef(false);
 
   // ── Auth listener ────────────────────────────────────────────────────────
   useEffect(()=>{
@@ -4115,18 +4307,22 @@ function App() {
     });
     const u2=fbListen(invCol(),docs=>{
       const docArr=Array.isArray(docs)?docs:[];
-      if(docArr.length>0){
-        setInventory(prev=>{
-          // Keep any blank/pending rows that exist in current local state
-          const blankRows=(Array.isArray(prev)?prev:[]).filter(i=>!(i.size||"").trim());
-          const fbItems=docArr.filter(d=>(d.size||"").trim()).map(sanitizeInvItem);
-          const deduped=dedupeInventory(fbItems);
-          const merged=[...blankRows,...deduped];
-          persist(KEYS.inventory,merged);
-          return merged;
-        });
-        setSyncStatus("connected");
-      }
+      // Guard: if cloud is empty AND we haven't loaded yet, skip — prevents a
+      // phantom first-fire from clobbering local default inventory at fresh
+      // sign-in. Once we've seen a non-empty snapshot, accept all subsequent
+      // fires (including empty) so Delete All actually persists.
+      if (!inventoryHasLoadedRef.current && docArr.length === 0) return;
+      if (docArr.length > 0) inventoryHasLoadedRef.current = true;
+      setInventory(prev=>{
+        // Keep any blank/pending rows that exist in current local state
+        const blankRows=(Array.isArray(prev)?prev:[]).filter(i=>!(i.size||"").trim());
+        const fbItems=docArr.filter(d=>(d.size||"").trim()).map(sanitizeInvItem);
+        const deduped=dedupeInventory(fbItems);
+        const merged=[...blankRows,...deduped];
+        persist(KEYS.inventory,merged);
+        return merged;
+      });
+      setSyncStatus("connected");
     });
     const u3=fbListen(expCol(),docs=>{const arr=Array.isArray(docs)?docs:[];setExpenses(arr);persist(KEYS.expenses,arr);});
     let u4=()=>{};
@@ -4415,11 +4611,26 @@ function App() {
       const next=Array.isArray(raw)?raw:prevArr;
       persist(KEYS.inventory,next);
       if(user && !isLocalUser(user) && invCol()) {
-        // Writes: all current rows with a size
-        next.filter(x=>(x.size||"").trim()).forEach(x=>fbSet(invCol(),x.id,invPayload(x)));
-        // Deletes: rows that existed before but are no longer present
-        const nextIds=new Set(next.map(x=>String(x.id)));
-        prevArr.forEach(x=>{ if(!nextIds.has(String(x.id))) fbDel(invCol(), x.id); });
+        // FIX (delete-all bug): when wiping to empty, use a batched delete
+        // instead of per-row forEach. Per-row fbDel fires the snapshot
+        // listener N times with shrinking doc lists, and each intermediate
+        // fire bounces partial remainders back into local state.
+        // Batched delete = single listener fire at the end = clean wipe.
+        if (next.length === 0 && prevArr.length > 0) {
+          const col = invCol();
+          const ids = prevArr.map(x => String(x.id)).filter(Boolean);
+          const CHUNK = 450; // Firestore batch limit is 500
+          for (let i = 0; i < ids.length; i += CHUNK) {
+            const slice = ids.slice(i, i + CHUNK);
+            const ops = slice.map(id => ({ type: 'delete', ref: col.doc(id) }));
+            fbBatch(ops);
+          }
+        } else {
+          // Normal path: write changed/added rows, delete missing rows.
+          next.filter(x=>(x.size||"").trim()).forEach(x=>fbSet(invCol(),x.id,invPayload(x)));
+          const nextIds=new Set(next.map(x=>String(x.id)));
+          prevArr.forEach(x=>{ if(!nextIds.has(String(x.id))) fbDel(invCol(), x.id); });
+        }
       }
       return next;
     });
