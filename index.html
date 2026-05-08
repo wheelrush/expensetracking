@@ -1663,8 +1663,16 @@ function CallCounter({jobsToday}) {
 }
 
 function Dashboard({jobs,settings,setTab,onRepeat,inventory,onStartJob}) {
-  const [qqForm,setQqForm]=useState({service:"Flat Tire Repair",vehicleType:"Car",miles:"",tireCost:"",miscCost:"",qty:1,revenue:"",emergency:false,lateNight:false,highway:false,weekend:false});
-  const [qqMode,setQqMode]=useState("suggested");
+// FIX: Default tireSource to "Customer supplied" so Quick Quote installs
+  // use the flat-tier pricing table (1=$90, 2=$140, 3=$190, 4=$220) instead
+  // of falling into per-tire scaling that overcharged customer-supplied jobs.
+  const [qqForm,setQqForm]=useState({
+    service:"Flat Tire Repair",
+    vehicleType:"Car",
+    tireSource:"Customer supplied",
+    miles:"",tireCost:"",miscCost:"",qty:1,revenue:"",
+    emergency:false,lateNight:false,highway:false,weekend:false
+  });  const [qqMode,setQqMode]=useState("suggested");
   const qqChange=(k,v)=>setQqForm(p=>({...p,[k]:v}));
   const qqApply=price=>setQqForm(p=>({...p,revenue:price}));
   const safeJobs=Array.isArray(jobs)?jobs:[];
