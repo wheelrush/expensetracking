@@ -625,6 +625,34 @@ function safeParse(v) {
   if (typeof v !== "string") return v;
   try { return JSON.parse(v); } catch { return v; }
 }
+// FIX: Centralized rehydration of fields stored as JSON strings in Firestore.
+// Avoids drift between three separate inline parse loops in fbListen handlers.
+// Future JSON-stored fields just need to be added here.
+function hydrateJobDoc(doc) {
+  if (!doc || typeof doc !== "object") return doc;
+  const out = {...doc};
+  if (typeof out.inventoryDeductions === "string") {
+    out.inventoryDeductions = safeParse(out.inventoryDeductions);
+  }
+  if (!Array.isArray(out.inventoryDeductions)) out.inventoryDeductions = null;
+  if (typeof out.inventoryUsed === "string") {
+    out.inventoryUsed = safeParse(out.inventoryUsed);
+  }
+  if (!out.inventoryUsed || typeof out.inventoryUsed !== "object") out.inventoryUsed = null;
+  return out;
+}
+function hydrateSettingsDoc(doc) {
+  if (!doc || typeof doc !== "object") return doc;
+  const out = {...doc};
+  Object.keys(out).forEach(k => {
+    const v = out[k];
+    if (typeof v === "string" && (v.startsWith("{") || v.startsWith("["))) {
+      const parsed = safeParse(v);
+      if (parsed && typeof parsed === "object") out[k] = parsed;
+    }
+  });
+  return out;
+}
 async function fbDel(col, id) {
   if (!col) return;
   try { await col.doc(String(id)).delete(); } catch(e) {}
@@ -897,8 +925,11 @@ const DEFAULT_SETTINGS = {
     {id:"e5",name:"Storage",amount:160,active:true},{id:"e6",name:"Equipment Payment",amount:232.37,active:true},
   ],
 };
+// FIX: startTime defaults to "" so saveJob's `form.startTime || NOW_HHMM()`
+// fallback fires at save time, not mount time. Previously a tech opening
+// AddJob at 9:15 and saving at 9:45 had "09:15" recorded forever.
 const EMPTY_JOB = () => ({
-  id:"", date:TODAY(), startTime:NOW_HHMM(), service:"Flat Tire Repair", vehicleType:"Car",
+  id:"", date:TODAY(), startTime:"", service:"Flat Tire Repair", vehicleType:"Car",
   area:"Miami", payment:"Cash",
   status:"Completed", source:"Google", customerName:"", customerPhone:"",
   tireSize:"", qty:1, revenue:"", tireCost:"", miscCost:"", miles:"", note:"",
@@ -933,6 +964,42 @@ const installFlatTotal = qty => {
   if (INSTALL_FLAT_PRICING[q]) return INSTALL_FLAT_PRICING[q];
   // 5+ tires: extend the 3→4 step ($30 each beyond 4)
   return INSTALL_FLAT_PRICING[4] + (q - 4) * 30;
+};
+
+// ── We-supply tier table ────────────────────────────────────────────────
+// When Wheel Rush provides the tires (Tire Replacement OR a Tire Installation
+// where source is Inventory or Bought-for-this-job), target profit follows a
+// tier table — NOT per-tire scaling. Reflects real cost structure:
+//   • Wheel Rush is fronting tire inventory
+//   • Mobile service has travel/time risk
+//   • Mounting / balancing / disposal overhead per tire
+//   • 4-tire jobs eat a large time block
+//   • Healthy margin must stay AFTER tire cost is recovered
+//
+// Vehicle add-on STACKS on top.
+//
+//   1 tire  = $120
+//   2 tires = $220
+//   3 tires = $320
+//   4 tires = $400
+//   5+      = $400 + $100/tire above 4 (steeper slope to protect fleet margin)
+//
+// To change tier values, edit this object only.
+const REPLACEMENT_TIER_PRICING = {1:120, 2:220, 3:320, 4:400};
+const replacementTierTotal = qty => {
+  const q = Math.max(1, Math.floor(Number(qty || 1)));
+  if (REPLACEMENT_TIER_PRICING[q]) return REPLACEMENT_TIER_PRICING[q];
+  // 5+ tires: $100 per tire above 4
+  return REPLACEMENT_TIER_PRICING[4] + (q - 4) * 100;
+};
+
+// True when this job uses the we-supply tier table (NOT customer-supplied,
+// NOT a non-tire service).
+const isWeSupplyTireJob = j => {
+  if (!j) return false;
+  if (!isTireMaterialService(j.service)) return false;
+  if (isCustomerSuppliedInstall(j)) return false;
+  return true;
 };
 
 // True only when this is an Installation job AND the customer brought their own tires.
@@ -988,7 +1055,12 @@ function calculateJobPricing(job, settings) {
   const qty         = Math.max(1, Number(j.qty || 1));
   const tireCost    = Math.max(0, Number(j.tireCost || 0)) * qty;
   const miscCost    = Math.max(0, Number(j.miscCost || 0));
-  const travelCost  = r2(miles * costPerMile);
+  // FIX: Suppress travel cost when miles ≤ 1. Trivial distances were causing
+  // the suggested price to round UP by $5 (e.g. customer-supplied install
+  // showed $225 instead of $220 when 1 mile entered). At ≤1 mile, treat as
+  // "on-site / no real travel" and zero out travel cost.
+  const trivialDistance = miles <= 1;
+  const travelCost  = trivialDistance ? 0 : r2(miles * costPerMile);
   const directCost  = r2(tireCost + miscCost + travelCost);
   const revenue     = Math.max(0, Number(j.revenue || 0));
   const actualProfit= r2(revenue - directCost);
@@ -1001,22 +1073,29 @@ function calculateJobPricing(job, settings) {
   const baseTarget = (svcRule && svcRule.minProfit != null && !isNaN(Number(svcRule.minProfit)))
     ? Number(svcRule.minProfit)
     : Number(s.defaultTargetProfit || 100);
-  // PATCH 2 (revised): Three pricing branches, picked by service + tire source:
+  // Three pricing branches, picked by service + tire source:
   //
-  //   A. Installation + customer-supplied tires → FLAT TIER table (1=$90, 2=$140, 3=$190, 4=$220, 5+:+$30 each)
+  //   A. Installation + customer-supplied tires → FLAT TIER table
+  //      (1=$90, 2=$140, 3=$190, 4=$220, 5+:+$30 each)
   //      Bundled labor — installing four tires isn't 4× the work of one.
-  //      No tire cost added (customer brought them). Vehicle add-on still applies.
   //
-  //   B. Replacement / Installation we provide → PER-TIRE profit × qty + tire cost
-  //      Each tire is a separate sale plus mount/balance labor.
+  //   B. Replacement / Installation we supply → TIER TABLE
+  //      (1=$120, 2=$220, 3=$320, 4=$400, 5+:+$100 each)
+  //      Vehicle add-on stacks on top. Settings minProfit IGNORED.
   //
   //   C. Repairs, roadside, rotations, etc. → FLAT target, no qty scaling
   //      Per-job regardless of tire count.
-  const isFlatInstall   = isCustomerSuppliedInstall(j);
-  const isMultiTireWork = !isFlatInstall && isTireMaterialService(j.service);
-  const targetProfit = isFlatInstall
-    ? (installFlatTotal(qty) + vehicleAdd)            // A: flat tier + vehicle add-on
-    : (baseTarget * (isMultiTireWork ? qty : 1)) + vehicleAdd; // B: per-tire scaling, or C: flat
+  const isFlatInstall = isCustomerSuppliedInstall(j);
+  const isWeSupply    = isWeSupplyTireJob(j);
+
+  let targetProfit;
+  if (isFlatInstall) {
+    targetProfit = installFlatTotal(qty) + vehicleAdd;            // A
+  } else if (isWeSupply) {
+    targetProfit = replacementTierTotal(qty) + vehicleAdd;        // B
+  } else {
+    targetProfit = baseTarget + vehicleAdd;                       // C
+  }
 
   const distanceAdj   = distancePremium(miles);
   const urgencyBase   = premiums(j);
@@ -1489,7 +1568,15 @@ function CityInput({value,onChange}) {
 // ── QuickQuote ────────────────────────────────────────────────────────────────
 function QuickQuote({form,settings,onApply,onFormChange,priceMode,setPriceMode}) {
   const customRef=useRef(null);
-  const hasInputs=Number(form.miles||0)>0||Number(form.tireCost||0)>0||Number(form.miscCost||0)>0;
+  // FIX: Tier-priced services (customer-supplied installs, we-supply
+  // replacements/installations) have a meaningful price with zero variable
+  // costs. Show suggested price as soon as service + qty are picked, no
+  // need to require miles/tireCost entry.
+  const isTierPriced = isCustomerSuppliedInstall(form) || isWeSupplyTireJob(form);
+  const hasInputs = isTierPriced
+    || Number(form.miles||0)>0
+    || Number(form.tireCost||0)>0
+    || Number(form.miscCost||0)>0;
 
   // SINGLE SOURCE OF TRUTH — all numbers come from the engine.
   const calc = calculateJobPricing(form, settings);
@@ -3457,12 +3544,30 @@ function Settings({settings,setSettings,jobs,setJobs,inventory,setInventory,expe
       ${SERVICE_KEYS.filter(k=>k!=="Other").map(name=>{
         const rule=(settings.servicePricing||{})[name]||DEFAULT_SERVICE_PRICING[name]||{enabled:true,basePrice:90,minProfit:60};
         const patchSvc=(patch)=>setSettings(p=>({...p,servicePricing:{...((p&&p.servicePricing)||DEFAULT_SERVICE_PRICING),[name]:{...rule,...patch}}}));
+        // Tier-based services don't use minProfit — the tier table in
+        // calculateJobPricing is authoritative. Hide minProfit field and
+        // show the tier breakdown so the owner sees what's actually charged.
+        const isTierBased = (name === "Tire Replacement" || name === "Tire Installation");
         return html`<div key=${name} style=${{padding:"14px 18px",borderBottom:"1px solid var(--border2)",opacity:rule.enabled===false?0.5:1}}>
           <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-            <div style=${{fontSize:14,fontWeight:700,color:"var(--t1)",letterSpacing:"-.2px"}}>${name}</div>
+            <div style=${{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+              <div style=${{fontSize:14,fontWeight:700,color:"var(--t1)",letterSpacing:"-.2px"}}>${name}</div>
+              ${isTierBased && html`<span style=${{fontSize:9,fontWeight:800,color:"var(--blue)",background:"var(--blue-dim)",borderRadius:999,padding:"2px 8px",letterSpacing:".3px"}}>TIER PRICING</span>`}
+            </div>
             <button onClick=${()=>patchSvc({enabled:!rule.enabled})} style=${{border:"none",borderRadius:20,padding:"4px 12px",fontSize:11,fontWeight:700,cursor:"pointer",background:rule.enabled!==false?"var(--green)":"var(--s3)",color:rule.enabled!==false?"#fff":"var(--t3)"}}>${rule.enabled!==false?"ON":"OFF"}</button>
           </div>
-          <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          ${isTierBased ? html`<div>
+            <div style=${{fontSize:11,color:"var(--t3)",marginBottom:8,lineHeight:1.5}}>
+              Target profit by qty (vehicle add-on stacks on top):
+            </div>
+            <div style=${{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginBottom:6}}>
+              ${[1,2,3,4].map(q => html`<div key=${q} style=${{padding:"8px 6px",background:"var(--s3)",border:"1px solid var(--border)",borderRadius:8,textAlign:"center"}}>
+                <div style=${{fontSize:9,fontWeight:800,color:"var(--t3)",letterSpacing:".5px"}}>${q} TIRE${q>1?"S":""}</div>
+                <div style=${{fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,fontSize:14,color:"var(--t1)",marginTop:3}}>${money(REPLACEMENT_TIER_PRICING[q])}</div>
+              </div>`)}
+            </div>
+            <div style=${{fontSize:10,color:"var(--t3)"}}>5+ tires: ${money(REPLACEMENT_TIER_PRICING[4])} + $100 per extra tire</div>
+          </div>` : html`<div style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
             <div>
               <div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:"1px",color:"var(--t3)",marginBottom:5}}>Base Price</div>
               <div style=${{position:"relative"}}>
@@ -3477,7 +3582,7 @@ function Settings({settings,setSettings,jobs,setJobs,inventory,setInventory,expe
                 <input type="number" min="0" value=${rule.minProfit||""} onChange=${e=>patchSvc({minProfit:Number(e.target.value||0)})} style=${{border:"1px solid var(--border)",background:"var(--s3)",color:"var(--t1)",borderRadius:10,padding:"10px 13px 10px 24px",fontSize:15,fontFamily:'"IBM Plex Mono",monospace',fontWeight:700,outline:"none",width:"100%"}}/>
               </div>
             </div>
-          </div>
+          </div>`}
         </div>`;
       })}
     </div>
@@ -3585,6 +3690,10 @@ function App() {
   const [prefill,setPrefill] = useState(null);
   const [editJob,setEditJob] = useState(null);
   const pendingRef = useRef([]);
+  // FIX: Synchronous lock for saveJob. useState's `saving` flag isn't synchronous;
+  // a rapid second click within one frame can re-enter saveJob before React
+  // commits the first setSaving(true). useRef gives synchronous read/write.
+  const savingLockRef = useRef(false);
 
   // ── Auth listener ────────────────────────────────────────────────────────
   useEffect(()=>{
@@ -3606,19 +3715,7 @@ function App() {
     setSyncStatus("syncing");
     const u1=fbListen(jobCol(),docs=>{
       const arr=Array.isArray(docs)?docs:[];
-      // Re-hydrate stringified fields from Firestore
-      const hydrated=arr.map(j=>{
-        const out={...j};
-        if(typeof out.inventoryDeductions==="string"){
-          try{ const p=JSON.parse(out.inventoryDeductions); out.inventoryDeductions=Array.isArray(p)?p:null; }
-          catch{ out.inventoryDeductions=null; }
-        }
-        if(typeof out.inventoryUsed==="string"){
-          try{ const p=JSON.parse(out.inventoryUsed); out.inventoryUsed=(p&&typeof p==="object")?p:null; }
-          catch{ out.inventoryUsed=null; }
-        }
-        return out;
-      });
+      const hydrated=arr.map(hydrateJobDoc);
       setJobs(hydrated);persist(KEYS.jobs,hydrated);setSyncStatus("connected");
     });
     const u2=fbListen(invCol(),docs=>{
@@ -3641,11 +3738,15 @@ function App() {
     if(settingDoc()){
       u4=settingDoc().onSnapshot(snap=>{
         if(snap&&snap.exists){
-          const d=snap.data();
-          Object.keys(d).forEach(k=>{if(typeof d[k]==="string"&&(d[k].startsWith("{")||d[k].startsWith("["))){try{const p=JSON.parse(d[k]);if(p&&typeof p==="object")d[k]=p;}catch{}}});
+          const d=hydrateSettingsDoc(snap.data());
           // Local edits win over stale Firestore snapshot. Debounced write-back
           // in the persist effect will push local state up to Firestore shortly.
-          setSettings(prev=>{const merged={...DEFAULT_SETTINGS,...d,...prev};if(!Array.isArray(merged.expenses))merged.expenses=DEFAULT_SETTINGS.expenses;persist(KEYS.settings,merged);return merged;});
+          setSettings(prev=>{
+            const merged={...DEFAULT_SETTINGS,...d,...prev};
+            if(!Array.isArray(merged.expenses))merged.expenses=DEFAULT_SETTINGS.expenses;
+            persist(KEYS.settings,merged);
+            return merged;
+          });
         }
       },()=>{});
     }
@@ -3670,11 +3771,11 @@ function App() {
   // ── Save job ─────────────────────────────────────────────────────────────
   // Returns { deductions, shortfall, sizeNormalized, foundAny } so caller can show feedback.
   const saveJob=useCallback(async(job,addAnother)=>{
-    // PATCH 3: Hard guard against double-fire. The Save button has disabled=${saving},
-    // but on slow networks the click can fire twice before React propagates the
-    // disabled state. Without this guard, the second call goes the edit path
-    // and replays inventory deduction, opening a window for state desync.
-    if (saving) return null;
+    // FIX: Synchronous mutex via useRef. Previous `if (saving)` check relied
+    // on React state propagation which has no synchronous guarantee — two
+    // clicks in one frame both passed the check, causing parallel saves.
+    if (savingLockRef.current) return null;
+    savingLockRef.current = true;
     setSaving(true);
     let deductions=null, shortfall=0, sizeNormalized="", foundAny=false;
     try{
@@ -3753,12 +3854,9 @@ function App() {
         }
       }
 
-      // Apply restore + deduct to real state.
-      // Use handleSetInventory (NOT setInventory) so localStorage + Firestore
-      // sync go through the canonical write path with full field set.
-      if (needsRestore) restoreInventoryDeduction(prevDeds, handleSetInventory);
-      if (plan && Array.isArray(plan.plan) && plan.plan.length > 0) applyInventoryDeduction(plan, handleSetInventory);
-
+      // FIX: Decide deduction state on the job object FIRST, mutate nothing yet.
+      // Inventory state changes happen ONLY after the cloud write succeeds —
+      // ensures local + cloud stay consistent on network failures.
       if (plan) {
         deductions = Array.isArray(plan.plan) ? plan.plan : [];
         shortfall  = Number(plan.shortfall||0);
@@ -3780,6 +3878,44 @@ function App() {
         full.inventoryShortfall = Number(prevJob.inventoryShortfall||0);
         full.inventoryUsed = prevJob.inventoryUsed || null;
       }
+
+      // FIX: Write JOB to Firestore FIRST. If write fails (network drop,
+      // permissions), no inventory deltas applied — clean failure mode.
+      // Local-only mode (no _db) skips this and proceeds to local state.
+      if(user && !isLocalUser(user) && jobCol()){
+        const dedStr = Array.isArray(full.inventoryDeductions) ? JSON.stringify(full.inventoryDeductions) : "";
+        const usedStr = full.inventoryUsed ? JSON.stringify(full.inventoryUsed) : "";
+        try {
+          await jobCol().doc(id).set({
+            id,date:String(full.date||""),startTime:String(full.startTime||""),service:String(full.service||""),vehicleType:String(full.vehicleType||""),area:String(full.area||""),source:String(full.source||""),payment:String(full.payment||""),status:String(full.status||"Completed"),
+            customerName:String(full.customerName||""),customerPhone:String(full.customerPhone||""),
+            tireSize:String(full.tireSize||""),qty:Number(full.qty||1),revenue:Number(full.revenue||0),
+            tireCost:Number(full.tireCost||0),miscCost:Number(full.miscCost||0),miles:Number(full.miles||0),
+            note:String(full.note||""),
+            emergency:!!full.emergency,lateNight:!!full.lateNight,highway:!!full.highway,weekend:!!full.weekend,
+            tireSource:String(full.tireSource||"Inventory"),
+            tireBrand:String(full.tireBrand||""),
+            tireModel:String(full.tireModel||""),
+            tireVendor:String(full.tireVendor||""),
+            saveToInventory:!!full.saveToInventory,
+            inventoryItemId:String(full.inventoryItemId||""),
+            inventoryDeducted:!!full.inventoryDeducted,
+            inventoryDeductions: dedStr,
+            inventoryShortfall: Number(full.inventoryShortfall||0),
+            inventoryUsed: usedStr,
+          });
+        } catch (e) {
+          console.warn("saveJob: Firestore write failed, aborting inventory delta:", e);
+          try { if (window.toast) window.toast("Save failed — try again", "error"); } catch(_){}
+          return null;  // Don't apply inventory deltas if cloud write failed
+        }
+      }
+
+      // Cloud write succeeded (or local-only mode). NOW apply inventory deltas + job state.
+      // Use handleSetInventory (NOT setInventory) so localStorage + Firestore
+      // sync go through the canonical write path with full field set.
+      if (needsRestore) restoreInventoryDeduction(prevDeds, handleSetInventory);
+      if (plan && Array.isArray(plan.plan) && plan.plan.length > 0) applyInventoryDeduction(plan, handleSetInventory);
 
       setJobs(prev=>{const arr=Array.isArray(prev)?prev:[];const exists=arr.find(j=>j.id===id);const next=exists?arr.map(j=>j.id===id?full:j):[full,...arr];persist(KEYS.jobs,next);return next;});
 
@@ -3813,29 +3949,7 @@ function App() {
           }
         } catch(e) { console.warn("saveToInventory:", e); }
       }
-
-      if(user && !isLocalUser(user) && jobCol()){
-        const dedStr = Array.isArray(full.inventoryDeductions) ? JSON.stringify(full.inventoryDeductions) : "";
-        const usedStr = full.inventoryUsed ? JSON.stringify(full.inventoryUsed) : "";
-        await fbSet(jobCol(),id,{
-          id,date:String(full.date||""),startTime:String(full.startTime||""),service:String(full.service||""),vehicleType:String(full.vehicleType||""),area:String(full.area||""),source:String(full.source||""),payment:String(full.payment||""),status:String(full.status||"Completed"),
-          customerName:String(full.customerName||""),customerPhone:String(full.customerPhone||""),
-          tireSize:String(full.tireSize||""),qty:Number(full.qty||1),revenue:Number(full.revenue||0),
-          tireCost:Number(full.tireCost||0),miscCost:Number(full.miscCost||0),miles:Number(full.miles||0),
-          note:String(full.note||""),
-          emergency:!!full.emergency,lateNight:!!full.lateNight,highway:!!full.highway,weekend:!!full.weekend,
-          tireSource:String(full.tireSource||"Inventory"),
-          tireBrand:String(full.tireBrand||""),
-          tireModel:String(full.tireModel||""),
-          tireVendor:String(full.tireVendor||""),
-          saveToInventory:!!full.saveToInventory,
-          inventoryItemId:String(full.inventoryItemId||""),
-          inventoryDeducted:!!full.inventoryDeducted,
-          inventoryDeductions: dedStr,
-          inventoryShortfall: Number(full.inventoryShortfall||0),
-          inventoryUsed: usedStr,
-        });
-      }
+      // Firestore job write moved earlier (cloud-first ordering — see above).
       if(!addAnother){setTab("dashboard");setEditJob(null);}
 
       // Toast feedback + haptic (Android vibrates, iOS no-op)
@@ -3857,9 +3971,12 @@ function App() {
         }
       } catch(e){}
     }catch(e){console.warn("saveJob:",e);}
-    finally{setSaving(false);}
+    finally{
+      savingLockRef.current = false;
+      setSaving(false);
+    }
     return { deductions, shortfall, sizeNormalized, foundAny };
-  },[user,inventory,jobs,saving]);
+  },[user,inventory,jobs]);  // saving removed — ref handles it synchronously
   // Note: handleSetInventory is referenced inside but not in deps because it
   // would cause TDZ — it's declared after saveJob. Safe because it only
   // depends on `user`, which IS in saveJob's deps.
@@ -3930,7 +4047,15 @@ function App() {
       let deds=targetJob.inventoryDeductions;
       if(typeof deds==="string"){try{deds=JSON.parse(deds);}catch{deds=null;}}
       if(Array.isArray(deds)&&deds.length>0){
-        try{restoreInventoryDeduction(deds,handleSetInventory);restoredOnceRef.current.add(id);didRestore=true;}catch(e){console.warn("restore:",e);}
+        try{
+          restoreInventoryDeduction(deds,handleSetInventory);
+          restoredOnceRef.current.add(id);
+          didRestore=true;
+          // FIX: Auto-release ID after 5s. Long enough to dedupe rapid double-tap
+          // delete clicks, short enough that re-import + delete restores again.
+          // Previously the Set never cleared, silently skipping restore on re-imports.
+          setTimeout(()=>{ restoredOnceRef.current.delete(id); }, 5000);
+        }catch(e){console.warn("restore:",e);}
       }
     }
     setJobs(prev=>{const arr=Array.isArray(prev)?prev:[];const next=arr.filter(j=>j.id!==id);persist(KEYS.jobs,next);return next;});
