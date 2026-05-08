@@ -1993,6 +1993,22 @@ function AddJob({onSave,settings,jobs,inventory,prefill,onClearPrefill,editJob,o
     if (isTireMaterialService(form.service)) {
       const src = form.tireSource;
       const tcost = Number(form.tireCost || 0);
+
+      // AUDIT FIX #2: Tire size is required on any installation/replacement job —
+      // it ends up on the PDF invoice, drives inventory matching, and prevents
+      // silent "blank tire size" jobs that confuse the customer record.
+      const sizeTyped = String(form.tireSize||"").trim();
+      if (!sizeTyped) {
+        setError("Enter the tire size (e.g. 225/55R17)");
+        scrollToError();
+        return;
+      }
+      if (!normalizeTireSize(sizeTyped)) {
+        setError("Tire size format unclear — should look like 225/55R17");
+        scrollToError();
+        return;
+      }
+
       if (src === "Bought for this job" && tcost <= 0) {
         setError("Enter tire cost for this job");
         scrollToError();
@@ -2262,6 +2278,14 @@ function AddJob({onSave,settings,jobs,inventory,prefill,onClearPrefill,editJob,o
         ${/* CUSTOMER: just a gentle reminder */ ""}
         ${form.tireSource==="Customer supplied" && html`<div style=${{fontSize:12,color:"var(--t3)",padding:"8px 12px",background:"var(--s2)",border:"1px solid var(--border)",borderRadius:10}}>
           Customer brought their own tire. Tire cost defaults to $0; no inventory is deducted.
+        </div>`}
+
+        ${/* AUDIT FIX #1: Tire Replacement + Customer supplied is contradictory.
+            Replacement = we provide the tires. If customer brought tires, that's an Installation.
+            We don't auto-flip the service (that'd surprise the user); we suggest it. */ ""}
+        ${form.tireSource==="Customer supplied" && /replacement/i.test(String(form.service||"")) && html`<div style=${{fontSize:12,color:"var(--amber)",fontWeight:600,padding:"10px 12px",background:"var(--amber-dim)",border:"1px solid rgba(245,158,11,.3)",borderRadius:10,marginTop:8,display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}}>
+          <span>⚠ Customer-supplied + Replacement looks wrong. This should usually be <b>Tire Installation</b> for flat-tier pricing.</span>
+          <button type="button" class="btn sm press-scale" style=${{background:"var(--amber)",color:"#0a0a0f",border:"none",padding:"6px 12px",fontSize:11,fontWeight:700,flexShrink:0,whiteSpace:"nowrap"}} onClick=${()=>setF("service","Tire Installation")}>Switch</button>
         </div>`}
       </div>`}
 
