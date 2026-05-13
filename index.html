@@ -1981,11 +1981,11 @@ function AddJob({onSave,settings,jobs,inventory,prefill,onClearPrefill,editJob,o
         <div class="field"><label>Service</label><div class="chip-row">${SERVICE_OPTIONS.filter(s=>{const sp=(settings.servicePricing||{})[s]||DEFAULT_SERVICE_PRICING[s];return s==="Other"||!sp||sp.enabled!==false;}).map(s=>html`<button type="button" key=${s} class=${"chip sm"+(form.service===s?" active":"")} onClick=${()=>setF("service",s)}>${s}</button>`)}</div></div>
         <div class="field"><label>Vehicle Type</label><div class="chip-row">${VEHICLE_TYPES.map(v=>{const addOn=getVehicleAddOn(v,settings);return html`<button key=${v} type="button" class=${"chip"+(form.vehicleType===v?" active":"")} onClick=${()=>setF("vehicleType",v)}>${v}${addOn>0?" +$"+addOn:""}</button>`;})}</div></div>
         <div class="field"><label>Conditions</label><div class="chip-row">${FLAGS.map(([key,label,amt])=>html`<button type="button" key=${key} class=${"chip"+(form[key]?" active":"")} onClick=${()=>setF(key,!form[key])}>${label+(form[key]?" +$"+amt:"")}</button>`)}</div></div>
-        <div class="field-row" style=${{display:"grid",gridTemplateColumns:"1.2fr 1fr 1fr",gap:10}}>
+        <div class="field-row">
           <div class="field"><label>Date</label><input type="date" value=${form.date} onChange=${e=>setF("date",e.target.value)}/></div>
           <div class="field"><label>Time</label><input type="time" value=${form.startTime||""} onChange=${e=>setF("startTime",e.target.value)}/></div>
-          <div class="field"><label>Status</label><select value=${form.status} onChange=${e=>setF("status",e.target.value)}><option>Completed</option><option>Pending</option></select></div>
         </div>
+        <div class="field" style=${{marginTop:10}}><label>Status</label><select value=${form.status} onChange=${e=>setF("status",e.target.value)}><option>Completed</option><option>Pending</option></select></div>
         <div class="field"><label>Lead Source</label><div class="src-grid">${SOURCE_QUICK.map(s=>html`<button key=${s.label} type="button" class=${"src-btn press-scale"+(form.source===s.label?" active":"")} onClick=${()=>setF("source",s.label)}>${s.icon+" "+s.label}</button>`)}</div></div>
       </div>
 
